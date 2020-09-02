@@ -19,17 +19,16 @@ keys_to_features = {
 }
 
 @tf.function
-def train_parse_function(proto):
+def train_parse_function(proto_batch):
     # Load one example
-    parsed_features = tf.io.parse_single_example(proto, keys_to_features)
-    #return parsed_features['output_label'], parsed_features['output_label']
+    parsed_features = tf.io.parse_example(proto_batch, keys_to_features)
     return parsed_features['input'], parsed_features['output_label']
 
 # Define dataset
 dataset = tf.data.TFRecordDataset( [ 'data/dataset.tfrecord' ] )
+dataset = dataset.prefetch(10000)
+dataset = dataset.shuffle(10000).batch(128)
 dataset = dataset.map( train_parse_function , num_parallel_calls=8 )
-#dataset = dataset.map( train_parse_function )
-dataset = dataset.shuffle(5000).batch(64)
 
 product_labels = ProductLabels.load()
 print( len(product_labels.labels) )
