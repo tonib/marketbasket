@@ -2,9 +2,7 @@ from typing import List, Dict
 from operator import itemgetter
 import heapq
 from product_labels import ProductLabels
-
-# Max number of items to handle
-N_MAX_ITEMS = 100
+from settings import Settings
 
 # Number of item ocurrences in transactions (key = item key, value = n. ocurrences)
 items_instances: Dict[str, int] = {}
@@ -23,16 +21,18 @@ with open('data/transactions.txt') as trn_file:
                     items_instances[item] = 1
 
 print("# transactions with more than one item:", n_transactions )
-print("# items:", len(items_instances))
+print("# total items:", len(items_instances))
 
 # Get items with max number of ocurrences (idx 0 = item description, idx = 1, nº instances)
-top_item_ocurrences: Dict[str, int] = dict( heapq.nlargest(N_MAX_ITEMS, items_instances.items(), key=itemgetter(1)) )
+top_item_ocurrences: Dict[str, int] = dict( heapq.nlargest(Settings.N_MAX_ITEMS, items_instances.items(), key=itemgetter(1)) )
 
 # Save top item codes
 product_labels = ProductLabels( top_item_ocurrences.keys() )
 product_labels.save()
+print("# top items to predict:", len(product_labels.labels) )
 
 # Filter transactions
+n_transactions = 0
 with open('data/transactions.txt') as trn_file:
     with open('data/transactions_top_items.txt', 'w') as trn_top_file:
 
@@ -48,4 +48,6 @@ with open('data/transactions.txt') as trn_file:
             if len(top_items_transaction) > 1:
                 # Ignore single item transactions (not useful to search relations...)
                 trn_top_file.write( ' '.join(top_items_transaction) + '\n' )
+                n_transactions += 1
 
+print("# final transactions:", n_transactions )

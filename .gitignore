@@ -1,7 +1,16 @@
-logs
 
+# Python stuff
 __pycache__
-
 venv
 
+# Train data
 data
+
+# Model checkpoints
+checkpoints
+
+# Tensorboard logs
+logs
+
+# VS Code stuff
+.vscode
