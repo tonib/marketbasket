@@ -20,15 +20,21 @@ class Labels:
             for label in self.labels:
                 labels_file.write(label + '\n')
 
-    def contains(self, label: str):
+    def contains(self, label: str) -> bool:
         return label in self.indices
 
     def append(self, label: str):
         self.indices[label] = len(self.labels)
         self.labels.append(label)
 
+    def label_index(self, label: str) -> int:
+        return self.indices[label]
+
+    def labels_indices(self, labels: List[str]) -> List[int]:
+        return [self.indices[label] for label in labels]
+
     @staticmethod
-    def load(path: str) -> 'ProductLabels':
+    def load(path: str) -> 'Labels':
         labels: List[str] = []
         with open(path) as labels_file:
             for label in labels_file:
