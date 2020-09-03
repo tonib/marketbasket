@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-class ProductLabels:
+class Labels:
 
     UNKNOWN_LABEL = "[UNKNOWN]"
 
@@ -17,8 +17,8 @@ class ProductLabels:
 
     def save(self, path: str):
         with open(path, 'w') as labels_file:
-            for item_code in self.labels:
-                labels_file.write(item_code + '\n')
+            for label in self.labels:
+                labels_file.write(label + '\n')
 
     def contains(self, label: str):
         return label in self.indices
@@ -33,4 +33,4 @@ class ProductLabels:
         with open(path) as labels_file:
             for label in labels_file:
                 labels.append(label.strip())
-        return ProductLabels(labels)
+        return Labels(labels)

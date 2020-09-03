@@ -1,10 +1,10 @@
 
 from model import create_model
 import tensorflow as tf
-from product_labels import ProductLabels
+from labels import Labels
 
 # Load product labels
-product_labels = ProductLabels.load()
+product_labels = Labels.load()
 
 model = create_model(product_labels)
 

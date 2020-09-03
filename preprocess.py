@@ -1,7 +1,7 @@
 from typing import List, Dict
 from operator import itemgetter
 import heapq
-from product_labels import ProductLabels
+from labels import Labels
 from settings import Settings
 from transaction import Transaction
 
@@ -40,8 +40,8 @@ print("# total items:", len(items_occurrences))
 print("# total customers:", len(customers_occurrences))
 
 # Save top item/customer labels
-item_labels = ProductLabels( get_top_labels(items_occurrences, Settings.N_MAX_ITEMS) )
-customer_labels = ProductLabels( get_top_labels(customers_occurrences, Settings.N_MAX_CUSTOMERS) )
+item_labels = Labels( get_top_labels(items_occurrences, Settings.N_MAX_ITEMS) )
+customer_labels = Labels( get_top_labels(customers_occurrences, Settings.N_MAX_CUSTOMERS) )
 
 # Filter transactions
 n_transactions = 0
@@ -64,7 +64,7 @@ with open('data/transactions.txt') as trn_file:
 
                 # Keep top customer only
                 if not customer_labels.contains(transaction.customer_label):
-                    transaction.customer_label = ProductLabels.UNKNOWN_LABEL
+                    transaction.customer_label = Labels.UNKNOWN_LABEL
                     there_are_unknown_customers = True
                 else:
                     n_transactions_with_customer_id += 1
@@ -74,8 +74,8 @@ with open('data/transactions.txt') as trn_file:
 
 
 item_labels.save(Settings.ITEM_LABELS_FILE)
-if there_are_unknown_customers and not customer_labels.contains(ProductLabels.UNKNOWN_LABEL):
-    customer_labels.append(ProductLabels.UNKNOWN_LABEL)
+if there_are_unknown_customers and not customer_labels.contains(Labels.UNKNOWN_LABEL):
+    customer_labels.append(Labels.UNKNOWN_LABEL)
 customer_labels.save(Settings.CUSTOMER_LABELS_FILE)
 
 print("# top items:", len(item_labels.labels) )

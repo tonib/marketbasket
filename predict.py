@@ -1,9 +1,9 @@
 import tensorflow as tf
-from product_labels import ProductLabels
+from labels import Labels
 import numpy as np
 from operator import itemgetter
 
-product_labels = ProductLabels.load()
+product_labels = Labels.load()
 
 model = tf.keras.models.load_model('model/exported_model')
 model.summary()

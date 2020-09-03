@@ -1,5 +1,5 @@
 import tensorflow as tf
-from product_labels import ProductLabels
+from labels import Labels
 from datetime import datetime
 from tensorflow.python.framework.ops import disable_eager_execution
 from settings import Settings
@@ -18,7 +18,7 @@ for n_eval_batches, _ in enumerate(train_dataset):
 disable_eager_execution()
 
 # Load product labels
-product_labels = ProductLabels.load()
+product_labels = Labels.load()
 N_ITEMS = len( product_labels.labels )
 
 # Feature mappings for training

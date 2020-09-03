@@ -1,7 +1,7 @@
 import tensorflow as tf
-from product_labels import ProductLabels
+from labels import Labels
 
-def create_model(product_labels: ProductLabels) -> tf.keras.Sequential:
+def create_model(product_labels: Labels) -> tf.keras.Sequential:
     n_items = len(product_labels.labels)
     return tf.keras.Sequential([
         tf.keras.layers.Input(sparse=True, shape=n_items, name="input"),
