@@ -6,11 +6,8 @@ venv
 # Train data
 data
 
-# Model checkpoints
-checkpoints
-
-# Tensorboard logs
-logs
+# Model stuff (tensorboard logs, checkpoints, saved models)
+model
 
 # VS Code stuff
 .vscode

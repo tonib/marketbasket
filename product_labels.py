@@ -24,5 +24,5 @@ class ProductLabels:
         labels: List[str] = []
         with open('data/itemcodes.txt') as item_codes_file:
             for label in item_codes_file:
-                labels.append(label)
+                labels.append(label.strip())
         return ProductLabels(labels)

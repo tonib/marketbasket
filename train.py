@@ -3,6 +3,7 @@ from product_labels import ProductLabels
 from datetime import datetime
 from tensorflow.python.framework.ops import disable_eager_execution
 from settings import Settings
+from model import create_model
 
 # We need the batches number in evaluation dataset, so here is:
 # (This will be executed in eager mode)
@@ -20,9 +21,7 @@ disable_eager_execution()
 product_labels = ProductLabels.load()
 N_ITEMS = len( product_labels.labels )
 
-# https://medium.com/@moritzkrger/speeding-up-keras-with-tfrecord-datasets-5464f9836c36
-
-# define your tfrecord again. Remember that you saved your image as a string.
+# Feature mappings for training
 keys_to_features = {
     'input': tf.io.SparseFeature('sparse_indices', 'sparse_values', tf.float32,  N_ITEMS, False),
     'output_label': tf.io.FixedLenFeature([], tf.int64)
@@ -46,26 +45,22 @@ eval_dataset = eval_dataset.prefetch(10000)
 eval_dataset = eval_dataset.batch( Settings.BATCH_SIZE )
 eval_dataset = eval_dataset.map( example_parse_function )
 
-model = tf.keras.Sequential([
-    tf.keras.layers.Input(sparse=True, shape=N_ITEMS),
-    tf.keras.layers.Dense(256),
-    tf.keras.layers.Dense(256, activation='relu'),
-    tf.keras.layers.Dense( len(product_labels.labels) )
-])
+model = create_model(product_labels)
 
+# TODO: check loss function...
 model.compile(optimizer='adam',
-              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
               metrics=['accuracy'])
 
 model.summary()
 
 # Tensorboard
 #logdir = "logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-logdir = "logs"
+logdir = "model/logs"
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 
 # Save checkpoints
-cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath='checkpoints/checkpoint',
+cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath='model/checkpoints/cp-{epoch:04d}.ckpt',
                                                  save_weights_only=True,
                                                  verbose=1)
 
@@ -76,12 +71,3 @@ model.fit(train_dataset,
           callbacks=[tensorboard_callback, cp_callback], 
           validation_data=eval_dataset,
           validation_steps=n_eval_batches)
-
-
-# for epoch in range(Settings.N_EPOCHS):
-#     model.fit(train_dataset, 
-#             callbacks=[tensorboard_callback, cp_callback])
-
-# model.fit(train_dataset, 
-#         callbacks=[tensorboard_callback, cp_callback],
-#         epochs=Settings.N_EPOCHS)
