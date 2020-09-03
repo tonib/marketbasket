@@ -17,15 +17,19 @@ for n_eval_batches, _ in enumerate(train_dataset):
 # Be sure we use Graph mode (performance)
 disable_eager_execution()
 
-# Load product labels
-product_labels = Labels.load()
-N_ITEMS = len( product_labels.labels )
+# Load labels
+item_labels = Labels.load(Settings.ITEM_LABELS_FILE)
+N_ITEMS = len( item_labels.labels )
+customer_labels = Labels.load(Settings.CUSTOMER_LABELS_FILE)
+N_CUSTOMERS = len( customer_labels.labels )
 
 # Feature mappings for training
 keys_to_features = {
     'input': tf.io.SparseFeature('sparse_indices', 'sparse_values', tf.float32,  N_ITEMS, False),
     'output_label': tf.io.FixedLenFeature([], tf.int64)
 }
+if Settings.N_MAX_CUSTOMERS > 0:
+    keys_to_features['customer'] = tf.io.FixedLenFeature([], tf.int64)
 
 @tf.function
 def example_parse_function(proto_batch):
@@ -45,7 +49,7 @@ eval_dataset = eval_dataset.prefetch(10000)
 eval_dataset = eval_dataset.batch( Settings.BATCH_SIZE )
 eval_dataset = eval_dataset.map( example_parse_function )
 
-model = create_model(product_labels)
+model = create_model(item_labels)
 
 # TODO: check loss function...
 model.compile(optimizer='adam',
