@@ -2,6 +2,8 @@ from typing import List, Dict
 
 class ProductLabels:
 
+    UNKNOWN_LABEL = "[UNKNOWN]"
+
     def __init__(self, labels: List[str]):
 
         # Index to label access
@@ -11,18 +13,24 @@ class ProductLabels:
         self.indices: Dict[str, int] = {}
 
         for label in labels:
-            self.indices[label] = len(self.labels)
-            self.labels.append(label)
+            self.append(label)
 
-    def save(self):
-        with open('data/itemcodes.txt', 'w') as item_codes_file:
+    def save(self, path: str):
+        with open(path, 'w') as labels_file:
             for item_code in self.labels:
-                item_codes_file.write(item_code + '\n')
+                labels_file.write(item_code + '\n')
+
+    def contains(self, label: str):
+        return label in self.indices
+
+    def append(self, label: str):
+        self.indices[label] = len(self.labels)
+        self.labels.append(label)
 
     @staticmethod
-    def load() -> 'ProductLabels':
+    def load(path: str) -> 'ProductLabels':
         labels: List[str] = []
-        with open('data/itemcodes.txt') as item_codes_file:
-            for label in item_codes_file:
+        with open(path) as labels_file:
+            for label in labels_file:
                 labels.append(label.strip())
         return ProductLabels(labels)

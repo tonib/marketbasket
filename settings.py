@@ -4,6 +4,9 @@ class Settings:
     # Max number of items to handle
     N_MAX_ITEMS = 1000
 
+    # Max number customers to handle
+    N_MAX_CUSTOMERS = 100
+
     # Ratio (1 = 100%) of samples to use for evaluation
     EVALUATION_RATIO = 0.15
 
@@ -12,3 +15,7 @@ class Settings:
 
     # Epochs to train
     N_EPOCHS = 30
+
+    ITEM_LABELS_FILE = 'data/itemlabels.txt'
+    
+    CUSTOMER_LABELS_FILE = 'data/customerlabels.txt'
