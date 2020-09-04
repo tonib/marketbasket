@@ -22,8 +22,4 @@ class Settings:
     # Customer labels file path
     CUSTOMER_LABELS_FILE = 'data/customerlabels.txt'
 
-    # Train dataset file path
-    TRAIN_DATASET_FILE = 'data/dataset_train.tfrecord'
-
-    # Train dataset file path
-    EVAL_DATASET_FILE = 'data/dataset_eval.tfrecord'
+    

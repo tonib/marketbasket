@@ -6,6 +6,7 @@ import random
 from settings import Settings
 from transaction import Transaction
 from labels import Labels
+from dataset import DataSet
 
 n_train_samples = 0
 n_eval_samples = 0
@@ -27,8 +28,8 @@ def transaction_to_example(customer_idx: int, transaction: Transaction, item_idx
 
     return tf.train.Example(features=tf.train.Features(feature=features))
 
-with tf.io.TFRecordWriter(Settings.TRAIN_DATASET_FILE) as train_writer:
-    with tf.io.TFRecordWriter(Settings.EVAL_DATASET_FILE) as eval_writer:
+with tf.io.TFRecordWriter(DataSet.TRAIN_DATASET_FILE) as train_writer:
+    with tf.io.TFRecordWriter(DataSet.EVAL_DATASET_FILE) as eval_writer:
         with open('data/transactions_top_items.txt') as trn_file:
             for line in trn_file:
                 # Item indices in transaction
