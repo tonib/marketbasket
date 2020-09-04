@@ -73,10 +73,10 @@ with open('data/transactions.txt') as trn_file:
                 n_transactions += 1
 
 
-item_labels.save(Settings.ITEM_LABELS_FILE)
+item_labels.save(Labels.ITEM_LABELS_FILE)
 if there_are_unknown_customers and not customer_labels.contains(Labels.UNKNOWN_LABEL):
     customer_labels.append(Labels.UNKNOWN_LABEL)
-customer_labels.save(Settings.CUSTOMER_LABELS_FILE)
+customer_labels.save(Labels.CUSTOMER_LABELS_FILE)
 
 print("# top items:", len(item_labels.labels) )
 print("# top customers:", len(customer_labels.labels) )

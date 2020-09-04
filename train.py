@@ -19,9 +19,9 @@ for n_eval_batches, _ in enumerate(train_dataset):
 disable_eager_execution()
 
 # Load labels
-item_labels = Labels.load(Settings.ITEM_LABELS_FILE)
+item_labels = Labels.load(Labels.ITEM_LABELS_FILE)
 N_ITEMS = len( item_labels.labels )
-customer_labels = Labels.load(Settings.CUSTOMER_LABELS_FILE)
+customer_labels = Labels.load(Labels.CUSTOMER_LABELS_FILE)
 N_CUSTOMERS = len( customer_labels.labels )
 
 # Feature mappings for training

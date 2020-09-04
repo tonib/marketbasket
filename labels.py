@@ -2,7 +2,14 @@ from typing import List, Dict
 
 class Labels:
 
+    # Label for unknown customers
     UNKNOWN_LABEL = "[UNKNOWN]"
+
+    # Items labels file path
+    ITEM_LABELS_FILE = 'data/itemlabels.txt'
+    
+    # Customer labels file path
+    CUSTOMER_LABELS_FILE = 'data/customerlabels.txt'
 
     def __init__(self, labels: List[str]):
 

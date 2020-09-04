@@ -11,8 +11,8 @@ from dataset import DataSet
 n_train_samples = 0
 n_eval_samples = 0
 
-customer_labels = Labels.load(Settings.CUSTOMER_LABELS_FILE)
-item_labels = Labels.load(Settings.ITEM_LABELS_FILE)
+customer_labels = Labels.load(Labels.CUSTOMER_LABELS_FILE)
+item_labels = Labels.load(Labels.ITEM_LABELS_FILE)
 
 def transaction_to_example(customer_idx: int, transaction: Transaction, item_idx: int) -> tf.train.Example:
     output: int = item_labels.label_index( transaction.item_labels[item_idx] )

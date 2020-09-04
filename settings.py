@@ -15,11 +15,4 @@ class Settings:
 
     # Epochs to train
     N_EPOCHS = 30
-
-    # Items labels file path
-    ITEM_LABELS_FILE = 'data/itemlabels.txt'
-    
-    # Customer labels file path
-    CUSTOMER_LABELS_FILE = 'data/customerlabels.txt'
-
     

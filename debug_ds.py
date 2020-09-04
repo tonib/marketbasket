@@ -2,7 +2,7 @@ import tensorflow as tf
 from settings import Settings
 from labels import Labels
 
-item_labels = Labels.load(Settings.ITEM_LABELS_FILE)
+item_labels = Labels.load(Labels.ITEM_LABELS_FILE)
 N_ITEMS = len( item_labels.labels )
 
 # Feature mappings for training
