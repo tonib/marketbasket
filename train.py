@@ -25,14 +25,11 @@ N_CUSTOMERS = len( customer_labels.labels )
 
 # Feature mappings for training
 keys_to_features = {
-    'input': tf.io.RaggedFeature(tf.int64, 'sparse_indices'),
-    #'sparse_indices': tf.io.VarLenFeature( tf.int64 ),
-    'output_label': tf.io.FixedLenFeature([], tf.int64)
+    'input_items_idx': tf.io.RaggedFeature(tf.int64, 'input_items_idx'),
+    'output_item_idx': tf.io.FixedLenFeature([], tf.int64)
 }
-#print("---------------------- ", keys_to_features['sparse_indices'] )
-
 if Settings.N_MAX_CUSTOMERS > 0:
-    keys_to_features['customer'] = tf.io.FixedLenFeature([], tf.int64)
+    keys_to_features['customer_idx'] = tf.io.FixedLenFeature([], tf.int64)
 
 
 @tf.function
@@ -45,18 +42,23 @@ def raged_lists_batch_to_multihot(ragged_lists_batch, multihot_dim):
 def example_parse_function(proto_batch):
     # Load one example
     parsed_features = tf.io.parse_example(proto_batch, keys_to_features)
-    items_input = parsed_features['input']
+
+    # Map batch of list of item indices to a batch of multi-hot arrays
+    # Ex [ [1, 2] , [2, 3] ] -> [ [ 0 , 1 , 1 , 0 ] , [ 0 , 0 , 1 , 1 ] ]
+    items_input = parsed_features['input_items_idx']
     items_input = raged_lists_batch_to_multihot( items_input , N_ITEMS )
 
     if Settings.N_MAX_CUSTOMERS > 0:
         # Batch of customer indices. Ex: [1, 2]
-        customer = parsed_features['customer']
+        customer = parsed_features['customer_idx']
         # Batch of one hot encodings. Ex: [ [0 , 1 , 0], [0, 0, 1] ]
         customer = tf.one_hot(customer, N_CUSTOMERS)
-        input = { 'input': items_input , 'customer': customer }
+        input = { 'input_items_idx': items_input , 'customer_idx': customer }
     else:
         input = items_input
-    return input, parsed_features['output_label']
+
+    # Return tuple (net input, expected output)
+    return input, parsed_features['output_item_idx']
 
 # Define train dataset
 train_dataset = tf.data.TFRecordDataset( [ Settings.TRAIN_DATASET_FILE ] )

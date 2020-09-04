@@ -18,14 +18,12 @@ def transaction_to_example(customer_idx: int, transaction: Transaction, item_idx
     input: List[int] = item_labels.labels_indices( transaction.item_labels[0:item_idx] + transaction.item_labels[item_idx+1:] )
 
     # Write output with TFRecord format (https://www.tensorflow.org/tutorials/load_data/tfrecord?hl=en#creating_a_tftrainexample_message)
-    one_values: List[float] = [1.0] * len(input)
     features = {
-        'sparse_indices': tf.train.Feature( int64_list=tf.train.Int64List( value=input ) ),
-        'sparse_values' : tf.train.Feature( float_list=tf.train.FloatList( value=one_values ) ),
-        'output_label': tf.train.Feature( int64_list=tf.train.Int64List( value=[output] ) )
+        'input_items_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=input ) ),
+        'output_item_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=[output] ) )
     }
     if Settings.N_MAX_CUSTOMERS > 0:
-        features['customer'] = tf.train.Feature( int64_list=tf.train.Int64List( value=[customer_idx] ) )
+        features['customer_idx'] = tf.train.Feature( int64_list=tf.train.Int64List( value=[customer_idx] ) )
 
     return tf.train.Example(features=tf.train.Features(feature=features))
 

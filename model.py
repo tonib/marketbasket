@@ -6,10 +6,13 @@ def create_model(product_labels: Labels, customer_labels: Labels) -> tf.keras.Mo
 
     n_items = len(product_labels.labels)
     n_customers = len(customer_labels.labels)
-    items_input = tf.keras.layers.Input(shape=n_items, name='input')
+
+    # Input for input items will be a multihot array
+    items_input = tf.keras.layers.Input(shape=n_items, name='input_items_idx')
 
     if Settings.N_MAX_CUSTOMERS > 0:
-        customer_input = tf.keras.layers.Input(shape=n_customers, name='customer')
+        # Input for customer will be a one-hot array
+        customer_input = tf.keras.layers.Input(shape=n_customers, name='customer_idx')
         inputs = [ items_input , customer_input ]
         input_layer = tf.keras.layers.Concatenate(axis=1)( inputs )
     else:
