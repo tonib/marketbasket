@@ -19,3 +19,6 @@ class Transaction:
     def remove_duplicated_items(self):
         # As Python 3.7+, dict indices keep insertion order...
         self.item_labels = list(dict.fromkeys( self.item_labels ))
+
+    def assert_no_duplicates(self):
+        assert len(set(self.item_labels)) == len(self.item_labels), "Transaction with duplicated items (" + str(self) + "), Transaction.remove_duplicated_items() failed"

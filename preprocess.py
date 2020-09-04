@@ -52,6 +52,9 @@ with open('data/transactions.txt') as trn_file:
         for line in trn_file:
             transaction = Transaction(line)
 
+            # Remove duplicated items
+            transaction.remove_duplicated_items()
+
             # Keep top items only
             top_items_transaction: List[str] = []
             for item in transaction.item_labels:
@@ -61,6 +64,8 @@ with open('data/transactions.txt') as trn_file:
 
             # Ignore single item transactions (not useful to search relations...)
             if len(transaction.item_labels) > 1:
+
+                #transaction.assert_no_duplicates()
 
                 # Keep top customer only
                 if not customer_labels.contains(transaction.customer_label):

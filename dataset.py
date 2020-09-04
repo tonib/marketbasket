@@ -80,4 +80,9 @@ class DataSet:
         eval_dataset = eval_dataset.map( DataSet.example_parse_function )
         return eval_dataset
 
-    
+    @staticmethod
+    def load_debug_train_dataset() -> tf.data.Dataset:
+        train_dataset = tf.data.TFRecordDataset( [ DataSet.TRAIN_DATASET_FILE ] )
+        train_dataset = train_dataset.batch( 1 )
+        train_dataset = train_dataset.map( DataSet.example_parse_function )
+        return train_dataset
