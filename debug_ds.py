@@ -35,7 +35,7 @@ def example_parse_function(proto_batch):
     return input, parsed_features['output_label']
 
 # Define train dataset
-train_dataset = tf.data.TFRecordDataset( [ 'data/dataset_train.tfrecord' ] )
+train_dataset = tf.data.TFRecordDataset( [ Settings.TRAIN_DATASET_FILE ] )
 train_dataset = train_dataset.map( example_parse_function )
 
 for idx, record in enumerate(train_dataset.take(1)):

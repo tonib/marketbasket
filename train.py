@@ -7,7 +7,7 @@ from model import create_model
 
 # We need the batches number in evaluation dataset, so here is:
 # (This will be executed in eager mode)
-train_dataset = tf.data.TFRecordDataset( [ 'data/dataset_eval.tfrecord' ] )
+train_dataset = tf.data.TFRecordDataset( [ Settings.EVAL_DATASET_FILE ] )
 train_dataset = train_dataset.batch( Settings.BATCH_SIZE )
 for n_eval_batches, _ in enumerate(train_dataset):
     pass
@@ -59,13 +59,13 @@ def example_parse_function(proto_batch):
     return input, parsed_features['output_label']
 
 # Define train dataset
-train_dataset = tf.data.TFRecordDataset( [ 'data/dataset_train.tfrecord' ] )
+train_dataset = tf.data.TFRecordDataset( [ Settings.TRAIN_DATASET_FILE ] )
 train_dataset = train_dataset.prefetch(10000)
 train_dataset = train_dataset.shuffle(10000).batch( Settings.BATCH_SIZE )
 train_dataset = train_dataset.map( example_parse_function , num_parallel_calls=8 )
 
 # Define evaluation dataset
-eval_dataset = tf.data.TFRecordDataset( [ 'data/dataset_eval.tfrecord' ] )
+eval_dataset = tf.data.TFRecordDataset( [ Settings.EVAL_DATASET_FILE ] )
 eval_dataset = eval_dataset.prefetch(10000)
 eval_dataset = eval_dataset.batch( Settings.BATCH_SIZE )
 eval_dataset = eval_dataset.map( example_parse_function )
