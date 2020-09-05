@@ -48,7 +48,7 @@ n_transactions = 0
 n_transactions_with_customer_id = 0
 there_are_unknown_customers = False
 with open('data/transactions.txt') as trn_file:
-    with open('data/transactions_top_items.txt', 'w') as trn_top_file:
+    with open(Transaction.TRANSACTIONS_TOP_ITEMS_PATH, 'w') as trn_top_file:
         for line in trn_file:
             transaction = Transaction(line)
 

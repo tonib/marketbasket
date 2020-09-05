@@ -30,23 +30,25 @@ def transaction_to_example(customer_idx: int, transaction: Transaction, item_idx
 
 with tf.io.TFRecordWriter(DataSet.TRAIN_DATASET_FILE) as train_writer:
     with tf.io.TFRecordWriter(DataSet.EVAL_DATASET_FILE) as eval_writer:
-        with open('data/transactions_top_items.txt') as trn_file:
-            for line in trn_file:
-                # Item indices in transaction
-                transaction = Transaction(line)
-                customer_idx = customer_labels.label_index(transaction.customer_label)
+        with open(Transaction.TRANSACTIONS_EVAL_DATASET_FILE, 'w') as eval_trn_file:
+            with open(Transaction.TRANSACTIONS_TOP_ITEMS_PATH) as trn_file:
+                for line in trn_file:
+                    # Item indices in transaction
+                    transaction = Transaction(line)
+                    customer_idx = customer_labels.label_index(transaction.customer_label)
 
-                # Get each transaction item as output, and get all others as input
-                for item_idx in range(0, len(transaction.item_labels)):
+                    # Get each transaction item as output, and get all others as input
+                    for item_idx in range(0, len(transaction.item_labels)):
 
-                    example = transaction_to_example(customer_idx, transaction, item_idx)
-                    txt_example: str = example.SerializeToString()
-                    if random.random() <= Settings.EVALUATION_RATIO:
-                        eval_writer.write( txt_example )
-                        n_eval_samples += 1
-                    else:
-                        train_writer.write( txt_example )
-                        n_train_samples += 1
+                        example = transaction_to_example(customer_idx, transaction, item_idx)
+                        txt_example: str = example.SerializeToString()
+                        if random.random() <= Settings.EVALUATION_RATIO:
+                            eval_writer.write( txt_example )
+                            eval_trn_file.write( str(transaction) + '\n' )
+                            n_eval_samples += 1
+                        else:
+                            train_writer.write( txt_example )
+                            n_train_samples += 1
 
 print("N. train samples", n_train_samples)
 print("N. eval samples", n_eval_samples)

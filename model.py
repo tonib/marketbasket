@@ -2,9 +2,9 @@ import tensorflow as tf
 from labels import Labels
 from settings import Settings
 
-def create_model(product_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
+def create_model(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
 
-    n_items = len(product_labels.labels)
+    n_items = len(item_labels.labels)
     n_customers = len(customer_labels.labels)
 
     # Input for input items will be a multihot array

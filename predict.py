@@ -2,29 +2,109 @@ import tensorflow as tf
 from labels import Labels
 import numpy as np
 from operator import itemgetter
+from typing import List, Tuple
+from settings import Settings
+from tensorflow.python.framework.ops import disable_eager_execution
+from transaction import Transaction
 
-product_labels = Labels.load()
+class Prediction:
 
-model = tf.keras.models.load_model('model/exported_model')
-model.summary()
+    def __init__(self):
 
-txt_item_codes = ['21131' , '21730' ]
-item_indices = [ product_labels.indices[txt_item_code] for txt_item_code in txt_item_codes ]
+        disable_eager_execution()
 
-n_items = len(product_labels.labels)
-input_data = np.zeros((1, n_items))
-input_data[0][item_indices] = 1.0
-#print(input_data)
+        self.item_labels = Labels.load(Labels.ITEM_LABELS_FILE)
+        self.customer_labels = Labels.load(Labels.CUSTOMER_LABELS_FILE)
 
-result = model.predict(input_data)[0]
-print( result[ product_labels.indices['3979'] ] )
+        self.model = tf.keras.models.load_model('model/exported_model')
+        self.model.summary()
 
-N_MAX = 10
-indexed_result = list(enumerate(result))
-top_n = sorted(indexed_result, key=itemgetter(1))[-N_MAX:]
-#print(top_n)
-top_indices = list(reversed([i for i, v in top_n]))
-print(top_indices)
+    def _transaction_to_inputs(self, transaction: Transaction) -> Tuple[ dict , List[int] ]:
+        n_items = len(self.item_labels.labels)
+        n_customers = len(self.customer_labels.labels)
 
-max_results = [ ( product_labels.labels[idx] , result[idx] ) for idx in top_indices ]
-print(max_results)
+        # Get multi-hot with item indices to feed
+        item_indices = []
+        multihot_item_indices = np.zeros( (n_items) )
+        for item_label in transaction.item_labels:
+            if self.item_labels.contains(item_label):
+                item_idx = self.item_labels.label_index(item_label)
+                multihot_item_indices[ item_idx ] = 1.0
+                item_indices.append( item_idx )
+        
+        if len(item_indices) == 0:
+            return None
+
+        net_inputs = { 'input_items_idx': multihot_item_indices }
+
+        # Gest customer index to feed, as a batch with size 1
+        if Settings.N_MAX_CUSTOMERS > 0:
+            if not self.customer_labels.contains(transaction.customer_label):
+                customer_label = Labels.UNKNOWN_LABEL
+            else:
+                customer_label = transaction.customer_label
+            net_inputs['customer_idx'] = np.zeros( (n_customers) )
+            net_inputs['customer_idx'][ self.customer_labels.label_index(customer_label) ] = 1.0
+
+        return net_inputs, item_indices
+
+    def _top_predictions(self, result: List[float], item_indices:List[int], n_items_result: int ) -> List[ Tuple[str, float] ]:
+
+        # "Remove" feeded items indices: Set its probabiblity to negative
+        result[ item_indices ] = -1.0
+
+        # Get top item indices 
+        indexed_result = list(enumerate(result))
+        top_n = sorted(indexed_result, key=itemgetter(1))[-n_items_result:]
+        top_indices = list(reversed([i for i, v in top_n]))
+
+        # Get top item labels with its probability
+        # TODO: This can return items with probability == -1. Remove them from result
+        return [ ( self.item_labels.labels[idx] , result[idx] ) for idx in top_indices ]
+
+    def predict_single(self, transaction: Transaction, n_items_result: int) -> List[ Tuple[str, float] ]:
+
+        net_inputs, item_indices = self._transaction_to_inputs(transaction)
+
+        # Create batch size 1
+        net_inputs['input_items_idx'] = np.array( [ net_inputs['input_items_idx'] ] )
+        if Settings.N_MAX_CUSTOMERS > 0:
+            net_inputs['customer_idx'] = np.array( [ net_inputs['customer_idx'] ] )
+
+        result = self.model.predict(net_inputs)
+
+        return self._top_predictions( result[0], item_indices, n_items_result )
+
+    def predict_batch(self, transactions: List[Transaction], n_items_result: int) -> List[ List[ Tuple[str, float] ] ]:
+
+        # Setup batch
+        batch_item_indices = []
+        batch = { 'input_items_idx': [] }
+        if Settings.N_MAX_CUSTOMERS > 0:
+            batch['customer_idx'] = []
+
+        # Prepare batch
+        for transaction in transactions:
+            net_inputs, item_indices = self._transaction_to_inputs(transaction)
+
+            batch['input_items_idx'].append( net_inputs['input_items_idx'] )
+            if Settings.N_MAX_CUSTOMERS > 0:
+                batch['customer_idx'].append( net_inputs['customer_idx'] )
+
+            batch_item_indices.append( item_indices )
+
+        # Do not mix Python and numpy arrays
+        batch['input_items_idx'] = np.array( batch['input_items_idx'] )
+        if Settings.N_MAX_CUSTOMERS > 0:
+            batch['customer_idx'] = np.array( batch['customer_idx'] )
+
+        #print(batch)
+        results = self.model.predict(batch)
+        #print(results)
+
+        # Unpack results
+        top_predictions = []
+        for idx, result in enumerate(results):
+            top_predictions.append( self._top_predictions(result, batch_item_indices[idx], n_items_result) )
+
+        return top_predictions
