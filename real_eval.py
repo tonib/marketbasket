@@ -3,6 +3,8 @@ from settings import Settings
 from predict import Prediction
 from transaction import Transaction
 from typing import List, Tuple, Iterable
+import cProfile
+import re
 
 TEST_BATCH_SIZE = 256
 
@@ -35,27 +37,33 @@ def transactions_with_expected_item_batches() -> Iterable[ List[Tuple[Transactio
     if len(batch) > 0:
         yield batch
 
-score = 0
-n_predictions = 0
-for batch in transactions_with_expected_item_batches():
+def run_eval():
+    score = 0
+    n_predictions = 0
+    for batch in transactions_with_expected_item_batches():
 
-    #print("got batch")
+        #print("got batch")
 
-    input_batch = [ trn_with_expected[0] for trn_with_expected in batch ]
+        input_batch = [ trn_with_expected[0] for trn_with_expected in batch ]
 
-    results = prediction.predict_batch(input_batch, 10)
+        results = prediction.predict_batch(input_batch, 10)
 
-    for idx, transaction_with_expected_result in enumerate(batch):
+        for idx, transaction_with_expected_result in enumerate(batch):
 
-        # Get predicted items
-        predicted_item_labels = [ p[0] for p in results[idx] ]
+            # Get predicted items
+            #print(results)
+            predicted_item_labels = [ p[0] for p in results[idx] ]
 
-        n_predictions += 1
-        if n_predictions % 1000 == 0:
-            print(n_predictions)
-        
-        expected_item = transaction_with_expected_result[1]
-        if expected_item in predicted_item_labels:
-            score += +1
+            n_predictions += 1
+            if n_predictions % 1000 == 0:
+                print(n_predictions)
+            
+            expected_item = transaction_with_expected_result[1]
+            if expected_item in predicted_item_labels:
+                score += +1
 
-print("Score: " + str(score) + " of " + str(n_predictions))
+    print("Score: " + str(score) + " of " + str(n_predictions))
+
+#run_eval()
+cProfile.run('run_eval()')
+

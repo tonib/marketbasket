@@ -19,13 +19,14 @@ class Prediction:
         self.model = tf.keras.models.load_model('model/exported_model')
         self.model.summary()
 
+        self.n_items = len(self.item_labels.labels)
+        self.n_customers = len(self.customer_labels.labels)
+
     def _transaction_to_inputs(self, transaction: Transaction) -> Tuple[ dict , List[int] ]:
-        n_items = len(self.item_labels.labels)
-        n_customers = len(self.customer_labels.labels)
 
         # Get multi-hot with item indices to feed
         item_indices = []
-        multihot_item_indices = np.zeros( (n_items) )
+        multihot_item_indices = np.zeros( (self.n_items) )
         for item_label in transaction.item_labels:
             if self.item_labels.contains(item_label):
                 item_idx = self.item_labels.label_index(item_label)
@@ -43,7 +44,7 @@ class Prediction:
                 customer_label = Labels.UNKNOWN_LABEL
             else:
                 customer_label = transaction.customer_label
-            net_inputs['customer_idx'] = np.zeros( (n_customers) )
+            net_inputs['customer_idx'] = np.zeros( (self.n_customers) )
             net_inputs['customer_idx'][ self.customer_labels.label_index(customer_label) ] = 1.0
 
         return net_inputs, item_indices
@@ -53,13 +54,9 @@ class Prediction:
         # "Remove" feeded items indices: Set its probabiblity to negative
         result[ item_indices ] = -1.0
 
-        # Get top item indices 
-        indexed_result = list(enumerate(result))
-        top_n = sorted(indexed_result, key=itemgetter(1))[-n_items_result:]
-        top_indices = list(reversed([i for i, v in top_n]))
-
         # Get top item labels with its probability
-        # TODO: This can return items with probability == -1. Remove them from result
+        top_indices = np.argsort( result )
+        top_indices = top_indices[0:n_items_result]
         return [ ( self.item_labels.labels[idx] , result[idx] ) for idx in top_indices ]
 
     def predict_single(self, transaction: Transaction, n_items_result: int) -> List[ Tuple[str, float] ]:
@@ -98,9 +95,10 @@ class Prediction:
         if Settings.N_MAX_CUSTOMERS > 0:
             batch['customer_idx'] = np.array( batch['customer_idx'] )
 
-        #print(batch)
-        results = self.model.predict(batch)
-        #print(results)
+        #results = self.model.predict(batch)
+        # DO NOT DELETE, TO TEST PYTHON DAMN PERFORMANCE (fake prediction)
+        #results = np.random.uniform( size=( len(transactions), len(self.item_labels.labels) ) )
+        results = np.zeros( shape=( len(transactions), len(self.item_labels.labels) ) )
 
         # Unpack results
         top_predictions = []
