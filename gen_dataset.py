@@ -37,14 +37,18 @@ with tf.io.TFRecordWriter(DataSet.TRAIN_DATASET_FILE) as train_writer:
                     transaction = Transaction(line)
                     customer_idx = customer_labels.label_index(transaction.customer_label)
 
+                    # This trn will go to train or evaluation dataset?
+                    eval_transaction = ( random.random() <= Settings.EVALUATION_RATIO )
+                    if eval_transaction:
+                        # Store original transaction, for real_eval.py
+                        eval_trn_file.write( str(transaction) + '\n' )
+
                     # Get each transaction item as output, and get all others as input
                     for item_idx in range(0, len(transaction.item_labels)):
-
                         example = transaction_to_example(customer_idx, transaction, item_idx)
                         txt_example: str = example.SerializeToString()
-                        if random.random() <= Settings.EVALUATION_RATIO:
+                        if eval_transaction:
                             eval_writer.write( txt_example )
-                            eval_trn_file.write( str(transaction) + '\n' )
                             n_eval_samples += 1
                         else:
                             train_writer.write( txt_example )

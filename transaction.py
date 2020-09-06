@@ -6,7 +6,7 @@ class Transaction:
     TRANSACTIONS_TOP_ITEMS_PATH = 'data/transactions_top_items.txt'
     
     # Raw eval transactions file path
-    TRANSACTIONS_EVAL_DATASET_FILE = 'data/dataset_eval.txt'
+    TRANSACTIONS_EVAL_DATASET_FILE = 'data/eval_transactions.txt'
 
     def __init__(self, text_line: str = None):
 

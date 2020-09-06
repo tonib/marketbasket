@@ -10,6 +10,18 @@ TEST_BATCH_SIZE = 256
 
 prediction = Prediction()
 
+# Test
+# r = prediction.predict_single( Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) , 10 )
+# print(r)
+# exit()
+
+# Test
+# batch = [ Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) , Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) ]
+# r = prediction.predict_batch( batch , 10 )
+# print(r)
+# exit()
+
+
 def transactions_with_expected_item() -> Iterable[Tuple[Transaction, str]]:
     print("transactions_with_expected_item started")
     with open(Transaction.TRANSACTIONS_EVAL_DATASET_FILE) as eval_trn_file:
@@ -52,7 +64,7 @@ def run_eval():
 
             # Get predicted items
             #print(results)
-            predicted_item_labels = [ p[0] for p in results[idx] ]
+            predicted_item_labels = results[idx][0]
 
             n_predictions += 1
             if n_predictions % 1000 == 0:
@@ -63,7 +75,9 @@ def run_eval():
                 score += +1
 
     print("Score: " + str(score) + " of " + str(n_predictions))
+    if n_predictions > 0:
+        print("Ratio:", str(score / n_predictions))
 
-#run_eval()
-cProfile.run('run_eval()')
+run_eval()
+#cProfile.run('run_eval()')
 

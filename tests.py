@@ -1,23 +1,16 @@
 
-import tensorflow as tf
+#import tensorflow as tf
+import numpy as np
 
-# tensor = tf.one_hot( [1, 2, 3] , 5 )
-# print(tensor)
+x = np.array( [ 3 , 1 , 2 ] )
+i = np.argsort( x )
+print(i)
+print(i.shape[0])
+print(len(i))
 
-# sparse_tensor = tf.sparse.SparseTensor(indices=[[0, 1], [1, 2]],
-#                 values=[1, 2],
-#                 dense_shape=[3, 4])
-# print(sparse_tensor)
+i = i[-2:]
+print(i)
 
-# sparse_tensor = tf.sparse.SparseTensor(indices=[[0, 1], [2, 3]],
-#                 dense_shape=[3, 4])
-# print(sparse_tensor)
+i = np.flip(i)
+print(i)
 
-t = tf.ragged.constant([ [0, 1], [1, 2] , [1] ])
-print(t)
-
-t = tf.one_hot( t , 5 )
-print(t)
-
-t = tf.reduce_max( t , axis=1 )
-print(t)

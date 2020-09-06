@@ -49,15 +49,24 @@ class Prediction:
 
         return net_inputs, item_indices
 
-    def _top_predictions(self, result: List[float], item_indices:List[int], n_items_result: int ) -> List[ Tuple[str, float] ]:
+    def _top_predictions(self, result: List[float], item_indices:List[int], n_items_result: int ) -> Tuple[ np.ndarray , np.ndarray ]:
 
         # "Remove" feeded items indices: Set its probabiblity to negative
         result[ item_indices ] = -1.0
+        #print("a", result)
+        
+        # Get item indices with its highest probability
+        top_item_indices = np.argsort( result ) # sort ascending
+        top_item_indices = top_item_indices[-n_items_result:] # get top results
+        #print( "1", top_item_indices ) 
+        top_item_indices = np.flip(top_item_indices) # revert list (most probable first)
+        #print( "x", top_item_indices )
 
-        # Get top item labels with its probability
-        top_indices = np.argsort( result )
-        top_indices = top_indices[0:n_items_result]
-        return [ ( self.item_labels.labels[idx] , result[idx] ) for idx in top_indices ]
+        top_probabilities = result[top_item_indices]
+        #print( "2", top_probabilities )
+
+        top_labels = self.item_labels.labels[top_item_indices]
+        return ( top_labels , top_probabilities )
 
     def predict_single(self, transaction: Transaction, n_items_result: int) -> List[ Tuple[str, float] ]:
 
@@ -72,7 +81,7 @@ class Prediction:
 
         return self._top_predictions( result[0], item_indices, n_items_result )
 
-    def predict_batch(self, transactions: List[Transaction], n_items_result: int) -> List[ List[ Tuple[str, float] ] ]:
+    def predict_batch(self, transactions: List[Transaction], n_items_result: int) -> List:
 
         # Setup batch
         batch_item_indices = []
@@ -95,10 +104,9 @@ class Prediction:
         if Settings.N_MAX_CUSTOMERS > 0:
             batch['customer_idx'] = np.array( batch['customer_idx'] )
 
-        #results = self.model.predict(batch)
+        results = self.model.predict(batch)
         # DO NOT DELETE, TO TEST PYTHON DAMN PERFORMANCE (fake prediction)
         #results = np.random.uniform( size=( len(transactions), len(self.item_labels.labels) ) )
-        results = np.zeros( shape=( len(transactions), len(self.item_labels.labels) ) )
 
         # Unpack results
         top_predictions = []
