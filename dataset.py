@@ -42,11 +42,7 @@ class DataSet:
         items_input = DataSet.raged_lists_batch_to_multihot( items_input , DataSet.n_items )
 
         if Settings.N_MAX_CUSTOMERS > 0:
-            # Batch of customer indices. Ex: [1, 2]
-            customer = parsed_features['customer_idx']
-            # Batch of one hot encodings. Ex: [ [0 , 1 , 0], [0, 0, 1] ]
-            customer = tf.one_hot(customer, DataSet.n_customers)
-            input = { 'input_items_idx': items_input , 'customer_idx': customer }
+            input = { 'input_items_idx': items_input , 'customer_idx': parsed_features['customer_idx'] }
         else:
             input = items_input
 

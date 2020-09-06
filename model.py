@@ -11,10 +11,13 @@ def create_model(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model
     items_input = tf.keras.layers.Input(shape=n_items, name='input_items_idx')
 
     if Settings.N_MAX_CUSTOMERS > 0:
-        # Input for customer will be a one-hot array
-        customer_input = tf.keras.layers.Input(shape=n_customers, name='customer_idx')
+        # Customer index
+        customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
+        # Conver to one-hot
+        customer_input_encoded = tf.one_hot(customer_input, n_customers, name='onehot_customer_idx')
+
         inputs = [ items_input , customer_input ]
-        input_layer = tf.keras.layers.Concatenate(axis=1)( inputs )
+        input_layer = tf.keras.layers.Concatenate(axis=1)( [ items_input , customer_input_encoded ] )
     else:
         inputs = [items_input]
         input_layer = items_input

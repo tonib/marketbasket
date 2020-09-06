@@ -44,8 +44,7 @@ class Prediction:
                 customer_label = Labels.UNKNOWN_LABEL
             else:
                 customer_label = transaction.customer_label
-            net_inputs['customer_idx'] = np.zeros( (self.n_customers) )
-            net_inputs['customer_idx'][ self.customer_labels.label_index(customer_label) ] = 1.0
+            net_inputs['customer_idx'] = self.customer_labels.label_index(customer_label)
 
         return net_inputs, item_indices
 
