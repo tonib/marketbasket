@@ -12,8 +12,6 @@ class Prediction:
 
     def __init__(self):
 
-        disable_eager_execution()
-
         self.item_labels = Labels.load(Labels.ITEM_LABELS_FILE)
         self.customer_labels = Labels.load(Labels.CUSTOMER_LABELS_FILE)
 
@@ -46,9 +44,9 @@ class Prediction:
         results = self.predict_batch( [ transaction ] , n_items_result )
         return results[0]
 
-    @tf.function
-    def run_prediction(self, batch):
-        return self.model(batch)
+    @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.int64), tf.TensorSpec(shape=[None], dtype=tf.int64)])
+    def _run_model_prediction(self, batch_item_indices, batch_customer_indices):
+        return self.model( ( batch_item_indices , batch_customer_indices ) )
 
     #@tf.function
     def predict_batch(self, transactions: List[Transaction], n_items_result: int) -> List:
@@ -58,29 +56,13 @@ class Prediction:
 
         # Convert item indices to ragged tensors
         unragged_item_indices = batch[0]
-        #batch[0] = tf.ragged.constant(batch[0], dtype=tf.int64)
 
-        #print( "***" , batch )
-        # batch_item_indices = tf.ragged.constant(batch_item_indices, dtype=tf.int64)
-        # print(">>>", batch_item_indices.to_tensor())
-        # if Settings.N_MAX_CUSTOMERS > 0:
-        #     batch = ( batch_item_indices , batch_customer_indices )
-        # else:
-        #     batch = batch_item_indices
-        #print(batch)
-        #exit()
-
-        #print("**" , batch)
-        #   batch = ( np.array(batch[0]) , np.array(batch[1]) )
+        # TODO: This will fail if no customer is provided
         batch = ( tf.ragged.constant(batch[0], dtype=tf.int64) , np.array(batch[1]) )
-        #print(">>" , batch)
-        #print(batch.shape, batch)
-        #results = self.run_prediction(batch)
-        #results = self.model(batch)
-        results = self.model.predict( batch )
-        #print(results)
+        results = self._run_model_prediction( batch[0] , batch[1] )
+        results = results.numpy()
+        #print(results.shape, results)
 
-        #print(">>>", results)
         # DO NOT DELETE, TO TEST PYTHON DAMN PERFORMANCE (fake prediction)
         #results = np.random.uniform( size=( len(transactions), len(self.item_labels.labels) ) )
 

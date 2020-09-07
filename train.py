@@ -12,9 +12,6 @@ from dataset import DataSet
 # (This will be executed in eager mode)
 n_eval_batches = DataSet.n_eval_batches()
 
-# Be sure we use Graph mode (performance)
-disable_eager_execution()
-
 # Load labels
 item_labels = Labels.load(Labels.ITEM_LABELS_FILE)
 customer_labels = Labels.load(Labels.CUSTOMER_LABELS_FILE)

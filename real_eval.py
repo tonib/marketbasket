@@ -5,8 +5,9 @@ from transaction import Transaction
 from typing import List, Tuple, Iterable
 import cProfile
 import re
+from pstats import SortKey
 
-TEST_BATCH_SIZE = 2
+TEST_BATCH_SIZE = 256
 
 prediction = Prediction()
 
@@ -23,7 +24,6 @@ prediction = Prediction()
 
 
 def transactions_with_expected_item() -> Iterable[Tuple[Transaction, str]]:
-    print("transactions_with_expected_item started")
     with open(Transaction.TRANSACTIONS_EVAL_DATASET_FILE) as eval_trn_file:
         for line in eval_trn_file:
             transaction = Transaction(line)
@@ -36,7 +36,6 @@ def transactions_with_expected_item() -> Iterable[Tuple[Transaction, str]]:
                 yield ( input_transaction , expected_item_label )
 
 def transactions_with_expected_item_batches() -> Iterable[ List[Tuple[Transaction, str]] ]:
-    print("transactions_with_expected_item_batches started")
     batch = []
     for trn in transactions_with_expected_item():
         #print("got trn")
@@ -64,7 +63,8 @@ def run_eval():
         for idx, transaction_with_expected_result in enumerate(batch):
 
             # Get predicted items
-            predicted_item_labels = results[0][idx]
+            #print(">>>", results)
+            predicted_item_labels = results[idx][0]
 
             n_predictions += 1
             if n_predictions % 1000 == 0:
@@ -79,5 +79,6 @@ def run_eval():
         print("Ratio:", str(score / n_predictions))
 
 run_eval()
-#cProfile.run('run_eval()')
+#cProfile.run('run_eval()', sort=SortKey.CUMULATIVE)
+#cProfile.run('run_eval()', sort=SortKey.TIME)
 
