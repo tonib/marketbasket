@@ -14,7 +14,7 @@ class DataSet:
     def setup_feature_keys(items_labels: Labels, customer_labels: Labels):
         # Feature mappings for training
         DataSet.keys_to_features = {
-            'input_items_idx': tf.io.RaggedFeature(tf.int64, 'input_items_idx'),
+            'input_items_idx': tf.io.RaggedFeature(tf.int64, 'input_items_idx', row_splits_dtype=tf.int64),
             'output_item_idx': tf.io.FixedLenFeature([], tf.int64)
         }
         if Settings.N_MAX_CUSTOMERS > 0:
@@ -25,13 +25,6 @@ class DataSet:
 
     @staticmethod
     @tf.function
-    def raged_lists_batch_to_multihot(ragged_lists_batch, multihot_dim):
-        t = tf.one_hot( ragged_lists_batch , multihot_dim )
-        t = tf.reduce_max( t , axis=1 )
-        return t
-
-    @staticmethod
-    @tf.function
     def example_parse_function(proto_batch):
         # Load one example
         parsed_features = tf.io.parse_example(proto_batch, DataSet.keys_to_features)
@@ -39,10 +32,11 @@ class DataSet:
         # Map batch of list of item indices to a batch of multi-hot arrays
         # Ex [ [1, 2] , [2, 3] ] -> [ [ 0 , 1 , 1 , 0 ] , [ 0 , 0 , 1 , 1 ] ]
         items_input = parsed_features['input_items_idx']
-        items_input = DataSet.raged_lists_batch_to_multihot( items_input , DataSet.n_items )
 
         if Settings.N_MAX_CUSTOMERS > 0:
-            input = { 'input_items_idx': items_input , 'customer_idx': parsed_features['customer_idx'] }
+            # Keras inputs are mapped by input POSITION, not by input name, so order here is important
+            input = ( items_input , parsed_features['customer_idx'] )
+            #input = { 'input_items_idx': items_input , 'customer_idx': parsed_features['customer_idx'] }
         else:
             input = items_input
 
@@ -79,6 +73,6 @@ class DataSet:
     @staticmethod
     def load_debug_train_dataset() -> tf.data.Dataset:
         train_dataset = tf.data.TFRecordDataset( [ DataSet.TRAIN_DATASET_FILE ] )
-        train_dataset = train_dataset.batch( 1 )
+        train_dataset = train_dataset.batch( 2 )
         train_dataset = train_dataset.map( DataSet.example_parse_function )
         return train_dataset

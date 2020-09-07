@@ -1,4 +1,6 @@
 from typing import List
+from labels import Labels
+from settings import Settings
 
 class Transaction:
 
@@ -32,6 +34,45 @@ class Transaction:
 
     def assert_no_duplicates(self):
         assert len(set(self.item_labels)) == len(self.item_labels), "Transaction with duplicated items (" + str(self) + "), Transaction.remove_duplicated_items() failed"
+
+    def to_net_inputs(self, item_labels: Labels, customer_labels: Labels):
+
+        # Get item indices
+        item_indices = []
+        for item_label in self.item_labels:
+            if item_labels.contains(item_label):
+                item_indices.append( item_labels.label_index(item_label) )
+        
+        if len(item_indices) == 0:
+            return None
+
+        net_inputs = [ item_indices ]
+
+        # Get customer index to feed
+        if Settings.N_MAX_CUSTOMERS > 0:
+            if not customer_labels.contains(self.customer_label):
+                customer_label = Labels.UNKNOWN_LABEL
+            else:
+                customer_label = self.customer_label
+            net_inputs.append( customer_labels.label_index(customer_label) )
+
+        return net_inputs
+
+    @staticmethod
+    def to_net_inputs_batch(transactions: List['Transaction'], item_labels: Labels, customer_labels: Labels):
+        batch_item_indices = []
+        batch_customer_index = []
+
+        for transaction in transactions:
+            net_inputs = transaction.to_net_inputs(item_labels, customer_labels)
+            batch_item_indices.append( net_inputs[0] )
+            if Settings.N_MAX_CUSTOMERS > 0:
+                batch_customer_index.append( net_inputs[1] )
+
+        if Settings.N_MAX_CUSTOMERS > 0:
+            return ( batch_item_indices , batch_customer_index )
+        else:
+            return batch_item_indices
 
     @staticmethod
     def from_labels(item_labels: List[str], customer_label: str):

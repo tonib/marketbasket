@@ -6,7 +6,7 @@ from typing import List, Tuple, Iterable
 import cProfile
 import re
 
-TEST_BATCH_SIZE = 256
+TEST_BATCH_SIZE = 2
 
 prediction = Prediction()
 
@@ -59,12 +59,12 @@ def run_eval():
         input_batch = [ trn_with_expected[0] for trn_with_expected in batch ]
 
         results = prediction.predict_batch(input_batch, 10)
+        #print(results)
 
         for idx, transaction_with_expected_result in enumerate(batch):
 
             # Get predicted items
-            #print(results)
-            predicted_item_labels = results[idx][0]
+            predicted_item_labels = results[0][idx]
 
             n_predictions += 1
             if n_predictions % 1000 == 0:
