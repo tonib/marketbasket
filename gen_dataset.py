@@ -21,11 +21,9 @@ def transaction_to_example(customer_idx: int, transaction: Transaction, item_idx
     # Write output with TFRecord format (https://www.tensorflow.org/tutorials/load_data/tfrecord?hl=en#creating_a_tftrainexample_message)
     features = {
         'input_items_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=input ) ),
+        'customer_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=[customer_idx] ) ),
         'output_item_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=[output] ) )
     }
-    if Settings.N_MAX_CUSTOMERS > 0:
-        features['customer_idx'] = tf.train.Feature( int64_list=tf.train.Int64List( value=[customer_idx] ) )
-
     return tf.train.Example(features=tf.train.Features(feature=features))
 
 with tf.io.TFRecordWriter(DataSet.TRAIN_DATASET_FILE) as train_writer:

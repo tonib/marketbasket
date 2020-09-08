@@ -15,11 +15,9 @@ class DataSet:
         # Feature mappings for training
         DataSet.keys_to_features = {
             'input_items_idx': tf.io.RaggedFeature(tf.int64, 'input_items_idx', row_splits_dtype=tf.int64),
-            'output_item_idx': tf.io.FixedLenFeature([], tf.int64)
+            'customer_idx': tf.io.FixedLenFeature([], tf.int64),
+            'output_item_idx': tf.io.FixedLenFeature([], tf.int64),
         }
-        if Settings.N_MAX_CUSTOMERS > 0:
-            DataSet.keys_to_features['customer_idx'] = tf.io.FixedLenFeature([], tf.int64)
-
         DataSet.n_items = len(items_labels.labels)
         DataSet.n_customers = len(customer_labels.labels)
 
@@ -29,16 +27,8 @@ class DataSet:
         # Load one example
         parsed_features = tf.io.parse_example(proto_batch, DataSet.keys_to_features)
 
-        # Map batch of list of item indices to a batch of multi-hot arrays
-        # Ex [ [1, 2] , [2, 3] ] -> [ [ 0 , 1 , 1 , 0 ] , [ 0 , 0 , 1 , 1 ] ]
-        items_input = parsed_features['input_items_idx']
-
-        if Settings.N_MAX_CUSTOMERS > 0:
-            # Keras inputs are mapped by input POSITION, not by input name, so order here is important
-            input = ( items_input , parsed_features['customer_idx'] )
-            #input = { 'input_items_idx': items_input , 'customer_idx': parsed_features['customer_idx'] }
-        else:
-            input = items_input
+        # Keras inputs are mapped by input POSITION, not by input name, so order here is important
+        input = ( parsed_features['input_items_idx'] , parsed_features['customer_idx'] )
 
         # Return tuple (net input, expected output)
         return input, parsed_features['output_item_idx']
