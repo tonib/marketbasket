@@ -5,6 +5,8 @@ from tensorflow.python.framework.ops import disable_eager_execution
 from settings import Settings
 from model import create_model
 from dataset import DataSet
+from real_eval import run_real_eval
+from predict import Prediction
 
 # To test with GPU disabled set environment variable CUDA_VISIBLE_DEVICES=-1
 
@@ -44,10 +46,17 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath='model/checkpoints/cp-
                                                  save_weights_only=True,
                                                  verbose=1)
 
+# Do real evaluation callback:
+predictor = Prediction(model)
+class RealEvaluationCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, batch, logs=None):
+        run_real_eval(predictor)
+
 # TF 2.3: Requires validation_steps. It seems a bug, as documentation says it can be None for TF datasets, but
 # with None it throws exception
+
 model.fit(train_dataset, 
-          epochs=Settings.N_EPOCHS,
-          callbacks=[tensorboard_callback, cp_callback], 
-          validation_data=eval_dataset,
-          validation_steps=n_eval_batches)
+        epochs=Settings.N_EPOCHS,
+        callbacks=[tensorboard_callback, cp_callback, RealEvaluationCallback()], 
+        validation_data=eval_dataset,
+        validation_steps=n_eval_batches)

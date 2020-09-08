@@ -10,13 +10,16 @@ from model import raged_lists_batch_to_multihot
 
 class Prediction:
 
-    def __init__(self):
+    def __init__(self, model = None):
 
         self.item_labels = Labels.load(Labels.ITEM_LABELS_FILE)
         self.customer_labels = Labels.load(Labels.CUSTOMER_LABELS_FILE)
 
-        self.model = tf.keras.models.load_model('model/exported_model')
-        self.model.summary()
+        if model:
+            self.model = model
+        else:
+            self.model = tf.keras.models.load_model('model/exported_model')
+            self.model.summary()
 
         self.n_items = len(self.item_labels.labels)
         self.n_customers = len(self.customer_labels.labels)

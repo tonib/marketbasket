@@ -10,8 +10,6 @@ import time
 
 TEST_BATCH_SIZE = 256
 
-prediction = Prediction()
-
 # Test
 # r = prediction.predict_single( Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) , 10 )
 # print(r)
@@ -49,7 +47,7 @@ def transactions_with_expected_item_batches() -> Iterable[ List[Tuple[Transactio
     if len(batch) > 0:
         yield batch
 
-def run_eval():
+def run_real_eval(predictor):
     score = 0
     n_predictions = 0
     for batch in transactions_with_expected_item_batches():
@@ -58,7 +56,7 @@ def run_eval():
 
         input_batch = [ trn_with_expected[0] for trn_with_expected in batch ]
 
-        results = prediction.predict_batch(input_batch, 10)
+        results = predictor.predict_batch(input_batch, 10)
         #print(results)
 
         for idx, transaction_with_expected_result in enumerate(batch):
@@ -79,10 +77,12 @@ def run_eval():
     if n_predictions > 0:
         print("Ratio:", str(score / n_predictions))
 
-start = time.time()
-run_eval()
-end = time.time()
-print("Total time:", end - start)
+if __name__ == "__main__":
+    predictor = Prediction()
+    start = time.time()
+    run_real_eval(predictor)
+    end = time.time()
+    print("Total time:", end - start)
 
 #cProfile.run('run_eval()', sort=SortKey.CUMULATIVE)
 #cProfile.run('run_eval()', sort=SortKey.TIME)
