@@ -68,8 +68,8 @@ def run_eval():
             predicted_item_labels = results[0][idx]
 
             n_predictions += 1
-            if n_predictions % 1000 == 0:
-                print(n_predictions)
+            # if n_predictions % 1000 == 0:
+            #     print(n_predictions)
             
             expected_item = transaction_with_expected_result[1]
             if expected_item in predicted_item_labels:

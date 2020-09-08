@@ -2,7 +2,6 @@
 REQUIRES Python 3.7+
 
 TODO:
-Try to use int32 instead int64
 Add always the customer code
 
 Score: 62793 of 151689
