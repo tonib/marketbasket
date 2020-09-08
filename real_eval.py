@@ -8,7 +8,7 @@ import re
 from pstats import SortKey
 import time
 
-TEST_BATCH_SIZE = 2
+TEST_BATCH_SIZE = 256
 
 prediction = Prediction()
 
@@ -65,7 +65,7 @@ def run_eval():
 
             # Get predicted items
             #print(">>>", results)
-            predicted_item_labels = results[idx][0]
+            predicted_item_labels = results[0][idx]
 
             n_predictions += 1
             if n_predictions % 1000 == 0:

@@ -5,5 +5,6 @@ TODO:
 Try to use int32 instead int64
 Add always the customer code
 
-Score: 62092 of 149797
-Ratio: 0.4145076336642256
+Score: 62793 of 151689
+Ratio: 0.4139588236457489
+Total time: 2.959610939025879
