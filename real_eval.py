@@ -6,8 +6,9 @@ from typing import List, Tuple, Iterable
 import cProfile
 import re
 from pstats import SortKey
+import time
 
-TEST_BATCH_SIZE = 256
+TEST_BATCH_SIZE = 2
 
 prediction = Prediction()
 
@@ -78,7 +79,11 @@ def run_eval():
     if n_predictions > 0:
         print("Ratio:", str(score / n_predictions))
 
+start = time.time()
 run_eval()
+end = time.time()
+print("Total time:", end - start)
+
 #cProfile.run('run_eval()', sort=SortKey.CUMULATIVE)
 #cProfile.run('run_eval()', sort=SortKey.TIME)
 

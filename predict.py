@@ -22,10 +22,6 @@ class Prediction:
         self.n_customers = len(self.customer_labels.labels)
 
     def _top_predictions(self, result: List[float], item_indices:List[int], n_items_result: int ) -> Tuple[ np.ndarray , np.ndarray ]:
-
-        # "Remove" feeded items indices: Set its probabiblity to negative
-        result[ item_indices ] = -1.0
-        #print("a", result)
         
         # Get item indices with its highest probability
         top_item_indices = np.argsort( result ) # sort ascending
@@ -44,9 +40,42 @@ class Prediction:
         results = self.predict_batch( [ transaction ] , n_items_result )
         return results[0]
 
+    # @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.int64), tf.TensorSpec(shape=[None], dtype=tf.int64)])
+    # def _run_model_prediction(self, batch_item_indices, batch_customer_indices):
+    #     return self.model( ( batch_item_indices , batch_customer_indices ) )
+
+    @staticmethod
+    @tf.function( input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.int64), 
+                                   tf.TensorSpec(shape=[None, None], dtype=tf.float32)] )
+    def _remove_input_items_from_prediction(batch_item_indices, result):
+        # result is a ragged with input indices for each batch row. Ex [ [0] , [1, 2] ]
+        batch_item_indices = batch_item_indices.to_tensor(-1) # -> [ [0,-1] , [1, 2] ]
+        #print(batch_item_indices, batch_item_indices.shape[0])
+
+        # Convert batch_item_indices row indices to (row,column) indices
+        row_indices = tf.range(0, tf.shape(batch_item_indices)[0], dtype=tf.int64) # -> [ 0, 1 ]
+        row_indices = tf.repeat( row_indices, [tf.shape(batch_item_indices)[1]] ) # -> [ 0, 0, 1, 1 ]
+        #print(">>>", batch_item_indices)
+        batch_item_indices = tf.reshape( batch_item_indices , shape=[-1] ) # -> [ 0, -1, 1, 2 ]
+        batch_item_indices = tf.stack( [row_indices, batch_item_indices], axis = 1 ) # -> [ [0,0] , [0,-1], [1,1], [1,2] ]
+
+        # batch_item_indices.to_tensor(-1) added -1's to pad the matrix. Remove these indices
+        # Needed according to tf.tensor_scatter_nd_update doc. (it will fail in CPU execution, if there are out of bound indices)
+        # Get indices without -1's:
+        gather_idxs = tf.where( batch_item_indices[:,1] != -1 ) # -> [[0], [2], [3]]
+        batch_item_indices = tf.gather_nd(batch_item_indices, gather_idxs) # -> [ [0,0] , [1,1], [1,2] ]
+
+        # To remove input indices, we will set a probability -1 in their indices
+        updates = tf.repeat(-1.0, tf.shape(batch_item_indices)[0]) # -> [ -1, -1, -1 ]
+
+        # Assign -1's to the input indices:
+        return tf.tensor_scatter_nd_update( result, batch_item_indices, updates)
+
     @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.int64), tf.TensorSpec(shape=[None], dtype=tf.int64)])
     def _run_model_prediction(self, batch_item_indices, batch_customer_indices):
-        return self.model( ( batch_item_indices , batch_customer_indices ) )
+        result = self.model( ( batch_item_indices , batch_customer_indices ) )
+        # Set result[ batch_item_indices ] = -1.0:
+        return Prediction._remove_input_items_from_prediction( batch_item_indices, result )
 
     #@tf.function
     def predict_batch(self, transactions: List[Transaction], n_items_result: int) -> List:
@@ -59,6 +88,9 @@ class Prediction:
 
         # TODO: This will fail if no customer is provided
         batch = ( tf.ragged.constant(batch[0], dtype=tf.int64) , np.array(batch[1]) )
+        #print(batch)
+
+        #results = self._run_model_prediction( batch[0] , batch[1] )
         results = self._run_model_prediction( batch[0] , batch[1] )
         results = results.numpy()
         #print(results.shape, results)

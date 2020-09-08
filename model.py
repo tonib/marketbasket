@@ -4,7 +4,7 @@ from settings import Settings
 
 @tf.function
 def raged_lists_batch_to_multihot(ragged_lists_batch, multihot_dim):
-    t = ragged_lists_batch.to_tensor()
+    t = ragged_lists_batch.to_tensor(-1) # Default value = -1 -> on_hot will not assign any one
     t = tf.one_hot( t , multihot_dim )
     t = tf.reduce_max( t , axis=1 )
     return t
