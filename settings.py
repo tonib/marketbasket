@@ -11,8 +11,16 @@ class Settings:
     EVALUATION_RATIO = 0.15
 
     # Batch size
-    BATCH_SIZE = 128
+    BATCH_SIZE = 64
 
     # Epochs to train
     N_EPOCHS = 10
     
+    # Sequential model?
+    SEQUENTIAL = True
+
+    # Sequence length?
+    SEQUENCE_LENGTH = 10
+
+    # Sequence - Embbeding dimension
+    EMBEDDING_DIM = 10

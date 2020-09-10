@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 from labels import Labels
 from settings import Settings
 
@@ -35,7 +35,7 @@ class Transaction:
     def assert_no_duplicates(self):
         assert len(set(self.item_labels)) == len(self.item_labels), "Transaction with duplicated items (" + str(self) + "), Transaction.remove_duplicated_items() failed"
 
-    def to_net_inputs(self, item_labels: Labels, customer_labels: Labels):
+    def to_net_inputs(self, item_labels: Labels, customer_labels: Labels) -> Tuple[ List[int], int ]:
 
         # Get item indices
         item_indices = []
