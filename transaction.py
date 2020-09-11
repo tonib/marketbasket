@@ -52,16 +52,13 @@ class Transaction:
         return ( item_indices , customer_labels.label_index(customer_label) )
 
     @staticmethod
-    def to_net_inputs_batch(transactions: List['Transaction'], item_labels: Labels, customer_labels: Labels):
-        batch_item_indices = []
-        batch_customer_index = []
-
+    def to_net_inputs_batch(transactions: List['Transaction']):
+        batch_item_labels = []
+        batch_customer_labels = []
         for transaction in transactions:
-            net_inputs = transaction.to_net_inputs(item_labels, customer_labels)
-            batch_item_indices.append( net_inputs[0] )
-            batch_customer_index.append( net_inputs[1] )
-
-        return ( batch_item_indices , batch_customer_index )
+            batch_item_labels.append( transaction.item_labels )
+            batch_customer_labels.append( transaction.customer_label )
+        return ( batch_item_labels , batch_customer_labels )
 
     @staticmethod
     def from_labels(item_labels: List[str], customer_label: str):

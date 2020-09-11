@@ -7,17 +7,22 @@ import cProfile
 import re
 from pstats import SortKey
 import time
+#import tensorflow as tf
 
 TEST_BATCH_SIZE = 256
 
 # Test
-# r = prediction.predict_single( Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) , 10 )
+#tf.config.run_functions_eagerly(True)
+# predictor = Prediction()
+# r = predictor.predict_single( Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) , 10 )
 # print(r)
 # exit()
 
 # Test
-# batch = [ Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) , Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) ]
-# r = prediction.predict_batch( batch , 10 )
+#tf.config.run_functions_eagerly(True)
+# predictor = Prediction()
+# batch = [ Transaction.from_labels( ['4333', '21730' ], '[UNKNOWN]' ) , Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) ]
+# r = predictor.predict_batch( batch , 10 )
 # print(r)
 # exit()
 
@@ -81,9 +86,8 @@ if __name__ == "__main__":
     predictor = Prediction()
     start = time.time()
     run_real_eval(predictor)
+    #cProfile.run('run_real_eval(predictor)', sort=SortKey.CUMULATIVE)
+    #cProfile.run('run_real_eval(predictor)', sort=SortKey.TIME)
     end = time.time()
     print("Total time:", end - start)
-
-#cProfile.run('run_eval()', sort=SortKey.CUMULATIVE)
-#cProfile.run('run_eval()', sort=SortKey.TIME)
 

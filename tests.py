@@ -1,66 +1,79 @@
 
 import tensorflow as tf
+from labels import Labels
 
-#@tf.function
-def test2( sequences_batch: tf.RaggedTensor, sequence_length: int ) -> tf.Tensor:
-    print(sequences_batch)
+@tf.function
+def count_non_equal(batch, value):
+    elements_equal_to_value = tf.not_equal(batch, value)
+    as_ints = tf.cast(elements_equal_to_value, tf.int32)
+    count = tf.reduce_sum(as_ints, axis=1)
+    return count
 
-    # Avoid sequences larger than sequence_length: Get last sequence_length of each sequence
-    sequences_batch = sequences_batch[:,-sequence_length:]
-    # Add one to indices, to reserve 0 index for padding
-    sequences_batch = sequences_batch + 1
-    # Convert to dense, padding zeros to the right
-    sequences_batch = sequences_batch.to_tensor(0, shape=[None, sequence_length])
-    return sequences_batch
+@tf.function
+def remove_not_found_index(batch_item_indices, not_found_index):
+    # Count non -1's on each row
+    found_counts_per_row = count_non_equal(batch_item_indices, not_found_index)
+    print("found_counts_per_row", found_counts_per_row)
 
-#@tf.function
-def test( sequences_batch: tf.RaggedTensor, sequence_length: int ) -> tf.Tensor:
-    print(sequences_batch)
+    # Get non -1 values batch_item_indices from flat values
+    flat_values = batch_item_indices.flat_values
+    mask = tf.not_equal( flat_values , not_found_index )
+    print("mask", mask )
+    flat_found_indices = tf.boolean_mask( flat_values , mask )
+    print("flat_found_indices", flat_found_indices )
+    return tf.RaggedTensor.from_row_lengths( flat_found_indices , found_counts_per_row )
 
-    # Avoid sequences larger than sequence_length: Get last sequence_length of each sequence
-    sequences_batch = sequences_batch[:,-sequence_length:]
-    print( sequences_batch )
-    
-    # Number of elements to pad on each batch row
-    pad_row_lengths = sequence_length - sequences_batch.row_lengths()
-    print( pad_row_lengths )
+@tf.function
+def preprocess_items(batch_item_labels: tf.RaggedTensor):
 
-    # 1d with all elements to pad (pad element is temporally -1)
-    n_pad_elements = (sequence_length * sequences_batch.nrows()) - tf.size(sequences_batch, tf.int64 )
-    pad_values = tf.repeat(-1, n_pad_elements )
-    print("pad_values", pad_values)
+    # Define lookup tables
+    not_found_index = -1
+    item_labels_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
+            Labels.ITEM_LABELS_FILE, tf.string, tf.lookup.TextFileIndex.WHOLE_LINE,
+            tf.int64, tf.lookup.TextFileIndex.LINE_NUMBER, delimiter=" "), not_found_index)
 
-    # 2d with elements to padd on each batch row
-    padding = tf.RaggedTensor.from_row_lengths(pad_values, pad_row_lengths)
-    print("padding", padding)
+    # Do lookups item label -> index, -1 if not found
+    batch_item_indices = tf.ragged.map_flat_values(item_labels_lookup.lookup, batch_item_labels)
+    print( "batch_item_indices", batch_item_indices )
+    # Remove -1's:
+    batch_item_indices = remove_not_found_index(batch_item_indices, not_found_index)
 
-    # Append the padding to the batch and return a dense tensor (pad right for CuDNNGRU/GPU compatiblity)
-    sequences_batch = tf.concat([sequences_batch, padding], axis=1).to_tensor()
+    # Remove duplicated items
+    # TODO: UNIMPLEMENTED. tf.unique works only with 1D dimensions...
+    # batch_item_indices = tf.map_fn(lambda x: tf.unique(x), batch_item_indices.to_tensor(-1) )
+    # print("unique", tf.unique(batch_item_indices))
 
-    # +1 to all elements. This will turn padding element zero and increase all other indices +1
-    # Needed for keras embedding (padding element MUST to be the zero)
-    return sequences_batch + 1
+    return batch_item_indices
 
-    # print(t)
-    # print(t.nested_row_lengths())
-    # print(t.bounding_shape())
+@tf.function
+def prepreprocess_customers(batch_customer_labels: tf.Tensor):
+    # Define lookup tables
+    not_found_index = -1
+    customer_labels_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
+            Labels.CUSTOMER_LABELS_FILE, tf.string, tf.lookup.TextFileIndex.WHOLE_LINE,
+            tf.int64, tf.lookup.TextFileIndex.LINE_NUMBER, delimiter=" "), not_found_index)
 
-    # t = t.to_tensor(-1)
-    # print(t)
+    # Get customer label
+    batch_customer_indices = customer_labels_lookup.lookup(batch_customer_labels)
+    batch_customer_indices = tf.cast( batch_customer_indices , tf.int32 )
 
-    # n_cols_to_pad = dim - tf.shape(t)[1] 
-    # if n_cols_to_pad > 0:
-    #     t = tf.pad( t , [ [0,0] , [n_cols_to_pad, 0] ], constant_values=-1 )
+    # Get the "UNKNOWN" customer index
+    unknown_customer_index = customer_labels_lookup.lookup( tf.constant(Labels.UNKNOWN_LABEL, dtype=tf.string) )
+    unknown_customer_index = tf.cast( unknown_customer_index , tf.int32 )
+
+    # Replace -1 by "UNKNOWN" index
+    update_indices = tf.where( tf.math.equal(batch_customer_indices, not_found_index) )
+    batch_customer_indices = tf.tensor_scatter_nd_update( batch_customer_indices, update_indices, 
+        tf.repeat( unknown_customer_index , tf.size( update_indices ) ) )
+    return batch_customer_indices
 
 
-t = tf.ragged.constant( [ [1], [1, 3, 0], [2, 1], [] , [0, 1, 2, 3, 4, 5, 6, 7] ] )
-# for _ in range(1000):
-#     test(t, 3)
-#     test(t, 10).numpy()
+@tf.function
+def test( batch_item_labels: tf.RaggedTensor, batch_customer_labels: tf.Tensor, sequence_length: int ) -> tf.Tensor:
+    return ( preprocess_items(batch_item_labels) , prepreprocess_customers(batch_customer_labels) )
 
-print( test2(t, 3).numpy() )
-print( test2(t, 10).numpy() )
 
-# t = tf.ragged.constant( [ [1], [1, 3, 0], [2, 1] ] )
-# print( test(t, 4).numpy() )
+item_labels = tf.ragged.constant( [ ['3979', '4565'], ['3979'] , [] , ['achilipu', 'achilipu'] , ['3979', 'achilipu'] ] )
+customer_labels = tf.constant( [ '12626', 'achilipu' , '8333' , 'arriquitaun' ] )
+print("result", test(item_labels, customer_labels, 3) )
 

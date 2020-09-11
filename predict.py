@@ -24,19 +24,17 @@ class Prediction:
         self.n_items = len(self.item_labels.labels)
         self.n_customers = len(self.customer_labels.labels)
 
-    def predict_single(self, transaction: Transaction, n_items_result: int) -> List[ Tuple[str, float] ]:
-        results = self.predict_batch( [ transaction ] , n_items_result )
-        return ( results[0][0] , results[1][0] )
 
     @staticmethod
     @tf.function( input_signature=[tf.TensorSpec(shape=[None, None], dtype=tf.float32),
-                                   tf.TensorSpec(shape=[], dtype=tf.int32)] )
+                                   tf.TensorSpec(shape=[], dtype=tf.int64)] )
     def _top_predictions_tensor(results, n_results):
 
         sorted_indices = tf.argsort(results, direction='DESCENDING')
         top_indices = sorted_indices[:,0:n_results]
         top_probabilities = tf.gather(results, top_indices, batch_dims=1)
         return top_indices, top_probabilities
+
 
     @staticmethod
     @tf.function( input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.int64), 
@@ -65,24 +63,116 @@ class Prediction:
         # Assign -1's to the input indices:
         return tf.tensor_scatter_nd_update( result, batch_item_indices, updates)
 
-    @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.int64), 
-                                  tf.TensorSpec(shape=[None], dtype=tf.int64),
-                                  tf.TensorSpec(shape=[], dtype=tf.int32)])
-    def _run_model_prediction(self, batch_item_indices, batch_customer_indices, n_results):
-        result = self.model( ( batch_item_indices , batch_customer_indices ) )
+
+    @staticmethod
+    @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.int64), tf.TensorSpec(shape=(), dtype=tf.int64)])
+    def count_non_equal(batch: tf.RaggedTensor, value: tf.Tensor) -> tf.Tensor:
+        """ Returns the count of elements in 'batch'' distincts to 'value' on each batch row """
+        elements_equal_to_value = tf.not_equal(batch, value)
+        as_ints = tf.cast(elements_equal_to_value, tf.int64)
+        count = tf.reduce_sum(as_ints, axis=1)
+        return count
+
+
+    @staticmethod
+    @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.int64), tf.TensorSpec(shape=(), dtype=tf.int64)])
+    def remove_not_found_index(batch_item_indices: tf.RaggedTensor, not_found_index: tf.Tensor) -> tf.RaggedTensor:
+        # Count non -1's on each row
+        found_counts_per_row = Prediction.count_non_equal(batch_item_indices, not_found_index)
+        #print("found_counts_per_row", found_counts_per_row)
+
+        # Get non -1 values batch_item_indices from flat values
+        flat_values = batch_item_indices.flat_values
+        mask = tf.not_equal( flat_values , not_found_index )
+        #print("mask", mask )
+        flat_found_indices = tf.boolean_mask( flat_values , mask )
+        #print("flat_found_indices", flat_found_indices )
+        return tf.RaggedTensor.from_row_lengths( flat_found_indices , found_counts_per_row )
+
+
+    @staticmethod
+    @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.string)])
+    def preprocess_items(batch_item_labels: tf.RaggedTensor):
+        #print("batch_item_labels ->", batch_item_labels)
+
+        # Define lookup tables
+        not_found_index = -1
+        item_labels_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
+                Labels.ITEM_LABELS_FILE, tf.string, tf.lookup.TextFileIndex.WHOLE_LINE,
+                tf.int64, tf.lookup.TextFileIndex.LINE_NUMBER, delimiter=" "), not_found_index)
+
+        # Do lookups item label -> index, -1 if not found
+        batch_item_indices = tf.ragged.map_flat_values(item_labels_lookup.lookup, batch_item_labels)
+        #print( "batch_item_indices", batch_item_indices )
+
+        # Remove -1's:
+        batch_item_indices = Prediction.remove_not_found_index(batch_item_indices, not_found_index)
+        #print( "batch_item_indices >>>", batch_item_indices )
+
+        # Remove duplicated items
+        # TODO: UNIMPLEMENTED. tf.unique works only with 1D dimensions...
+        # batch_item_indices = tf.map_fn(lambda x: tf.unique(x), batch_item_indices.to_tensor(-1) )
+        # print("unique", tf.unique(batch_item_indices))
+
+        return batch_item_indices
+
+
+    @staticmethod
+    @tf.function
+    def prepreprocess_customers(batch_customer_labels: tf.Tensor):
+        # Define lookup tables
+        not_found_index = -1
+        customer_labels_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
+                Labels.CUSTOMER_LABELS_FILE, tf.string, tf.lookup.TextFileIndex.WHOLE_LINE,
+                tf.int64, tf.lookup.TextFileIndex.LINE_NUMBER, delimiter=" "), not_found_index)
+
+        # Get customer label
+        batch_customer_indices = customer_labels_lookup.lookup(batch_customer_labels)
+
+        # Get the "UNKNOWN" customer index
+        unknown_customer_index = customer_labels_lookup.lookup( tf.constant(Labels.UNKNOWN_LABEL, dtype=tf.string) )
+
+        # Replace -1 by "UNKNOWN" index
+        update_indices = tf.where( tf.math.equal(batch_customer_indices, not_found_index) )
+        batch_customer_indices = tf.tensor_scatter_nd_update( batch_customer_indices, update_indices, 
+            tf.repeat( unknown_customer_index , tf.size( update_indices ) ) )
+        return batch_customer_indices
+
+
+    @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.string), 
+                                  tf.TensorSpec(shape=[None], dtype=tf.string),
+                                  tf.TensorSpec(shape=[], dtype=tf.int64)])
+    def _run_model_prediction(self, batch_item_labels, batch_customer_labels, n_results):
+
+        # Convert labels to indices
+        #print(">>> batch_item_labels", batch_item_labels)
+        batch_item_indices = Prediction.preprocess_items(batch_item_labels)
+        #print(">>> batch_item_indices", batch_item_indices)
+        #print(">>> batch_customer_labels", batch_customer_labels)
+        batch_customer_indices = Prediction.prepreprocess_customers(batch_customer_labels)
+        #print(">>> batch_customer_indices", batch_customer_indices)
+
+        # Run the model
+        batch = ( batch_item_indices , batch_customer_indices )
+        #print(">>> batch", batch)
+        result = self.model( batch )
+
         # Set result[ batch_item_indices ] = -1.0:
+        #print("batch_item_indices >>>***", batch_item_indices)
         result = Prediction._remove_input_items_from_prediction( batch_item_indices, result )
+
         # Get most probable n results
         return Prediction._top_predictions_tensor(result, n_results)
+
 
     def predict_batch(self, transactions: List[Transaction], n_items_result: int) -> List:
 
         # Setup batch
-        batch = Transaction.to_net_inputs_batch(transactions, self.item_labels, self.customer_labels)
+        batch = Transaction.to_net_inputs_batch(transactions)
 
-        # TODO: This will fail if no customer is provided
-        batch = ( tf.ragged.constant(batch[0], dtype=tf.int64) , np.array(batch[1]) )
-        #print(batch)
+        #print("*** batch", batch)
+        batch = ( tf.ragged.constant(batch[0], dtype=tf.string) , tf.constant(batch[1]) )
+        #print("*** batch", batch)
 
         results = self._run_model_prediction( batch[0] , batch[1], n_items_result )
         #print("raw", results)
@@ -92,3 +182,8 @@ class Prediction:
         #print("with labels", results)
 
         return results
+
+
+    def predict_single(self, transaction: Transaction, n_items_result: int) -> List[ Tuple[str, float] ]:
+        results = self.predict_batch( [ transaction ] , n_items_result )
+        return ( results[0][0] , results[1][0] )
