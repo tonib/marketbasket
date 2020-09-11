@@ -7,7 +7,7 @@ import cProfile
 import re
 from pstats import SortKey
 import time
-#import tensorflow as tf
+import tensorflow as tf
 
 TEST_BATCH_SIZE = 256
 
@@ -75,7 +75,7 @@ def run_real_eval(predictor):
             #     print(n_predictions)
             
             expected_item = transaction_with_expected_result[1]
-            if expected_item in predicted_item_labels:
+            if expected_item.encode() in predicted_item_labels:
                 score += +1
 
     print("Score: " + str(score) + " of " + str(n_predictions))

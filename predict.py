@@ -26,14 +26,34 @@ class Prediction:
 
 
     @staticmethod
+    @tf.function(input_signature=[tf.TensorSpec(shape=[None, None], dtype=tf.int32)])
+    def post_process_items(batch_items_indices: tf.Tensor) -> tf.Tensor:
+
+        # Define reverse lookup tables (tem index -> item string label)
+        # Define lookup tables
+        item_indices_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
+            Labels.ITEM_LABELS_FILE, tf.int64, tf.lookup.TextFileIndex.LINE_NUMBER,
+            tf.string, tf.lookup.TextFileIndex.WHOLE_LINE, delimiter=" "), "")
+
+        # Do lookup
+        return item_indices_lookup.lookup( tf.cast(batch_items_indices, tf.int64) )
+
+
+    @staticmethod
     @tf.function( input_signature=[tf.TensorSpec(shape=[None, None], dtype=tf.float32),
                                    tf.TensorSpec(shape=[], dtype=tf.int64)] )
     def _top_predictions_tensor(results, n_results):
 
+        # Get most probable item indices
         sorted_indices = tf.argsort(results, direction='DESCENDING')
         top_indices = sorted_indices[:,0:n_results]
         top_probabilities = tf.gather(results, top_indices, batch_dims=1)
-        return top_indices, top_probabilities
+
+        # Convert item indices to item labels
+        #print("top_indices", top_indices)
+        top_item_labels = Prediction.post_process_items(top_indices)
+
+        return top_item_labels, top_probabilities
 
 
     @staticmethod
@@ -95,7 +115,7 @@ class Prediction:
     def preprocess_items(batch_item_labels: tf.RaggedTensor):
         #print("batch_item_labels ->", batch_item_labels)
 
-        # Define lookup tables
+        # Define lookup tables (item string label -> item index)
         not_found_index = -1
         item_labels_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
                 Labels.ITEM_LABELS_FILE, tf.string, tf.lookup.TextFileIndex.WHOLE_LINE,
@@ -177,10 +197,7 @@ class Prediction:
         results = self._run_model_prediction( batch[0] , batch[1], n_items_result )
         #print("raw", results)
 
-        # Convert top predictions indices to item labels
-        results = ( self.item_labels.labels[results[0].numpy()] , results[1].numpy() )
-        #print("with labels", results)
-
+        results = ( results[0].numpy() , results[1].numpy() )
         return results
 
 
