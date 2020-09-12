@@ -1,12 +1,8 @@
 import tensorflow as tf
 from labels import Labels
-import numpy as np
-from operator import itemgetter
 from typing import List, Tuple
-from settings import Settings
-from tensorflow.python.framework.ops import disable_eager_execution
 from transaction import Transaction
-from model import raged_lists_batch_to_multihot
+from model import pad_sequence # Required to load the model...
 
 class Prediction:
 
@@ -16,9 +12,9 @@ class Prediction:
         self.customer_labels = Labels.load(Labels.CUSTOMER_LABELS_FILE)
 
         if model:
-            self.model = model
+            self.model: tf.keras.Model = model
         else:
-            self.model = tf.keras.models.load_model('model/exported_model')
+            self.model: tf.keras.Model = tf.keras.models.load_model('model/exported_model')
             self.model.summary()
 
         self.n_items = len(self.item_labels.labels)
