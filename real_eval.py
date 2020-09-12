@@ -11,22 +11,6 @@ import tensorflow as tf
 
 TEST_BATCH_SIZE = 256
 
-# Test
-#tf.config.run_functions_eagerly(True)
-# predictor = Prediction()
-# r = predictor.predict_single( Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) , 10 )
-# print(r)
-# exit()
-
-# Test
-#tf.config.run_functions_eagerly(True)
-# predictor = Prediction()
-# batch = [ Transaction.from_labels( ['4333', '21730' ], '[UNKNOWN]' ) , Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) ]
-# r = predictor.predict_batch( batch , 10 )
-# print(r)
-# exit()
-
-
 def transactions_with_expected_item() -> Iterable[Tuple[Transaction, str]]:
     with open(Transaction.TRANSACTIONS_EVAL_DATASET_FILE) as eval_trn_file:
         for line in eval_trn_file:

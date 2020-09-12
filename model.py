@@ -70,11 +70,13 @@ def create_model_sequential(item_labels: Labels, customer_labels: Labels) -> tf.
     # Embbed items sequence:
     n_items = len(item_labels.labels)
     # +1 in "n_items + 1" is for padding element
-    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.EMBEDDING_DIM, mask_zero=True)(items_branch)
+    # TODO: There is a bug in tf2.3: If you set mask_zero=True, GPU and CPU implementations return different values
+    # TODO: It seems fixed in tf-nightly. See tf-bugs/gru-bug.py. Try it again in tf2.4
+    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.EMBEDDING_DIM, mask_zero=False)(items_branch)
 
     # Process item inputs with a RNN layer
     items_branch = tf.keras.layers.GRU(64, return_sequences=True)(items_branch)
-    #items_branch = tf.keras.layers.GRU(64)(items_branch)
+    #items_branch = tf.keras.layers.GRU(64, return_sequences=True, activation='relu')(items_branch)
     print(">>>>" , items_branch)
 
     # Flat to (batch size, -1) the RNN layer output

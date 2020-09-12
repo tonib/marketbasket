@@ -159,6 +159,55 @@ class Prediction:
         return batch_customer_indices
 
 
+    @tf.function
+    def _run_model_and_postprocess(self, batch_item_indices , batch_customer_indices, n_results):
+
+        # Run the model
+        batch = ( batch_item_indices , batch_customer_indices )
+        result = self.model( batch )
+
+        # Set result[ batch_item_indices ] = -1.0:
+        #print("batch_item_indices >>>***", batch_item_indices)
+        result = Prediction._remove_input_items_from_prediction( batch_item_indices, result )
+
+        # Get most probable n results
+        return Prediction._top_predictions_tensor(result, n_results)
+
+
+    @tf.function
+    def _run_model_filter_empty_sequences(self, batch_item_indices, batch_customer_indices, n_results):
+
+        # Check if there are empty sequences    
+        sequences_lenghts = batch_item_indices.row_lengths()
+        non_empty_seq_count = tf.math.count_nonzero(sequences_lenghts)
+        n_sequences = tf.shape( sequences_lenghts, tf.int64 )[0]
+
+        #print(">>>", non_empty_seq_count, n_results)
+        if non_empty_seq_count >= n_sequences:
+            # There are no empty sequences. Run the model
+            return self._run_model_and_postprocess(batch_item_indices , batch_customer_indices, n_results)
+        else:
+            # Model will fail if a sequence is empty, and it seems it's the expected behaviour: Do not feed empty sequences
+            # Get non empty sequences mask
+            non_empty_mask = tf.math.greater( sequences_lenghts , 0 )
+
+            # Get non empty sequences
+            non_empty_sequences: tf.RaggedTensor = tf.ragged.boolean_mask( batch_item_indices , non_empty_mask )
+            non_empty_customers = tf.boolean_mask( batch_customer_indices , non_empty_mask )
+            
+            # Run model
+            label_predictions, probs_predictions = self._run_model_and_postprocess(non_empty_sequences , non_empty_customers, n_results)
+
+            # Merge real predictions with empty predictions for empty sequences:
+            indices = tf.where(non_empty_mask)
+            final_shape = [n_sequences, n_results]
+            label_predictions = tf.scatter_nd( indices , label_predictions , final_shape )
+            #print(label_predictions)
+            probs_predictions = tf.scatter_nd( indices , probs_predictions , final_shape )
+            #print(probs_predictions)
+            return (label_predictions, probs_predictions)
+        
+
     @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.string), 
                                   tf.TensorSpec(shape=[None], dtype=tf.string),
                                   tf.TensorSpec(shape=[], dtype=tf.int64)])
@@ -171,18 +220,9 @@ class Prediction:
         #print(">>> batch_customer_labels", batch_customer_labels)
         batch_customer_indices = Prediction.prepreprocess_customers(batch_customer_labels)
         #print(">>> batch_customer_indices", batch_customer_indices)
-
+        
         # Run the model
-        batch = ( batch_item_indices , batch_customer_indices )
-        #print(">>> batch", batch)
-        result = self.model( batch )
-
-        # Set result[ batch_item_indices ] = -1.0:
-        #print("batch_item_indices >>>***", batch_item_indices)
-        result = Prediction._remove_input_items_from_prediction( batch_item_indices, result )
-
-        # Get most probable n results
-        return Prediction._top_predictions_tensor(result, n_results)
+        return self._run_model_filter_empty_sequences(batch_item_indices, batch_customer_indices, n_results)
 
 
     def predict_batch(self, transactions: List[Transaction], n_items_result: int) -> List:

@@ -2,6 +2,7 @@
 REQUIRES Python 3.7+
 
 TODO:
+gather probably can be replaced by boolean_mask, anywhere
 Generate text file with train samples, to debug
 
 NON SEQUENTIAL:
@@ -22,3 +23,6 @@ Total time: 4.415704011917114
 
 See https://stackoverflow.com/questions/50166420/how-to-concatenate-2-embedding-layers-with-mask-zero-true-in-keras2-0 for multiple
 masked inputs (for future projects)
+
+Requisites:
+tensorflow==2.3
