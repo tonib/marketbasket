@@ -4,34 +4,47 @@ from typing import List, Tuple
 from transaction import Transaction
 from model import pad_sequence # Required to load the model...
 
-class Prediction:
+class Prediction(tf.Module):
+
+    NOT_FOUND_INDEX = -1
 
     def __init__(self, model = None):
+
+        self.item_labels_path = Labels.ITEM_LABELS_FILE
+        self.customer_labels_path = Labels.CUSTOMER_LABELS_FILE
 
         if model:
             self.model: tf.keras.Model = model
         else:
             self.model: tf.keras.Model = tf.keras.models.load_model('model/exported_model')
+            print(">>>", self.model)
             self.model.summary()
 
-    @staticmethod
-    @tf.function(input_signature=[tf.TensorSpec(shape=[None, None], dtype=tf.int32)])
-    def post_process_items(batch_items_indices: tf.Tensor) -> tf.Tensor:
+        # Lookup table: Customer label -> Customer index
+        self.customer_labels_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
+                self.customer_labels_path, tf.string, tf.lookup.TextFileIndex.WHOLE_LINE,
+                tf.int64, tf.lookup.TextFileIndex.LINE_NUMBER, delimiter=" "), Prediction.NOT_FOUND_INDEX)
 
-        # Define reverse lookup tables (tem index -> item string label)
-        # Define lookup tables
-        item_indices_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
-            Labels.ITEM_LABELS_FILE, tf.int64, tf.lookup.TextFileIndex.LINE_NUMBER,
+        # Lookup table: Item label -> Item index
+        self.item_labels_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
+                self.item_labels_path, tf.string, tf.lookup.TextFileIndex.WHOLE_LINE,
+                tf.int64, tf.lookup.TextFileIndex.LINE_NUMBER, delimiter=" "), Prediction.NOT_FOUND_INDEX)
+
+        # Reverse lookup tables (item index -> item string label)
+        self.item_indices_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
+            self.item_labels_path, tf.int64, tf.lookup.TextFileIndex.LINE_NUMBER,
             tf.string, tf.lookup.TextFileIndex.WHOLE_LINE, delimiter=" "), "")
 
+    @tf.function(input_signature=[tf.TensorSpec(shape=[None, None], dtype=tf.int32)])
+    def post_process_items(self, batch_items_indices: tf.Tensor) -> tf.Tensor:
+
         # Do lookup
-        return item_indices_lookup.lookup( tf.cast(batch_items_indices, tf.int64) )
+        return self.item_indices_lookup.lookup( tf.cast(batch_items_indices, tf.int64) )
 
 
-    @staticmethod
     @tf.function( input_signature=[tf.TensorSpec(shape=[None, None], dtype=tf.float32),
                                    tf.TensorSpec(shape=[], dtype=tf.int64)] )
-    def _top_predictions_tensor(results, n_results):
+    def _top_predictions_tensor(self, results, n_results):
 
         # Get most probable item indices
         sorted_indices = tf.argsort(results, direction='DESCENDING')
@@ -40,7 +53,7 @@ class Prediction:
 
         # Convert item indices to item labels
         #print("top_indices", top_indices)
-        top_item_labels = Prediction.post_process_items(top_indices)
+        top_item_labels = self.post_process_items(top_indices)
 
         return top_item_labels, top_probabilities
 
@@ -99,23 +112,16 @@ class Prediction:
         return tf.RaggedTensor.from_row_lengths( flat_found_indices , found_counts_per_row )
 
 
-    @staticmethod
     @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.string)])
-    def preprocess_items(batch_item_labels: tf.RaggedTensor):
+    def preprocess_items(self, batch_item_labels: tf.RaggedTensor):
         #print("batch_item_labels ->", batch_item_labels)
 
-        # Define lookup tables (item string label -> item index)
-        not_found_index = -1
-        item_labels_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
-                Labels.ITEM_LABELS_FILE, tf.string, tf.lookup.TextFileIndex.WHOLE_LINE,
-                tf.int64, tf.lookup.TextFileIndex.LINE_NUMBER, delimiter=" "), not_found_index)
-
         # Do lookups item label -> index, -1 if not found
-        batch_item_indices = tf.ragged.map_flat_values(item_labels_lookup.lookup, batch_item_labels)
+        batch_item_indices = tf.ragged.map_flat_values(self.item_labels_lookup.lookup, batch_item_labels)
         #print( "batch_item_indices", batch_item_indices )
 
         # Remove -1's:
-        batch_item_indices = Prediction.remove_not_found_index(batch_item_indices, not_found_index)
+        batch_item_indices = Prediction.remove_not_found_index(batch_item_indices, Prediction.NOT_FOUND_INDEX)
         #print( "batch_item_indices >>>", batch_item_indices )
 
         # Remove duplicated items
@@ -126,23 +132,17 @@ class Prediction:
         return batch_item_indices
 
 
-    @staticmethod
     @tf.function
-    def prepreprocess_customers(batch_customer_labels: tf.Tensor):
-        # Define lookup tables
-        not_found_index = -1
-        customer_labels_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
-                Labels.CUSTOMER_LABELS_FILE, tf.string, tf.lookup.TextFileIndex.WHOLE_LINE,
-                tf.int64, tf.lookup.TextFileIndex.LINE_NUMBER, delimiter=" "), not_found_index)
+    def prepreprocess_customers(self, batch_customer_labels: tf.Tensor):
 
         # Get customer label
-        batch_customer_indices = customer_labels_lookup.lookup(batch_customer_labels)
+        batch_customer_indices = self.customer_labels_lookup.lookup(batch_customer_labels)
 
         # Get the "UNKNOWN" customer index
-        unknown_customer_index = customer_labels_lookup.lookup( tf.constant(Labels.UNKNOWN_LABEL, dtype=tf.string) )
+        unknown_customer_index = self.customer_labels_lookup.lookup( tf.constant(Labels.UNKNOWN_LABEL, dtype=tf.string) )
 
         # Replace -1 by "UNKNOWN" index
-        update_indices = tf.where( tf.math.equal(batch_customer_indices, not_found_index) )
+        update_indices = tf.where( tf.math.equal(batch_customer_indices, Prediction.NOT_FOUND_INDEX) )
         batch_customer_indices = tf.tensor_scatter_nd_update( batch_customer_indices, update_indices, 
             tf.repeat( unknown_customer_index , tf.size( update_indices ) ) )
         return batch_customer_indices
@@ -160,7 +160,7 @@ class Prediction:
         result = Prediction._remove_input_items_from_prediction( batch_item_indices, result )
 
         # Get most probable n results
-        return Prediction._top_predictions_tensor(result, n_results)
+        return self._top_predictions_tensor(result, n_results)
 
 
     @tf.function
@@ -204,10 +204,10 @@ class Prediction:
 
         # Convert labels to indices
         #print(">>> batch_item_labels", batch_item_labels)
-        batch_item_indices = Prediction.preprocess_items(batch_item_labels)
+        batch_item_indices = self.preprocess_items(batch_item_labels)
         #print(">>> batch_item_indices", batch_item_indices)
         #print(">>> batch_customer_labels", batch_customer_labels)
-        batch_customer_indices = Prediction.prepreprocess_customers(batch_customer_labels)
+        batch_customer_indices = self.prepreprocess_customers(batch_customer_labels)
         #print(">>> batch_customer_indices", batch_customer_indices)
         
         # Run the model

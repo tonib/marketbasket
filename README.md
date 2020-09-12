@@ -26,3 +26,12 @@ masked inputs (for future projects)
 
 Requisites:
 tensorflow==2.3
+
+Installation:
+python3 -m venv --system-site-packages ./venv-tf-2.3
+source venv-tf-2.3/bin/activate
+pip install --upgrade pip
+pip install tensorflow==2.3
+
+Show exported model
+saved_model_cli show --dir model/serving_model --all
