@@ -12,4 +12,5 @@ p = Prediction()
 
 #print(p._run_model_prediction.get_concrete_function().graph.as_graph_def())
 
-tf.saved_model.save(p, 'model/serving_model', signatures={ "predicct": p._top_predictions_tensor })
+# TODO: It seems the defautl signature name is "serving_default"...
+tf.saved_model.save(p, 'model/serving_model/1/', signatures={ 'predict': p.run_model_unragged })

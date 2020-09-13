@@ -200,7 +200,7 @@ class Prediction(tf.Module):
     @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.string), 
                                   tf.TensorSpec(shape=[None], dtype=tf.string),
                                   tf.TensorSpec(shape=[], dtype=tf.int64)])
-    def _run_model_prediction(self, batch_item_labels, batch_customer_labels, n_results):
+    def run_model_prediction(self, batch_item_labels, batch_customer_labels, n_results):
 
         # Convert labels to indices
         #print(">>> batch_item_labels", batch_item_labels)
@@ -214,6 +214,13 @@ class Prediction(tf.Module):
         return self._run_model_filter_empty_sequences(batch_item_indices, batch_customer_indices, n_results)
 
 
+    @tf.function(input_signature=[tf.TensorSpec(shape=[None, None], dtype=tf.string), 
+                                  tf.TensorSpec(shape=[None], dtype=tf.string),
+                                  tf.TensorSpec(shape=[], dtype=tf.int64)])
+    def run_model_unragged(self, batch_item_labels, batch_customer_labels, n_results):
+        ragged_batch_item_labels = tf.RaggedTensor.from_tensor(batch_item_labels)
+        return self.run_model_prediction(ragged_batch_item_labels, batch_customer_labels, n_results)
+
     def predict_batch(self, transactions: List[Transaction], n_items_result: int) -> List:
 
         # Setup batch
@@ -223,7 +230,7 @@ class Prediction(tf.Module):
         batch = ( tf.ragged.constant(batch[0], dtype=tf.string) , tf.constant(batch[1]) )
         #print("*** batch", batch)
 
-        results = self._run_model_prediction( batch[0] , batch[1], n_items_result )
+        results = self.run_model_prediction( batch[0] , batch[1], n_items_result )
         #print("raw", results)
 
         results = ( results[0].numpy() , results[1].numpy() )
