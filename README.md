@@ -1,5 +1,7 @@
 
 REQUIRES Python 3.7+
+Tested version: Python 3.8.2
+
 
 TODO:
 gather probably can be replaced by boolean_mask, anywhere
@@ -44,8 +46,10 @@ sudo docker pull tensorflow/serving
 
 sudo docker run -p 8501:8501 --mount type=bind,source=/home/toni/proyectos/tensorflow/basketMarket/model/serving_model,target=/models/basket -e MODEL_NAME=basket -t tensorflow/serving
 
-curl -d '{"batch_customer_labels": ["5909"], "batch_item_labels": [["21131"]]}' -X POST http://localhost:8501/v1/models/basket:predict
-curl -d '{"signature_name":"predict", "inputs": { "batch_customer_labels": ["5909"], "batch_item_labels": [["21131"]], "n_results": 10 } }' -X POST "http://localhost:8501/v1/models/basket:predict"
+curl -d '{"signature_name":"predict", "inputs": { "customer_label": "5909", "item_labels": ["21131", "221554"], "n_results": 10 } }' -X POST "http://localhost:8501/v1/models/basket:predict"
 
 Serving time:
 Total time: 0.0029418468475341797
+
+Kill all containers:
+sudo docker container kill $(sudo docker ps -q)

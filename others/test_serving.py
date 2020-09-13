@@ -5,8 +5,8 @@ data = '''
     {
         "signature_name":"predict", 
         "inputs": { 
-            "batch_customer_labels": ["5909"], 
-            "batch_item_labels": [["21131"]], 
+            "customer_label": "5909", 
+            "item_labels": ["21131", "21177", "4565", "4682"], 
             "n_results": 10 
         }
     }

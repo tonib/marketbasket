@@ -214,12 +214,21 @@ class Prediction(tf.Module):
         return self._run_model_filter_empty_sequences(batch_item_indices, batch_customer_indices, n_results)
 
 
-    @tf.function(input_signature=[tf.TensorSpec(shape=[None, None], dtype=tf.string), 
-                                  tf.TensorSpec(shape=[None], dtype=tf.string),
+    @tf.function(input_signature=[tf.TensorSpec(shape=[None], dtype=tf.string), 
+                                  tf.TensorSpec(shape=[], dtype=tf.string),
                                   tf.TensorSpec(shape=[], dtype=tf.int64)])
-    def run_model_unragged(self, batch_item_labels, batch_customer_labels, n_results):
+    def run_model_single(self, item_labels, customer_label, n_results):
+        # Convert single example to batch
+        batch_item_labels = tf.expand_dims(item_labels, axis=0)
         ragged_batch_item_labels = tf.RaggedTensor.from_tensor(batch_item_labels)
-        return self.run_model_prediction(ragged_batch_item_labels, batch_customer_labels, n_results)
+        batch_customer_labels = tf.expand_dims(customer_label, axis=0)
+
+        predicted_item_labels, predicted_item_probs = self.run_model_prediction(ragged_batch_item_labels, batch_customer_labels, n_results)
+        
+        # Remove batch dimension
+        predicted_item_labels = tf.squeeze( predicted_item_labels, 0 )
+        predicted_item_probs = tf.squeeze( predicted_item_probs, 0 )
+        return ( predicted_item_labels, predicted_item_probs )
 
     def predict_batch(self, transactions: List[Transaction], n_items_result: int) -> List:
 
