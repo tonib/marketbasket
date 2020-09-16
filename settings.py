@@ -20,7 +20,10 @@ class Settings:
     SEQUENTIAL = True
 
     # Sequence length?
-    SEQUENCE_LENGTH = 15
+    SEQUENCE_LENGTH = 10
 
-    # Sequence - Embbeding dimension
-    EMBEDDING_DIM = 12
+    # Sequence - Items embeding dimension
+    ITEMS_EMBEDDING_DIM = 10
+
+    # Sequence - Customers embeding dimension
+    CUSTOMERS_EMBEDDING_DIM = 5

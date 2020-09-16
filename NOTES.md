@@ -4,6 +4,12 @@ Tested version: Python 3.8.2
 
 
 TODO:
+Embed customer id
+Convert to multi-binary classifier:
+    https://stackoverflow.com/questions/44164749/how-does-keras-handle-multilabel-classification
+    https://stackoverflow.com/questions/42081257/why-binary-crossentropy-and-categorical-crossentropy-give-different-performances
+    https://stackoverflow.com/questions/45799474/keras-model-evaluate-vs-model-predict-accuracy-difference-in-multi-class-nlp-ta/45834857#45834857
+
 gather probably can be replaced by boolean_mask, anywhere
 Generate text file with train samples, to debug
 

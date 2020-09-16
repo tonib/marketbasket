@@ -67,12 +67,12 @@ def create_model_sequential(item_labels: Labels, customer_labels: Labels) -> tf.
     items_input = tf.keras.layers.Input(shape=[None], name='input_items_idx', dtype=tf.int64, ragged=True)
     # Pad items sequence:
     items_branch = tf.keras.layers.Lambda(lambda x: pad_sequence(x), name="padded_sequence")(items_input)
-    # Embbed items sequence:
+    # Embed items sequence:
     n_items = len(item_labels.labels)
     # +1 in "n_items + 1" is for padding element
     # TODO: There is a bug in tf2.3: If you set mask_zero=True, GPU and CPU implementations return different values
     # TODO: It seems fixed in tf-nightly. See tf-bugs/gru-bug.py. Try it again in tf2.4
-    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.EMBEDDING_DIM, mask_zero=False)(items_branch)
+    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM, mask_zero=False)(items_branch)
 
     # Process item inputs with a RNN layer
     items_branch = tf.keras.layers.GRU(64, return_sequences=True)(items_branch)
@@ -84,9 +84,9 @@ def create_model_sequential(item_labels: Labels, customer_labels: Labels) -> tf.
 
     # Customer index
     customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
-    # Conver to one-hot
     n_customers = len(customer_labels.labels)
-    customer_branch = tf.keras.layers.Lambda(lambda x: tf.one_hot(x, n_customers), name='one_hot_customer_encoding')(customer_input)
+    # Embed customer
+    customer_branch = tf.keras.layers.Embedding(n_customers, Settings.CUSTOMERS_EMBEDDING_DIM, mask_zero=False)(customer_input)
 
     # Concatenate the processed items sequence with the customer
     classification_branch = tf.keras.layers.Concatenate()( [ customer_branch , items_branch ] )
