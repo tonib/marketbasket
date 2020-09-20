@@ -4,26 +4,19 @@ Tested version: Python 3.8.2
 
 
 TODO:
+Test bidirectional network
 Check class balancing
+Test CNN
 Embed customer id
 gather probably can be replaced by boolean_mask, anywhere
 Generate text file with train samples, to debug
 * Convert to multi-binary classifier: NO. It performs worse
 
-NON SEQUENTIAL:
-Score: 62793 of 151689
-Ratio: 0.4139588236457489
-Total time: 2.959610939025879
 
 SEQUENTIAL:
-Score: 68515 of 150192
-Ratio: 0.45618275274315545
-Total time: 2.914384126663208
-
-(After pre/post processing / 1)
-Score: 68951 of 151984
-Ratio: 0.45367275502684495
-Total time: 4.415704011917114
+Score: 72009 of 150799
+Ratio: 0.47751642915403947
+Total time: 4.8768956661224365
 
 
 See https://stackoverflow.com/questions/50166420/how-to-concatenate-2-embedding-layers-with-mask-zero-true-in-keras2-0 for multiple
@@ -38,6 +31,8 @@ source venv-tf-2.3/bin/activate
 pip install --upgrade pip
 pip install tensorflow==2.3
 pip install requests # Only needed to test tf serving performance
+
+pip install focal-loss # https://github.com/artemmavrin/focal-loss
 
 Show exported model
 saved_model_cli show --dir model/serving_model/1 --all

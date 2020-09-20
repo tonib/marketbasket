@@ -7,6 +7,7 @@ from model import create_model
 from dataset import DataSet
 from real_eval import run_real_eval
 from predict import Prediction
+from focal_loss import SparseCategoricalFocalLoss
 
 # To test with GPU disabled set environment variable CUDA_VISIBLE_DEVICES=-1
 
@@ -30,8 +31,11 @@ eval_dataset = DataSet.load_eval_dataset()
 # Create model
 model = create_model(item_labels, customer_labels)
 
-model.compile(optimizer='adam',
+
+model.compile(
+              optimizer=tf.keras.optimizers.Adam(learning_rate=0.002),
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
+              #loss=SparseCategoricalFocalLoss(gamma=2, from_logits=False),
               metrics=['accuracy'])
 
 model.summary()
