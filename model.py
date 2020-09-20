@@ -37,8 +37,8 @@ def create_model_non_sequential(item_labels: Labels, customer_labels: Labels) ->
 
     input_layer = tf.keras.layers.Concatenate(axis=1)( [ encoded_items , customer_input_encoded ] )
     
-    x = tf.keras.layers.Dense(256)(input_layer)
-    x = tf.keras.layers.Dense(256, activation='relu')(x)
+    x = tf.keras.layers.Dense(1024, activation='relu')(input_layer)
+    x = tf.keras.layers.Dense(1024, activation='relu')(x)
     x = tf.keras.layers.Dense(n_items, activation='softmax')(x)
 
     return tf.keras.Model(inputs=[ items_input , customer_input ], outputs=x)
