@@ -92,7 +92,7 @@ def create_model_sequential(item_labels: Labels, customer_labels: Labels) -> tf.
     classification_branch = tf.keras.layers.Concatenate()( [ customer_branch , items_branch ] )
 
     # Process all input in Dense:
-    classification_branch = tf.keras.layers.Dense(1024)(classification_branch)
+    classification_branch = tf.keras.layers.Dense(1024, activation='relu')(classification_branch)
 
     # Do the classification
     classification_branch = tf.keras.layers.Dense(n_items, activation='softmax')(classification_branch)
