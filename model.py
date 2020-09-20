@@ -74,9 +74,11 @@ def create_model_sequential(item_labels: Labels, customer_labels: Labels) -> tf.
     # TODO: It seems fixed in tf-nightly. See tf-bugs/gru-bug.py. Try it again in tf2.4
     items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM, mask_zero=False)(items_branch)
 
-    # Process item inputs with a RNN layer
-    items_branch = tf.keras.layers.GRU(256, return_sequences=True)(items_branch)
-    #items_branch = tf.keras.layers.GRU(64, return_sequences=True, activation='relu')(items_branch)
+    # Process item inputs with a RNN layer, bidirectiona
+    #items_branch = tf.keras.layers.GRU(256, return_sequences=True)(items_branch)
+    forward = tf.keras.layers.GRU(128, return_sequences=True)
+    backward = tf.keras.layers.GRU(128, return_sequences=True, go_backwards=True)
+    items_branch = tf.keras.layers.Bidirectional(forward, backward_layer=backward)(items_branch)
     print(">>>>" , items_branch)
 
     # Flat to (batch size, -1) the RNN layer output
