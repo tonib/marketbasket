@@ -75,7 +75,7 @@ def create_model_sequential(item_labels: Labels, customer_labels: Labels) -> tf.
     items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM, mask_zero=False)(items_branch)
 
     # Process item inputs with a RNN layer
-    items_branch = tf.keras.layers.GRU(64, return_sequences=True)(items_branch)
+    items_branch = tf.keras.layers.GRU(256, return_sequences=True)(items_branch)
     #items_branch = tf.keras.layers.GRU(64, return_sequences=True, activation='relu')(items_branch)
     print(">>>>" , items_branch)
 
@@ -92,7 +92,7 @@ def create_model_sequential(item_labels: Labels, customer_labels: Labels) -> tf.
     classification_branch = tf.keras.layers.Concatenate()( [ customer_branch , items_branch ] )
 
     # Process all input in Dense:
-    classification_branch = tf.keras.layers.Dense(256)(classification_branch)
+    classification_branch = tf.keras.layers.Dense(1024)(classification_branch)
 
     # Do the classification
     classification_branch = tf.keras.layers.Dense(n_items, activation='softmax')(classification_branch)
