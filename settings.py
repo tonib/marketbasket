@@ -14,7 +14,7 @@ class Settings:
     BATCH_SIZE = 64
 
     # Epochs to train
-    N_EPOCHS = 5
+    N_EPOCHS = 15
     
     # Sequential model?
     SEQUENTIAL = True
@@ -26,4 +26,4 @@ class Settings:
     ITEMS_EMBEDDING_DIM = 10
 
     # Sequence - Customers embeding dimension
-    CUSTOMERS_EMBEDDING_DIM = 5
+    CUSTOMERS_EMBEDDING_DIM = 7

@@ -4,14 +4,11 @@ Tested version: Python 3.8.2
 
 
 TODO:
+Check class balancing
 Embed customer id
-Convert to multi-binary classifier:
-    https://stackoverflow.com/questions/44164749/how-does-keras-handle-multilabel-classification
-    https://stackoverflow.com/questions/42081257/why-binary-crossentropy-and-categorical-crossentropy-give-different-performances
-    https://stackoverflow.com/questions/45799474/keras-model-evaluate-vs-model-predict-accuracy-difference-in-multi-class-nlp-ta/45834857#45834857
-
 gather probably can be replaced by boolean_mask, anywhere
 Generate text file with train samples, to debug
+* Convert to multi-binary classifier: NO. It performs worse
 
 NON SEQUENTIAL:
 Score: 62793 of 151689
@@ -50,7 +47,7 @@ Install serving
 sudo apt install docker.io
 sudo docker pull tensorflow/serving
 
-sudo docker run -p 8501:8501 --mount type=bind,source=/home/toni/proyectos/tensorflow/basketMarket/model/serving_model,target=/models/basket -e MODEL_NAME=basket -t tensorflow/serving
+sudo docker run -p 8501:8501 --mount type=bind,source=/home/toni/proyectos/tensorflow/marketBasket/model/serving_model,target=/models/basket -e MODEL_NAME=basket -t tensorflow/serving
 
 curl -d '{"signature_name":"predict", "inputs": { "customer_label": "5909", "item_labels": ["21131", "221554"], "n_results": 10 } }' -X POST "http://localhost:8501/v1/models/basket:predict"
 
@@ -65,6 +62,6 @@ Troubles starting Docker: Try this: cmd.exe > menu > properties > disable legacy
 
 
 Windows:
-D:\kbases\subversion\basketMarket-tf>docker run -p 8501:8501 --mount type=bind,source=C:\xxxxxx\model\serving_model,target=/models/basket -e MODEL_NAME=basket -t tensorflow/serving
+D:\kbases\subversion\marketBasket-tf>docker run -p 8501:8501 --mount type=bind,source=C:\xxxxxx\model\serving_model,target=/models/basket -e MODEL_NAME=basket -t tensorflow/serving
 C:\xxxxx\venv\Scripts\activate.ps1 (or .bat)
 

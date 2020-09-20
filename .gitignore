@@ -3,8 +3,9 @@
 __pycache__
 venv
 
-# Train data
+# Train data and result logs
 data
+logs
 
 # Model stuff (tensorboard logs, checkpoints, saved models)
 model
