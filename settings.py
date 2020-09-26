@@ -2,7 +2,7 @@
 class Settings:
 
     # Max number of items to handle
-    N_MAX_ITEMS = 1000
+    N_MAX_ITEMS = 3000
 
     # Max number customers to handle. If zero, customer code will not be trained
     N_MAX_CUSTOMERS = 100
@@ -26,7 +26,7 @@ class Settings:
     SEQUENCE_LENGTH = 10
 
     # Sequence - Items embeding dimension
-    ITEMS_EMBEDDING_DIM = 32
+    ITEMS_EMBEDDING_DIM = 64
 
     # Sequence - Customers embeding dimension
     CUSTOMERS_EMBEDDING_DIM = 16

@@ -4,7 +4,7 @@ from settings import Settings
 
 def create_model(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
     if Settings.SEQUENTIAL:
-        return create_model_sequential(item_labels, customer_labels)
+        return create_model_sequential2(item_labels, customer_labels)
     else:
         return create_model_non_sequential(item_labels, customer_labels)
 
