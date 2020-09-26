@@ -16,6 +16,9 @@ class Settings:
     # Epochs to train
     N_EPOCHS = 15
     
+    # Use class weights to correct labels imbalance?
+    CLASS_WEIGHT = False
+
     # Sequential model?
     SEQUENTIAL = True
 

@@ -8,6 +8,7 @@ from dataset import DataSet
 from real_eval import run_real_eval
 from predict import Prediction
 from focal_loss import SparseCategoricalFocalLoss
+from class_weights import ClassWeights
 
 # To test with GPU disabled set environment variable CUDA_VISIBLE_DEVICES=-1
 
@@ -30,7 +31,6 @@ eval_dataset = DataSet.load_eval_dataset()
 
 # Create model
 model = create_model(item_labels, customer_labels)
-
 
 model.compile(
               optimizer=tf.keras.optimizers.Adam(learning_rate=0.002),
@@ -59,8 +59,16 @@ class RealEvaluationCallback(tf.keras.callbacks.Callback):
 # TF 2.3: Requires validation_steps. It seems a bug, as documentation says it can be None for TF datasets, but
 # with None it throws exception
 
+# Add this for class weights (currently works worse)
+if Settings.CLASS_WEIGHT:
+    class_weights = ClassWeights.load(ClassWeights.CLASS_WEIGHTS_PATH)
+    class_weight = class_weights.keras_class_weights()
+else:
+    class_weight = None
+
 model.fit(train_dataset, 
         epochs=Settings.N_EPOCHS,
         callbacks=[tensorboard_callback, cp_callback, RealEvaluationCallback()], 
         validation_data=eval_dataset,
-        validation_steps=n_eval_batches)
+        validation_steps=n_eval_batches,
+        class_weight=class_weight)

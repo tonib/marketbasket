@@ -1,12 +1,15 @@
 from typing import List, Tuple
-import itertools
-from math import comb
 import tensorflow as tf
 import random
 from settings import Settings
 from transaction import Transaction
 from labels import Labels
 from dataset import DataSet
+import numpy as np
+from class_weights import ClassWeights
+
+# Fix seed to  get reproducible datasets
+random.seed(1)
 
 n_train_samples = 0
 n_eval_samples = 0
@@ -16,6 +19,9 @@ item_labels = Labels.load(Labels.ITEM_LABELS_FILE)
 
 train_writer = tf.io.TFRecordWriter(DataSet.TRAIN_DATASET_FILE)
 eval_writer = tf.io.TFRecordWriter(DataSet.EVAL_DATASET_FILE)
+
+# Number of times each item is used as output (used to weight loss of few used items)
+train_item_n_outputs = np.zeros( item_labels.length() , dtype=int)
 
 def enumerate_file_transactions() -> Tuple[ bool , List[int], int ]:
     with open(Transaction.TRANSACTIONS_TOP_ITEMS_PATH) as trn_file:
@@ -71,6 +77,7 @@ def write_transaction_to_example(input_items_idx: List[int], customer_idx: int, 
         train_writer.write( txt_example )
         global n_train_samples
         n_train_samples += 1
+        train_item_n_outputs[output_item_idx] += 1
 
 if Settings.SEQUENTIAL:
     print("SEQUENTIAL")
@@ -79,8 +86,12 @@ else:
     print("NON SEQUENTIAL")
     enumerate_non_sequential_transactions()
 
+train_writer.close()
+eval_writer.close()
+
 print("N. train samples", n_train_samples)
 print("N. eval samples", n_eval_samples)
 
-train_writer.close()
-eval_writer.close()
+# Save class weights to correct class imbalance
+class_weights = ClassWeights(train_item_n_outputs)
+class_weights.save(ClassWeights.CLASS_WEIGHTS_PATH)

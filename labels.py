@@ -48,6 +48,9 @@ class Labels:
     def labels_indices(self, labels: List[str]) -> List[int]:
         return [self.indices[label] for label in labels]
 
+    def length(self) -> int:
+        return len(self.labels)
+
     @staticmethod
     def load(path: str) -> 'Labels':
         labels: List[str] = []

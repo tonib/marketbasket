@@ -4,10 +4,7 @@ Tested version: Python 3.8.2
 
 
 TODO:
-Test bidirectional network
-Check class balancing
 Test CNN
-Embed customer id
 gather probably can be replaced by boolean_mask, anywhere
 Generate text file with train samples, to debug
 * Convert to multi-binary classifier: NO. It performs worse
