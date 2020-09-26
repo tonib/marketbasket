@@ -26,7 +26,7 @@ class Settings:
     SEQUENCE_LENGTH = 10
 
     # Sequence - Items embeding dimension
-    ITEMS_EMBEDDING_DIM = 10
+    ITEMS_EMBEDDING_DIM = 32
 
     # Sequence - Customers embeding dimension
-    CUSTOMERS_EMBEDDING_DIM = 7
+    CUSTOMERS_EMBEDDING_DIM = 16
