@@ -129,11 +129,13 @@ def create_model_sequential2(item_labels: Labels, customer_labels: Labels) -> tf
     classification_branch = tf.keras.layers.Concatenate()( [ items_branch , customer_branch ] )
 
     # Define RNN
-    #classification_branch = tf.keras.layers.GRU(256, return_sequences=True)(classification_branch)
-    forward = tf.keras.layers.GRU(128, return_sequences=True)
-    backward = tf.keras.layers.GRU(128, return_sequences=True, go_backwards=True)
-    classification_branch = tf.keras.layers.Bidirectional(forward, backward_layer=backward)(classification_branch)
+    rnn_layer = tf.keras.layers.GRU(128, return_sequences=True)
+    classification_branch = tf.keras.layers.Bidirectional(rnn_layer)(classification_branch)
     classification_branch = tf.keras.layers.Flatten()(classification_branch)
+
+    #Dropout
+    # classification_branch = tf.keras.layers.Dropout(0.2)
+    # classification_branch = tf.keras.layers.Flatten()(classification_branch)
 
     # Do the classification
     classification_branch = tf.keras.layers.Dense(n_items, activation='softmax')(classification_branch)
