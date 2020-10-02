@@ -153,7 +153,7 @@ class Prediction(tf.Module):
 
         # Run the model
         batch = ( batch_item_indices , batch_customer_indices )
-        result = self.model( batch )
+        result = self.model(batch, training=False)
 
         # Set result[ batch_item_indices ] = -1.0:
         #print("batch_item_indices >>>***", batch_item_indices)

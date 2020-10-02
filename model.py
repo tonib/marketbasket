@@ -129,13 +129,16 @@ def create_model_sequential2(item_labels: Labels, customer_labels: Labels) -> tf
     classification_branch = tf.keras.layers.Concatenate()( [ items_branch , customer_branch ] )
 
     # Define RNN
-    rnn_layer = tf.keras.layers.GRU(128, return_sequences=True)
+    RNN_LAYER_SIZE = 128
+    rnn_layer = tf.keras.layers.GRU(RNN_LAYER_SIZE, return_sequences=True)
     classification_branch = tf.keras.layers.Bidirectional(rnn_layer)(classification_branch)
-    classification_branch = tf.keras.layers.Flatten()(classification_branch)
 
-    #Dropout
-    # classification_branch = tf.keras.layers.Dropout(0.2)
-    # classification_branch = tf.keras.layers.Flatten()(classification_branch)
+    # Dropout. I don't know if this is right for a bidirectional RNN: This can drop a RNN element in forward sequence, but
+    # not in backward, and viceversa...
+    classification_branch = tf.keras.layers.Dropout(0.2, noise_shape=[None, 1, RNN_LAYER_SIZE*2])(classification_branch)
+
+    # Flatten RNN outputs
+    classification_branch = tf.keras.layers.Flatten()(classification_branch)
 
     # Do the classification
     classification_branch = tf.keras.layers.Dense(n_items, activation='softmax')(classification_branch)
