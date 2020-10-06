@@ -52,6 +52,8 @@ sudo docker container kill $(sudo docker ps -q)
 Troubles starting Hyper-V service in Windows: See https://github.com/docker/for-win/issues/3597#issuecomment-474949164 (worked for me)
 Troubles starting Docker: Try this: cmd.exe > menu > properties > disable legacy console
 
+Flask server (serving without TF Serving) requirements:
+pip install flask
 
 Windows:
 D:\kbases\subversion\marketBasket-tf>docker run -p 8501:8501 --mount type=bind,source=C:\xxxxxx\model\serving_model,target=/models/basket -e MODEL_NAME=basket -t tensorflow/serving
