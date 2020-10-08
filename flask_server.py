@@ -18,6 +18,8 @@ def predict():
     prediction = predictor.predict_single( t, content['n_results'] )
     #print(prediction)
 
-    return flask.jsonify( [prediction[0].tolist() , prediction[1].tolist()] )
+    # astype is required in Windows, otherwise it throws "TypeError: Object of type bytes is not JSON serializable"
+    prediction = [prediction[0].astype('U').tolist() , prediction[1].tolist()]
+    return flask.jsonify( prediction )
 
 app.run(threaded=False)

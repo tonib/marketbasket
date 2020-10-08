@@ -9,9 +9,13 @@ data = '''
     }
 '''
 
-url = 'http://localhost:5000/predict'
+# Damn slow in Windows (see https://stackoverflow.com/questions/59506097/python-requests-library-is-very-slow-on-windows)
+# url = 'http://localhost:5000/predict'
+url = 'http://127.0.0.1:5000/predict'
 
-start = time.time()
-response = requests.post(url, data=data)
-print("Total time:", time.time() - start)
-print(response.text)
+
+for _ in range(5):
+    start = time.time()
+    response = requests.post(url, data=data)
+    print("Total time:", time.time() - start)
+    print(response.text)

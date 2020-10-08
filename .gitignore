@@ -10,5 +10,6 @@ logs
 # Model stuff (tensorboard logs, checkpoints, saved models)
 model
 
-# VS Code stuff
+# VS / VS Code stuff
 .vscode
+.vs
