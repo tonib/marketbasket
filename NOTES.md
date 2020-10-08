@@ -22,14 +22,22 @@ masked inputs (for future projects)
 Requisites:
 tensorflow==2.3
 
-Installation:
+Installation (Linux):
 python3 -m venv --system-site-packages ./venv-tf-2.3
 source venv-tf-2.3/bin/activate
 pip install --upgrade pip
+
+Installation (Windows)
+# Install " Microsoft Visual C++ Redistributable for Visual Studio 2015, 2017 and 2019" from https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
+python -m venv --system-site-packages .\venv
+.\venv\Scripts\activate
+python.exe -m pip install --upgrade pip
+
+Install requeriments (both)
 pip install tensorflow==2.3
 pip install requests # Only needed to test tf serving performance
-
 pip install focal-loss # https://github.com/artemmavrin/focal-loss
+pip install flask # Flask server (serving without TF Serving) requirements
 
 Show exported model
 saved_model_cli show --dir model/serving_model/1 --all
@@ -51,9 +59,6 @@ sudo docker container kill $(sudo docker ps -q)
 
 Troubles starting Hyper-V service in Windows: See https://github.com/docker/for-win/issues/3597#issuecomment-474949164 (worked for me)
 Troubles starting Docker: Try this: cmd.exe > menu > properties > disable legacy console
-
-Flask server (serving without TF Serving) requirements:
-pip install flask
 
 Windows:
 D:\kbases\subversion\marketBasket-tf>docker run -p 8501:8501 --mount type=bind,source=C:\xxxxxx\model\serving_model,target=/models/basket -e MODEL_NAME=basket -t tensorflow/serving
