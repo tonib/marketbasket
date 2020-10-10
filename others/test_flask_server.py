@@ -3,15 +3,17 @@ import time
 
 data = '''
     {
-        "customer_label": "5909", 
-        "item_labels": ["21131", "21177", "4565", "4682"], 
-        "n_results": 10 
+        "signature_name":"predict", 
+        "inputs": { 
+            "customer_label": "5909", 
+            "item_labels": ["21131", "21177", "4565", "4682"], 
+            "n_results": 10 
+        }
     }
 '''
-
 # Damn slow in Windows (see https://stackoverflow.com/questions/59506097/python-requests-library-is-very-slow-on-windows)
-# url = 'http://localhost:5000/predict'
-url = 'http://127.0.0.1:5000/predict'
+# url = 'http://localhost:5001/predict'
+url = 'http://127.0.0.1:5001/v1/models/basket:predict'
 
 
 for _ in range(5):

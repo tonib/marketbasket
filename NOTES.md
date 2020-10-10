@@ -29,7 +29,7 @@ pip install --upgrade pip
 
 Installation (Windows)
 # Install " Microsoft Visual C++ Redistributable for Visual Studio 2015, 2017 and 2019" from https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
-python -m venv --system-site-packages .\venv
+C:\Users\ToniB\AppData\Local\Programs\Python\Python38\python.exe -m venv --system-site-packages .\venv
 .\venv\Scripts\activate
 python.exe -m pip install --upgrade pip
 
@@ -38,6 +38,20 @@ pip install tensorflow==2.3
 pip install requests # Only needed to test tf serving performance
 pip install focal-loss # https://github.com/artemmavrin/focal-loss
 pip install flask # Flask server (serving without TF Serving) requirements
+
+Flask server in IIS (Windows)
+# See https://gist.github.com/dvas0004/3d26c25d614c54ecdf296003d68cddaa
+pip install wfastcgi
+# In "Turn Windows features on or off" be sure Web Server > Application Development > CGI is selected
+wfastcgi-enable # This must to be run with elevated privileges (administrator)
+# Output:
+# Cambios de configuración aplicados a la sección "system.webServer/fastCgi" para "MACHINE/WEBROOT/APPHOST" en la ruta de acceso de confirmación de configuración "MACHINE/WEBROOT/APPHOST"
+# "d:\kbases\subversion\marketbasket\marketbasket\venv\scripts\python.exe|d:\kbases\subversion\marketbasket\marketbasket\venv\lib\site-packages\wfastcgi.py" can now be used as a FastCGI script processor
+# Create a new web site in IIS
+# Change user to run the new site to an user with permissions
+# Set permissions to the site directory
+# Set user in the application group with the right permissions
+
 
 Show exported model
 saved_model_cli show --dir model/serving_model/1 --all

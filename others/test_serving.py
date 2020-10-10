@@ -12,7 +12,9 @@ data = '''
     }
 '''
 
-url = 'http://localhost:8501/v1/models/basket:predict'
+# Damn slow in Windows (see https://stackoverflow.com/questions/59506097/python-requests-library-is-very-slow-on-windows)
+# url = 'http://localhost:8501/v1/models/basket:predict'
+url = 'http://127.0.0.1:8501/v1/models/basket:predict'
 
 start = time.time()
 response = requests.post(url, data=data)

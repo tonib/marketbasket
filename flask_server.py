@@ -7,19 +7,29 @@ app = flask.Flask(__name__)
 
 predictor = Prediction()
 
-@app.route('/predict', methods=['POST'])
+@app.route('/v1/models/basket:predict', methods=['POST'])
 def predict():
-    content = flask.request.get_json(force=True)
-    #print(content)
 
-    t = Transaction.from_labels( content['item_labels'] , content['customer_label'] )
-    #print(t)
+    try:
+        content = flask.request.get_json(force=True)
+        #print(content)
 
-    prediction = predictor.predict_single( t, content['n_results'] )
-    #print(prediction)
+        inputs = content['inputs']
+        t = Transaction.from_labels( inputs['item_labels'] , inputs['customer_label'] )
+        #print(t)
 
-    # astype is required in Windows, otherwise it throws "TypeError: Object of type bytes is not JSON serializable"
-    prediction = [prediction[0].astype('U').tolist() , prediction[1].tolist()]
-    return flask.jsonify( prediction )
+        prediction = predictor.predict_single( t, inputs['n_results'] )
+        #print(prediction)
 
-app.run(threaded=False)
+        # astype is required in Windows, otherwise it throws "TypeError: Object of type bytes is not JSON serializable"
+        prediction = { 'outputs': { 'output_0': prediction[0].astype('U').tolist() , 'output_1': prediction[1].tolist() } }
+        return flask.jsonify( prediction )
+    except Exception as err:
+        return flask.jsonify( { 'error': str(err) } )
+
+@app.route("/hello")
+def hello():
+    return "Hello world!"
+
+if __name__=='__main__':
+    app.run(threaded=False, host='0.0.0.0', port=5001)
