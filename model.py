@@ -4,7 +4,7 @@ from settings import Settings, ModelType
 
 def create_model(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
     if Settings.MODEL_TYPE == ModelType.RNN:
-        return create_model_sequential2(item_labels, customer_labels)
+        return create_model_rnn(item_labels, customer_labels)
     elif Settings.MODEL_TYPE == ModelType.DENSE:
         return create_model_non_sequential(item_labels, customer_labels)
     elif Settings.MODEL_TYPE == ModelType.CONVOLUTIONAL:
@@ -49,8 +49,7 @@ def create_model_non_sequential(item_labels: Labels, customer_labels: Labels) ->
     return tf.keras.Model(inputs=[ items_input , customer_input ], outputs=x)
     
 ##########################################################################################
-# SEQUENTIAL
-# TODO: Remove this
+# RNN
 ##########################################################################################
 
 @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None,None], dtype=tf.int64)])
@@ -64,53 +63,7 @@ def pad_sequence( sequences_batch: tf.RaggedTensor) -> tf.Tensor:
     sequences_batch = sequences_batch.to_tensor(0, shape=[None, Settings.SEQUENCE_LENGTH])
     return sequences_batch
 
-
-def create_model_sequential(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
-    
-    # SEE https://github.com/tensorflow/tensorflow/issues/36508
-
-    # Input for input items will be a sequence of embeded items
-    items_input = tf.keras.layers.Input(shape=[None], name='input_items_idx', dtype=tf.int64, ragged=True)
-    # Pad items sequence:
-    items_branch = tf.keras.layers.Lambda(lambda x: pad_sequence(x), name="padded_sequence")(items_input)
-    # Embed items sequence:
-    n_items = len(item_labels.labels)
-    # +1 in "n_items + 1" is for padding element
-    # TODO: There is a bug in tf2.3: If you set mask_zero=True, GPU and CPU implementations return different values
-    # TODO: It seems fixed in tf-nightly. See tf-bugs/gru-bug.py. Try it again in tf2.4
-    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM, mask_zero=False)(items_branch)
-
-    # Process item inputs with a RNN layer, bidirectiona
-    #items_branch = tf.keras.layers.GRU(256, return_sequences=True)(items_branch)
-    forward = tf.keras.layers.GRU(128, return_sequences=True)
-    backward = tf.keras.layers.GRU(128, return_sequences=True, go_backwards=True)
-    items_branch = tf.keras.layers.Bidirectional(forward, backward_layer=backward)(items_branch)
-
-    # Flat to (batch size, -1) the RNN layer output
-    items_branch = tf.keras.layers.Flatten()( items_branch )
-
-    # Customer index
-    customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
-    n_customers = len(customer_labels.labels)
-    # Embed customer
-    customer_branch = tf.keras.layers.Embedding(n_customers, Settings.CUSTOMERS_EMBEDDING_DIM, mask_zero=False)(customer_input)
-
-    # Concatenate the processed items sequence with the customer
-    classification_branch = tf.keras.layers.Concatenate()( [ customer_branch , items_branch ] )
-
-    # Process all input in Dense:
-    classification_branch = tf.keras.layers.Dense(1024, activation='relu')(classification_branch)
-
-    # Do the classification
-    classification_branch = tf.keras.layers.Dense(n_items, activation='softmax')(classification_branch)
-
-    return tf.keras.Model(inputs=[items_input, customer_input], outputs=classification_branch)
-
-##########################################################################################
-# SEQUENTIAL V2
-##########################################################################################
-
-def create_model_sequential2(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
+def create_model_rnn(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
 
     # Input for input items will be a sequence of embeded items
     items_input = tf.keras.layers.Input(shape=[None], name='input_items_idx', dtype=tf.int64, ragged=True)
