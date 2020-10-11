@@ -8,7 +8,7 @@ Test CNN
 gather probably can be replaced by boolean_mask, anywhere
 Generate text file with train samples, to debug
 * Convert to multi-binary classifier: NO. It performs worse
-
+* Test generate logits from last layer? (numerical stability)
 
 SEQUENTIAL:
 Score: 72009 of 150799
@@ -49,7 +49,7 @@ pip install wfastcgi
 # In "Turn Windows features on or off" be sure Web Server > Application Development > CGI is selected
 wfastcgi-enable # This must to be run with elevated privileges (administrator)
 # Output:
-# Cambios de configuración aplicados a la sección "system.webServer/fastCgi" para "MACHINE/WEBROOT/APPHOST" en la ruta de acceso de confirmación de configuración "MACHINE/WEBROOT/APPHOST"
+# Cambios de configuraciï¿½n aplicados a la secciï¿½n "system.webServer/fastCgi" para "MACHINE/WEBROOT/APPHOST" en la ruta de acceso de confirmaciï¿½n de configuraciï¿½n "MACHINE/WEBROOT/APPHOST"
 # "d:\kbases\subversion\marketbasket\marketbasket\venv\scripts\python.exe|d:\kbases\subversion\marketbasket\marketbasket\venv\lib\site-packages\wfastcgi.py" can now be used as a FastCGI script processor
 # Create a new web site in IIS
 # Change user to run the new site to an user with permissions

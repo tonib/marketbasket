@@ -9,7 +9,7 @@ def create_model(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model
         return create_model_non_sequential(item_labels, customer_labels)
     elif Settings.MODEL_TYPE == ModelType.CONVOLUTIONAL:
         # Pending
-        return None
+        return create_model_convolutional(item_labels, customer_labels)
     else:
         raise Exception("Unknown model type" + Settings.MODEL_TYPE)
 
@@ -71,7 +71,7 @@ def create_model_rnn(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
     items_branch = tf.keras.layers.Lambda(lambda x: pad_sequence(x), name="padded_sequence")(items_input)
     # Embed items sequence:
     n_items = len(item_labels.labels)
-    # +1 in "n_items + 1" is for padding element
+    # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
     # TODO: There is a bug in tf2.3: If you set mask_zero=True, GPU and CPU implementations return different values
     # TODO: It seems fixed in tf-nightly. See tf-bugs/gru-bug.py. Try it again in tf2.4
     items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM, mask_zero=False)(items_branch)
@@ -98,6 +98,60 @@ def create_model_rnn(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
 
     # Flatten RNN outputs
     classification_branch = tf.keras.layers.Flatten()(classification_branch)
+
+    # Do the classification
+    classification_branch = tf.keras.layers.Dense(n_items, activation='softmax')(classification_branch)
+
+    return tf.keras.Model(inputs=[items_input, customer_input], outputs=classification_branch)
+
+##########################################################################################
+# CONVOLUTIONAL
+##########################################################################################
+
+def create_model_convolutional(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
+
+    # Input for input items will be a sequence of embeded items
+    items_input = tf.keras.layers.Input(shape=[None], name='input_items_idx', dtype=tf.int64, ragged=True)
+    # Pad items sequence:
+    items_branch = tf.keras.layers.Lambda(lambda x: pad_sequence(x), name="padded_sequence")(items_input)
+    # Embed items sequence:
+    n_items = len(item_labels.labels)
+    # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
+    # TODO: There is a bug in tf2.3: If you set mask_zero=True, GPU and CPU implementations return different values
+    # TODO: It seems fixed in tf-nightly. See tf-bugs/gru-bug.py. Try it again in tf2.4
+    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM, mask_zero=False)(items_branch)
+
+    # Customer index
+    customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
+    n_customers = len(customer_labels.labels)
+    # Embed customer
+    customer_branch = tf.keras.layers.Embedding(n_customers, Settings.CUSTOMERS_EMBEDDING_DIM, mask_zero=False)(customer_input)
+    # Repeat embedded customer for each timestep
+    customer_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(customer_branch)
+
+    # Concatenate embedded customer and items on each timestep
+    classification_branch = tf.keras.layers.Concatenate()( [ items_branch , customer_branch ] )
+
+    # Convolution
+    convolution_branch = tf.keras.layers.Conv1D(128, 4, activation='relu')(classification_branch)
+    # Flatten convolution outputs
+    convolution_branch = tf.keras.layers.Flatten()(convolution_branch)
+
+    # RNN
+    RNN_LAYER_SIZE = 128
+    rnn_layer = tf.keras.layers.GRU(RNN_LAYER_SIZE, return_sequences=True)
+    rnn_branch = tf.keras.layers.Bidirectional(rnn_layer)(classification_branch)
+
+    # Dropout. I don't know if this is right for a bidirectional RNN: This can drop a RNN element in forward sequence, but
+    # not in backward, and viceversa...
+    rnn_branch = tf.keras.layers.Dropout(0.2, noise_shape=[None, 1, RNN_LAYER_SIZE*2])(rnn_branch)
+    rnn_branch = tf.keras.layers.Flatten()(rnn_branch)
+
+    # Merge convolution and RNN
+    classification_branch = tf.keras.layers.Concatenate()( [ convolution_branch , rnn_branch] )
+
+    classification_branch = tf.keras.layers.Dense(1024, activation='relu')(classification_branch)
+    # classification_branch = tf.keras.layers.Dense(1024, activation='relu')(classification_branch)
 
     # Do the classification
     classification_branch = tf.keras.layers.Dense(n_items, activation='softmax')(classification_branch)

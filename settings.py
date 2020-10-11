@@ -26,7 +26,7 @@ class Settings:
     CLASS_WEIGHT = False
 
     # Model type
-    MODEL_TYPE: ModelType = ModelType.RNN
+    MODEL_TYPE: ModelType = ModelType.CONVOLUTIONAL
 
     # Sequence length?
     SEQUENCE_LENGTH = 10
