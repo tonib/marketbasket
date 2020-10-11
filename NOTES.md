@@ -32,12 +32,16 @@ Installation (Windows)
 C:\Users\ToniB\AppData\Local\Programs\Python\Python38\python.exe -m venv --system-site-packages .\venv
 .\venv\Scripts\activate
 python.exe -m pip install --upgrade pip
+# In VM, to confirm AVX is available, install https://downloadcenter.intel.com/es/download/19792/Intel-Processor-Diagnostic-Tool and run avx.exe
 
 Install requeriments (both)
 pip install tensorflow==2.3
 pip install requests # Only needed to test tf serving performance
 pip install focal-loss # https://github.com/artemmavrin/focal-loss
 pip install flask # Flask server (serving without TF Serving) requirements
+
+Test Tensorflow installation:
+python -c "import tensorflow as tf;print(tf.reduce_sum(tf.random.normal([1000, 1000])))"
 
 Flask server in IIS (Windows)
 # See https://gist.github.com/dvas0004/3d26c25d614c54ecdf296003d68cddaa
