@@ -1,3 +1,9 @@
+from enum import Enum
+
+class ModelType(Enum):
+    DENSE = "dense"
+    RNN = "rnn"
+    CONVOLUTIONAL = "convolutional"
 
 class Settings:
 
@@ -19,8 +25,8 @@ class Settings:
     # Use class weights to correct labels imbalance?
     CLASS_WEIGHT = False
 
-    # Sequential model?
-    SEQUENTIAL = True
+    # Model type
+    MODEL_TYPE: ModelType = ModelType.DENSE
 
     # Sequence length?
     SEQUENCE_LENGTH = 10

@@ -1,15 +1,20 @@
 import tensorflow as tf
 from labels import Labels
-from settings import Settings
+from settings import Settings, ModelType
 
 def create_model(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
-    if Settings.SEQUENTIAL:
+    if Settings.MODEL_TYPE == ModelType.RNN:
         return create_model_sequential2(item_labels, customer_labels)
-    else:
+    elif Settings.MODEL_TYPE == ModelType.DENSE:
         return create_model_non_sequential(item_labels, customer_labels)
+    elif Settings.MODEL_TYPE == ModelType.CONVOLUTIONAL:
+        # Pending
+        return None
+    else:
+        raise Exception("Unknown model type" + Settings.MODEL_TYPE)
 
 ##########################################################################################
-# NON SEQUENTIAL
+# DENSE
 ##########################################################################################
 
 @tf.function
@@ -45,6 +50,7 @@ def create_model_non_sequential(item_labels: Labels, customer_labels: Labels) ->
     
 ##########################################################################################
 # SEQUENTIAL
+# TODO: Remove this
 ##########################################################################################
 
 @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None,None], dtype=tf.int64)])

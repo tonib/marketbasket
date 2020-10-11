@@ -1,7 +1,7 @@
 from typing import List, Tuple
 import tensorflow as tf
 import random
-from settings import Settings
+from settings import Settings, ModelType
 from transaction import Transaction
 from labels import Labels
 from dataset import DataSet
@@ -79,13 +79,13 @@ def write_transaction_to_example(input_items_idx: List[int], customer_idx: int, 
         n_train_samples += 1
         train_item_n_outputs[output_item_idx] += 1
 
-if Settings.SEQUENTIAL:
-    print("SEQUENTIAL")
-    enumerate_sequential_transactions()
-else:
+if Settings.MODEL_TYPE == ModelType.DENSE:
     print("NON SEQUENTIAL")
     enumerate_non_sequential_transactions()
-
+else:
+    print("SEQUENTIAL")
+    enumerate_sequential_transactions()
+    
 train_writer.close()
 eval_writer.close()
 
