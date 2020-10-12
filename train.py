@@ -35,7 +35,7 @@ model = create_model(item_labels, customer_labels)
 model.compile(
               optimizer=tf.keras.optimizers.Adam(learning_rate=0.002),
               #loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-              loss=SparseCategoricalFocalLoss(gamma=2, from_logits=True),
+              loss=SparseCategoricalFocalLoss(gamma=3, from_logits=True),
               metrics=['accuracy'])
 
 model.summary()

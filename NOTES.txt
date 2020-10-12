@@ -8,7 +8,6 @@ Test CNN
 gather probably can be replaced by boolean_mask, anywhere
 Generate text file with train samples, to debug
 * Convert to multi-binary classifier: NO. It performs worse
-* Test generate logits from last layer? (numerical stability)
 
 SEQUENTIAL:
 Score: 72009 of 150799
