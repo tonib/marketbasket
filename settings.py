@@ -9,6 +9,7 @@ class Settings:
 
     # Max number of items to handle
     N_MAX_ITEMS = 1000
+    #N_MAX_ITEMS = 3000
 
     # Max number customers to handle. If zero, customer code will not be trained
     N_MAX_CUSTOMERS = 100

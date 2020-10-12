@@ -44,7 +44,8 @@ def create_model_non_sequential(item_labels: Labels, customer_labels: Labels) ->
     
     x = tf.keras.layers.Dense(1024, activation='relu')(input_layer)
     x = tf.keras.layers.Dense(1024, activation='relu')(x)
-    x = tf.keras.layers.Dense(n_items, activation='softmax')(x)
+    # Classification (logits)
+    x = tf.keras.layers.Dense(n_items, activation=None)(x)
 
     return tf.keras.Model(inputs=[ items_input , customer_input ], outputs=x)
     
@@ -99,8 +100,8 @@ def create_model_rnn(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
     # Flatten RNN outputs
     classification_branch = tf.keras.layers.Flatten()(classification_branch)
 
-    # Do the classification
-    classification_branch = tf.keras.layers.Dense(n_items, activation='softmax')(classification_branch)
+    # Do the classification (Logits)
+    classification_branch = tf.keras.layers.Dense(n_items, activation=None)(classification_branch)
 
     return tf.keras.Model(inputs=[items_input, customer_input], outputs=classification_branch)
 
@@ -153,8 +154,8 @@ def create_model_convolutional(item_labels: Labels, customer_labels: Labels) -> 
     classification_branch = tf.keras.layers.Dense(1024, activation='relu')(classification_branch)
     # classification_branch = tf.keras.layers.Dense(1024, activation='relu')(classification_branch)
 
-    # Do the classification
-    classification_branch = tf.keras.layers.Dense(n_items, activation='softmax')(classification_branch)
+    # Do the classification (logits)
+    classification_branch = tf.keras.layers.Dense(n_items, activation=None)(classification_branch)
 
     return tf.keras.Model(inputs=[items_input, customer_input], outputs=classification_branch)
 

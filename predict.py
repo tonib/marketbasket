@@ -154,6 +154,8 @@ class Prediction(tf.Module):
         # Run the model
         batch = ( batch_item_indices , batch_customer_indices )
         result = self.model(batch, training=False)
+        # Convert logits to probabilities
+        result = tf.nn.softmax(result)
 
         # Set result[ batch_item_indices ] = -1.0:
         #print("batch_item_indices >>>***", batch_item_indices)
