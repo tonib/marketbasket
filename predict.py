@@ -17,7 +17,7 @@ class Prediction(tf.Module):
             self.model: tf.keras.Model = model
         else:
             self.model: tf.keras.Model = tf.keras.models.load_model('model/exported_model')
-            print(">>>", self.model)
+            #print(">>>", self.model)
             self.model.summary()
 
         # Lookup table: Customer label -> Customer index
@@ -164,7 +164,7 @@ class Prediction(tf.Module):
 
 
     @tf.function
-    def _run_model_filter_empty_sequences(self, batch_item_indices, batch_customer_indices, n_results):
+    def _run_model_filter_empty_sequences(self, batch_item_indices: tf.RaggedTensor, batch_customer_indices, n_results):
 
         # Check if there are empty sequences    
         sequences_lenghts = batch_item_indices.row_lengths()
@@ -172,10 +172,17 @@ class Prediction(tf.Module):
         n_sequences = tf.shape( sequences_lenghts, tf.int64 )[0]
 
         #print(">>>", non_empty_seq_count, n_results)
-        if non_empty_seq_count >= n_sequences:
-            # There are no empty sequences. Run the model
+        if non_empty_seq_count == 0:
+            # All sequences are empty
+            label_predictions = tf.zeros( [n_sequences, n_results] , dtype=tf.string )
+            probs_predictions = tf.zeros( [n_sequences, n_results] , dtype=tf.float32 )
+            return (label_predictions, probs_predictions)
+
+        elif non_empty_seq_count >= n_sequences:
+            # There are no empty sequences. Run the model with the full batch
             return self._run_model_and_postprocess(batch_item_indices , batch_customer_indices, n_results)
         else:
+            # There are some empty sequences
             # Model will fail if a sequence is empty, and it seems it's the expected behaviour: Do not feed empty sequences
             # Get non empty sequences mask
             non_empty_mask = tf.math.greater( sequences_lenghts , 0 )

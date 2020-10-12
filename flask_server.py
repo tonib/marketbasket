@@ -25,6 +25,7 @@ def predict():
         prediction = { 'outputs': { 'output_0': prediction[0].astype('U').tolist() , 'output_1': prediction[1].tolist() } }
         return flask.jsonify( prediction )
     except Exception as err:
+        print(err)
         return flask.jsonify( { 'error': str(err) } )
 
 @app.route("/hello")

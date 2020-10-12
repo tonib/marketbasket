@@ -8,11 +8,16 @@ from transaction import Transaction
 predictor = Prediction()
 
 # Test
-r = predictor.predict_single( Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) , 10 )
+# r = predictor.predict_single( Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) , 10 )
+# print(r)
+
+# Test empty sequences in batch
+batch = [ Transaction.from_labels( [ 'achilipu', 'arriquitaun' ], '[UNKNOWN]' ) , Transaction.from_labels( ['4333' ], '[UNKNOWN]' ),  
+          Transaction.from_labels( [ 'arriquitaun' , '4333', 'achilipu' ], '[UNKNOWN]' ), ]
+r = predictor.predict_batch( batch , 10 )
 print(r)
 
-# Test
-# #batch = [ Transaction.from_labels( ['achilipu', 'arriquitaun' ], '[UNKNOWN]' ) , Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) ]
-# batch = [ Transaction.from_labels( ['4333', '21730' ], '[UNKNOWN]' ) , Transaction.from_labels( ['4333' ], '[UNKNOWN]' ) ]
+# Test all sequences empty
+# batch = [ Transaction.from_labels( ['achilipu', 'arriquitaun' ], '[UNKNOWN]' ) , Transaction.from_labels( ['notexists' ], '[UNKNOWN]' ) ]
 # r = predictor.predict_batch( batch , 10 )
 # print(r)
