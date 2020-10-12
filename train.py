@@ -33,7 +33,7 @@ eval_dataset = DataSet.load_eval_dataset()
 model = create_model(item_labels, customer_labels)
 
 model.compile(
-              optimizer=tf.keras.optimizers.Adam(learning_rate=0.002),
+              optimizer=tf.keras.optimizers.Adam(learning_rate=0.0015),
               #loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               loss=SparseCategoricalFocalLoss(gamma=3, from_logits=True),
               metrics=['accuracy'])
