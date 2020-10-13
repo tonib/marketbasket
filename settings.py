@@ -8,11 +8,10 @@ class ModelType(Enum):
 class Settings:
 
     # Max number of items to handle
-    N_MAX_ITEMS = 1000
-    #N_MAX_ITEMS = 3000
+    N_MAX_ITEMS = 3000
 
     # Max number customers to handle. If zero, customer code will not be trained
-    N_MAX_CUSTOMERS = 100
+    N_MAX_CUSTOMERS = 1000
 
     # Ratio (1 = 100%) of samples to use for evaluation
     EVALUATION_RATIO = 0.15
@@ -33,7 +32,7 @@ class Settings:
     SEQUENCE_LENGTH = 10
 
     # Sequence - Items embeding dimension
-    ITEMS_EMBEDDING_DIM = 64
+    ITEMS_EMBEDDING_DIM = 128
 
     # Sequence - Customers embeding dimension
-    CUSTOMERS_EMBEDDING_DIM = 16
+    CUSTOMERS_EMBEDDING_DIM = 64
