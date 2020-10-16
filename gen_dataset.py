@@ -80,7 +80,7 @@ def write_transaction_to_example(input_items_idx: List[int], customer_idx: int, 
         train_item_n_outputs[output_item_idx] += 1
 
 if Settings.MODEL_TYPE == ModelType.DENSE:
-    print("NON SEQUENTIAL")
+    print("DENSE")
     enumerate_non_sequential_transactions()
 else:
     print("SEQUENTIAL")

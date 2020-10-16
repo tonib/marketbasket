@@ -24,7 +24,7 @@ class DataSet:
     @staticmethod
     @tf.function
     def example_parse_function(proto_batch):
-        # Load one example
+        # Load one batch of examples (MULTIPLE). Load a single example is damn slow
         parsed_features = tf.io.parse_example(proto_batch, DataSet.keys_to_features)
 
         # Keras inputs are mapped by input POSITION, not by input name, so order here is important

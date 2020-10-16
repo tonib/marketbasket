@@ -1,6 +1,7 @@
 import tensorflow as tf
 from labels import Labels
 from settings import Settings, ModelType
+from gpt import *
 
 def create_model(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
     if Settings.MODEL_TYPE == ModelType.RNN:
@@ -10,6 +11,8 @@ def create_model(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model
     elif Settings.MODEL_TYPE == ModelType.CONVOLUTIONAL:
         # Pending
         return create_model_convolutional(item_labels, customer_labels)
+    elif Settings.MODEL_TYPE == ModelType.GPT:
+        return create_model_gpt(item_labels, customer_labels)
     else:
         raise Exception("Unknown model type" + Settings.MODEL_TYPE)
 
@@ -106,10 +109,12 @@ def create_model_rnn(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
     return tf.keras.Model(inputs=[items_input, customer_input], outputs=classification_branch)
 
 ##########################################################################################
-# CONVOLUTIONAL
+# CONVOLUTIONAL (NOT REALLY)
 ##########################################################################################
 
 def create_model_convolutional(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
+
+    # Not really a convolutional. It's a RNN + Convolutional ensemble
 
     # Input for input items will be a sequence of embeded items
     items_input = tf.keras.layers.Input(shape=[None], name='input_items_idx', dtype=tf.int64, ragged=True)
@@ -159,3 +164,43 @@ def create_model_convolutional(item_labels: Labels, customer_labels: Labels) -> 
 
     return tf.keras.Model(inputs=[items_input, customer_input], outputs=classification_branch)
 
+##########################################################################################
+# GPT
+##########################################################################################
+
+def create_model_gpt(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
+
+    # Parameters...?
+    num_heads = 2  # Number of attention heads
+    feed_forward_dim = 128  # Hidden layer size in feed forward network inside transformer
+
+    # Customer index
+    # TODO: Currently unsupported
+    customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
+
+    # Input for input items will be a sequence of embeded items
+    n_items = len(item_labels.labels)
+    items_input = tf.keras.layers.Input(shape=[None], name='input_items_idx', dtype=tf.int64, ragged=True)
+    # Pad items sequence:
+    items_branch = tf.keras.layers.Lambda(lambda x: pad_sequence(x), name="padded_sequence")(items_input)
+
+    # Items embedding
+    # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
+    embedding_layer = TokenAndPositionEmbedding(Settings.SEQUENCE_LENGTH, n_items + 1, Settings.ITEMS_EMBEDDING_DIM)
+    x = embedding_layer(items_branch)
+
+    # Magic voodoo
+    transformer_block = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM, num_heads, feed_forward_dim)
+    x = transformer_block(x)
+    # transformer_block = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM, num_heads, feed_forward_dim)
+    # x = transformer_block(x)
+
+    # Flat output
+    # x = tf.keras.layers.Flatten()(x)
+
+    #x = tf.keras.layers.Dense(1024, activation='relu')(x)
+
+    # Classification (logits)
+    outputs = layers.Dense(n_items)(x)
+
+    return keras.Model(inputs=[items_input, customer_input], outputs=outputs)

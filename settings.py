@@ -4,6 +4,7 @@ class ModelType(Enum):
     DENSE = "dense"
     RNN = "rnn"
     CONVOLUTIONAL = "convolutional"
+    GPT = "gpt"
 
 class Settings:
 
@@ -26,7 +27,7 @@ class Settings:
     CLASS_WEIGHT = False
 
     # Model type
-    MODEL_TYPE: ModelType = ModelType.CONVOLUTIONAL
+    MODEL_TYPE: ModelType = ModelType.GPT
 
     # Sequence length?
     SEQUENCE_LENGTH = 10
