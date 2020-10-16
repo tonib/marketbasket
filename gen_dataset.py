@@ -1,7 +1,7 @@
 from typing import List, Tuple
 import tensorflow as tf
 import random
-from settings import Settings, ModelType
+from settings import Settings
 from transaction import Transaction
 from labels import Labels
 from dataset import DataSet
@@ -38,27 +38,6 @@ def enumerate_file_transactions() -> Tuple[ bool , List[int], int ]:
                 item_indices, customer_idx = transaction.to_net_inputs(item_labels, customer_labels)
                 yield ( eval_transaction, item_indices, customer_idx )
 
-def enumerate_non_sequential_transactions():
-    # Get transactions
-    for eval_transaction, item_indices, customer_idx in enumerate_file_transactions():
-
-        # Get each transaction item as output, and get all others as input
-        for item_idx in range(0, len(item_indices)):
-            output_item_idx: int = item_indices[item_idx]
-            input_items_idx: List[int] = item_indices[0:item_idx] + item_indices[item_idx+1:]
-
-            write_transaction_to_example(input_items_idx, customer_idx, output_item_idx, eval_transaction)
-
-def enumerate_sequential_transactions():
-    # Get transactions
-    for eval_transaction, item_indices, customer_idx in enumerate_file_transactions():
-
-        # Get sequence items
-        for item_idx in range(1, len(item_indices)):
-            output_item_idx: int = item_indices[item_idx]
-            input_items_idx: List[int] = item_indices[0:item_idx]
-            write_transaction_to_example(input_items_idx, customer_idx, output_item_idx, eval_transaction)
-
 def write_transaction_to_example(input_items_idx: List[int], customer_idx: int, output_item_idx: int, eval_transaction: bool):
 
     # Write output with TFRecord format (https://www.tensorflow.org/tutorials/load_data/tfrecord?hl=en#creating_a_tftrainexample_message)
@@ -79,12 +58,14 @@ def write_transaction_to_example(input_items_idx: List[int], customer_idx: int, 
         n_train_samples += 1
         train_item_n_outputs[output_item_idx] += 1
 
-if Settings.MODEL_TYPE == ModelType.DENSE:
-    print("DENSE")
-    enumerate_non_sequential_transactions()
-else:
-    print("SEQUENTIAL")
-    enumerate_sequential_transactions()
+# Get transactions
+for eval_transaction, item_indices, customer_idx in enumerate_file_transactions():
+
+    # Get sequence items
+    for item_idx in range(1, len(item_indices)):
+        output_item_idx: int = item_indices[item_idx]
+        input_items_idx: List[int] = item_indices[0:item_idx]
+        write_transaction_to_example(input_items_idx, customer_idx, output_item_idx, eval_transaction)
     
 train_writer.close()
 eval_writer.close()
