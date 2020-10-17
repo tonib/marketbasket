@@ -27,18 +27,38 @@ eval_trn_file = open(Transaction.TRANSACTIONS_EVAL_DATASET_FILE, 'w')
 # Number of times each item is used as output (used to weight loss of few used items)
 train_item_n_outputs = np.zeros( item_labels.length() , dtype=int)
 
-def write_transaction_to_example(input_items_idx: List[int], customer_idx: int, output_item_idx: int, writer: tf.io.TFRecordWriter):
+def write_transaction_to_example(input_items_idx: List[int], customer_idx: int, output_item_idx: int, gpt_output: List[int],
+writer: tf.io.TFRecordWriter):
 
     # Write output with TFRecord format (https://www.tensorflow.org/tutorials/load_data/tfrecord?hl=en#creating_a_tftrainexample_message)
     features = {
         'input_items_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=input_items_idx ) ),
         'customer_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=[customer_idx] ) ),
-        'output_item_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=[output_item_idx] ) )
+        'output_item_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=[output_item_idx] ) ),
+        'gpt_output': tf.train.Feature( int64_list=tf.train.Int64List( value=gpt_output ) )
     }
     example = tf.train.Example(features=tf.train.Features(feature=features))
     txt_example: str = example.SerializeToString()
     writer.write( txt_example )
 
+def get_gpt_output(input_items_idx: List[int], output_item_idx: int) -> List[int]:
+    # GPT predicts the entire sequence, one index shifted to left. 
+    # Example with seq. length = 5 -> input: [a, b, c , padding, padding], prediction: a, b, c, D, padding]
+    # Other example: [a, b, c, d, e] -> [b, c, d, e, F]
+    
+    gpt_output = input_items_idx + [output_item_idx]
+
+    # zero is reserved for padding, so add 1 to all indices
+    gpt_output = [x + 1 for x in gpt_output]
+
+    padding_size = Settings.SEQUENCE_LENGTH - len(gpt_output)
+    if padding_size > 0:
+        gpt_output += [0] * padding_size
+    elif padding_size < 0:
+        gpt_output = gpt_output[-Settings.SEQUENCE_LENGTH:]
+    
+    #print( input_items_idx , output_item_idx , gpt_output)
+    return gpt_output
 
 def process_transaction(transaction: Transaction):
 
@@ -59,9 +79,19 @@ def process_transaction(transaction: Transaction):
 
     # Get sequence items from this transaction
     for item_idx in range(1, len(item_indices)):
+
+        # Output index to predict
         output_item_idx: int = item_indices[item_idx]
+
+        # Input item indices sequence. If input is larger than sequence length, truncate (waste of space)
         input_items_idx: List[int] = item_indices[0:item_idx]
-        write_transaction_to_example(input_items_idx, customer_idx, output_item_idx, writer)
+        if len(input_items_idx) > Settings.SEQUENCE_LENGTH:
+            input_items_idx = input_items_idx[-Settings.SEQUENCE_LENGTH:]
+
+        # GPT output to predict
+        gpt_output = get_gpt_output(input_items_idx, output_item_idx)
+
+        write_transaction_to_example(input_items_idx, customer_idx, output_item_idx, gpt_output, writer)
 
         if eval_transaction:
             n_eval_samples += 1

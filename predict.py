@@ -62,7 +62,7 @@ class Prediction(tf.Module):
     @tf.function( input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.int64), 
                                    tf.TensorSpec(shape=[None, None], dtype=tf.float32)] )
     def _remove_input_items_from_prediction(batch_item_indices, result):
-        # result is a ragged with input indices for each batch row. Ex [ [0] , [1, 2] ]
+        # batch_item_indices is a ragged with input indices for each batch row. Ex [ [0] , [1, 2] ]
         batch_item_indices = batch_item_indices.to_tensor(-1) # -> [ [0,-1] , [1, 2] ]
         #print(batch_item_indices, batch_item_indices.shape[0])
 
