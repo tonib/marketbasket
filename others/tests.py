@@ -1,22 +1,15 @@
 import tensorflow as tf
 
-input = tf.ragged.constant( [ [1] , [2, 3] ] )
-output = tf.constant([ # batch
-    [ # batch element 0
-        [ #timestep 0 probs
-            0 , 1 , 3
-        ],
-        [ #timestep 1 probs
-            2 , 3 , 4
-        ]
-    ],
-    [ [ 5 , 6 , 7 ] , [ 8 , 9 , 10 ] ],  # Batch element 1
-])
+seq_len = 2
 
-indices = input.row_lengths()
-indices -= 1
-#indices = tf.expand_dims(input_lengths, 1)
-print("indices", indices)
+batch = tf.constant( [ [[ 10 , 11 ] , [ 12 , 13 ]] , [[ 14 , 15 ] , [ 16 , 17 ]] ] )
 
-probs = tf.gather(output, indices, batch_dims=1)
-print("probs", probs)
+context_features = tf.constant( [ [ 1 , 2 , 3 ] , [ 4 , 5 , 6 ] ] )
+context_features = tf.expand_dims(context_features, 1 )
+print( "context_features", context_features )
+
+repeats = tf.repeat(context_features, seq_len, axis=1 )
+print("repeats", repeats)
+
+result = tf.concat( [batch, repeats] , 2 )
+print("result", result)

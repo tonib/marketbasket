@@ -175,8 +175,10 @@ def create_model_gpt(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
     feed_forward_dim = 128  # Hidden layer size in feed forward network inside transformer
 
     # Customer index
-    # TODO: Currently unsupported
     customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
+    n_customers = len(customer_labels.labels)
+    # Embed customer
+    customer_branch = tf.keras.layers.Embedding(n_customers, Settings.CUSTOMERS_EMBEDDING_DIM)(customer_input)
 
     # Input for input items will be a sequence of embeded items
     n_items = len(item_labels.labels)
@@ -192,13 +194,14 @@ def create_model_gpt(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
     # Magic voodoo
     transformer_block = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM, num_heads, feed_forward_dim)
     x = transformer_block(x)
-    # transformer_block = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM, num_heads, feed_forward_dim)
-    # x = transformer_block(x)
 
-    # Flat output
-    # x = tf.keras.layers.Flatten()(x)
+    # Repeat embedded customer for each timestep
+    customer_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(customer_branch)
+    # Concatenate embedded customer and transformer output on each timestep
+    x = tf.keras.layers.Concatenate()( [ x , customer_branch ] )
 
-    #x = tf.keras.layers.Dense(1024, activation='relu')(x)
+    # Process transformer output and context 
+    x = tf.keras.layers.Dense(128, activation='relu')(x)
 
     # Classification (logits)
     outputs = layers.Dense(n_items)(x)
