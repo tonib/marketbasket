@@ -188,25 +188,24 @@ def create_model_gpt(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
 
     # Items embedding
     # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
-    #embedding_layer = TokenAndPositionEmbedding(Settings.SEQUENCE_LENGTH, n_items + 1, Settings.ITEMS_EMBEDDING_DIM)
-    x = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
+    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
 
     # Append positional encoding for each item sequence index
-    x = AddPositionEmbedding(Settings.SEQUENCE_LENGTH, Settings.ITEMS_EMBEDDING_DIM)(x)
+    items_branch = AddPositionEmbedding(Settings.SEQUENCE_LENGTH, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
     
     # Magic voodoo
-    transformer_block = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM, num_heads, feed_forward_dim)
-    x = transformer_block(x)
+    items_branch = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM, num_heads, feed_forward_dim)(items_branch)
 
     # Repeat embedded customer for each timestep
     customer_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(customer_branch)
+    
     # Concatenate embedded customer and transformer output on each timestep
-    x = tf.keras.layers.Concatenate()( [ x , customer_branch ] )
+    classification_branch = tf.keras.layers.Concatenate()( [ items_branch , customer_branch ] )
 
     # Process transformer output and context 
-    x = tf.keras.layers.Dense(128, activation='relu')(x)
+    classification_branch = tf.keras.layers.Dense(128, activation='relu')(classification_branch)
 
     # Classification (logits)
-    outputs = layers.Dense(n_items)(x)
+    classification_branch = layers.Dense(n_items)(classification_branch)
 
-    return keras.Model(inputs=[items_input, customer_input], outputs=outputs)
+    return keras.Model(inputs=[items_input, customer_input], outputs=classification_branch)
