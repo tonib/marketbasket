@@ -65,16 +65,16 @@ def write_gpt_sample(eval_transaction, input_items_idx, customer_idx, output_ite
 
 def process_trn_gpt_output(eval_transaction, item_indices, customer_idx):
     #print("****", item_indices)
-    if len(item_indices) <= Settings.SEQUENCE_LENGTH:
-        # Generate a single sample for this
-        input_items_idx = item_indices[:-1]
-        output_items_idx = item_indices[1:]
+
+    for item_idx in range(1, len(item_indices)):
+        # Input item indices sequence. If input is larger than sequence length, truncate (waste of space)
+        input_items_idx: List[int] = item_indices[0:item_idx]
+        if len(input_items_idx) > Settings.SEQUENCE_LENGTH:
+            input_items_idx = input_items_idx[-Settings.SEQUENCE_LENGTH:]
+
+        # Output item indices: The input shifted to the left one position, plus target item
+        output_items_idx = input_items_idx[1:] + [ item_indices[item_idx] ]
         write_gpt_sample(eval_transaction, input_items_idx, customer_idx, output_items_idx)
-    else:
-        for idx in range(0, len(item_indices) - Settings.SEQUENCE_LENGTH):
-            input_items_idx = item_indices[idx:idx+Settings.SEQUENCE_LENGTH]
-            output_items_idx = item_indices[idx + 1 : idx + 1 + Settings.SEQUENCE_LENGTH]
-            write_gpt_sample(eval_transaction, input_items_idx, customer_idx, output_items_idx)
 
 def process_trn_single_item_output(eval_transaction, item_indices, customer_idx):
 
