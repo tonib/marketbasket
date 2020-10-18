@@ -3,6 +3,7 @@ from labels import Labels
 from typing import List, Tuple
 from transaction import Transaction
 from model import pad_sequence # Required to load the model...
+from settings import Settings, ModelType
 
 class Prediction(tf.Module):
 
@@ -156,6 +157,18 @@ class Prediction(tf.Module):
         result = self.model(batch, training=False)
         # Convert logits to probabilities
         result = tf.nn.softmax(result)
+
+        if Settings.MODEL_TYPE == ModelType.GPT:
+            
+            # GPT return probabilities for each sequence timestep. 
+            # We need the probabilities for the LAST input timested.
+            # Batch is a ragged tensors (ex. [[1], [2,3]]), so, get the probabilities for last element position in each 
+            # batch sequence:
+            indices = batch_item_indices.row_lengths()
+            indices -= 1
+            #print("indices", indices)
+            result = tf.gather(result, indices, batch_dims=1)
+            #print("probs", probs)
 
         # Set result[ batch_item_indices ] = -1.0:
         #print("batch_item_indices >>>***", batch_item_indices)

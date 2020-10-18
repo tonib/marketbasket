@@ -1,7 +1,7 @@
 from typing import List, Tuple
 import tensorflow as tf
 import random
-from settings import Settings
+from settings import Settings, ModelType
 from transaction import Transaction
 from labels import Labels
 from dataset import DataSet
@@ -27,57 +27,57 @@ eval_trn_file = open(Transaction.TRANSACTIONS_EVAL_DATASET_FILE, 'w')
 # Number of times each item is used as output (used to weight loss of few used items)
 train_item_n_outputs = np.zeros( item_labels.length() , dtype=int)
 
-def write_transaction_to_example(input_items_idx: List[int], customer_idx: int, output_item_idx: int, gpt_output: List[int],
-writer: tf.io.TFRecordWriter):
+def write_transaction_to_example(features: dict, eval_transaction: bool):
+
+    global n_eval_samples, n_train_samples
+    if eval_transaction:
+        writer = eval_writer
+        n_eval_samples += 1
+    else:
+        writer = train_writer
+        n_train_samples += 1
 
     # Write output with TFRecord format (https://www.tensorflow.org/tutorials/load_data/tfrecord?hl=en#creating_a_tftrainexample_message)
-    features = {
-        'input_items_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=input_items_idx ) ),
-        'customer_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=[customer_idx] ) ),
-        'output_item_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=[output_item_idx] ) ),
-        'gpt_output': tf.train.Feature( int64_list=tf.train.Int64List( value=gpt_output ) )
-    }
     example = tf.train.Example(features=tf.train.Features(feature=features))
     txt_example: str = example.SerializeToString()
     writer.write( txt_example )
 
-def get_gpt_output(input_items_idx: List[int], output_item_idx: int) -> List[int]:
-    # GPT predicts the entire sequence, one index shifted to left. 
-    # Example with seq. length = 5 -> input: [a, b, c , padding, padding], prediction: a, b, c, D, padding]
-    # Other example: [a, b, c, d, e] -> [b, c, d, e, F]
-    
-    gpt_output = input_items_idx + [output_item_idx]
 
-    # zero is reserved for padding, so add 1 to all indices
-    gpt_output = [x + 1 for x in gpt_output]
+def write_gpt_sample(eval_transaction, input_items_idx, customer_idx, output_items_idx):
 
-    padding_size = Settings.SEQUENCE_LENGTH - len(gpt_output)
+    # Pad output sequence if required
+    padding_size = Settings.SEQUENCE_LENGTH - len(output_items_idx)
     if padding_size > 0:
-        gpt_output += [0] * padding_size
+        # Pad with the last output item
+        output_items_idx += [output_items_idx[-1]] * padding_size
     elif padding_size < 0:
-        gpt_output = gpt_output[-Settings.SEQUENCE_LENGTH:]
-    
-    #print( input_items_idx , output_item_idx , gpt_output)
-    return gpt_output
+        output_items_idx = output_items_idx[-Settings.SEQUENCE_LENGTH:]
 
-def process_transaction(transaction: Transaction):
+    #print( input_items_idx, customer_idx, output_items_idx )
 
-    item_indices, customer_idx = transaction.to_net_inputs(item_labels, customer_labels)
+    features = {
+        'input_items_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=input_items_idx ) ),
+        'customer_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=[customer_idx] ) ),
+        'output_items_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=output_items_idx ) )
+    }
+    write_transaction_to_example(features, eval_transaction)
 
-    # This trn will go to train or evaluation dataset?
-    eval_transaction = ( random.random() <= Settings.EVALUATION_RATIO )
-    if eval_transaction:
-        # Store original transaction, for real_eval.py
-        eval_trn_file.write( str(transaction) + '\n' )
-        # Generated sequences will go to evaluation
-        writer = eval_writer
+
+def process_trn_gpt_output(eval_transaction, item_indices, customer_idx):
+    #print("****", item_indices)
+    if len(item_indices) <= Settings.SEQUENCE_LENGTH:
+        # Generate a single sample for this
+        input_items_idx = item_indices[:-1]
+        output_items_idx = item_indices[1:]
+        write_gpt_sample(eval_transaction, input_items_idx, customer_idx, output_items_idx)
     else:
-        # Sequences will go to train
-        writer = train_writer
+        for idx in range(0, len(item_indices) - Settings.SEQUENCE_LENGTH):
+            input_items_idx = item_indices[idx:idx+Settings.SEQUENCE_LENGTH]
+            output_items_idx = item_indices[idx + 1 : idx + 1 + Settings.SEQUENCE_LENGTH]
+            write_gpt_sample(eval_transaction, input_items_idx, customer_idx, output_items_idx)
 
-    global n_eval_samples, n_train_samples
+def process_trn_single_item_output(eval_transaction, item_indices, customer_idx):
 
-    # Get sequence items from this transaction
     for item_idx in range(1, len(item_indices)):
 
         # Output index to predict
@@ -88,17 +88,34 @@ def process_transaction(transaction: Transaction):
         if len(input_items_idx) > Settings.SEQUENCE_LENGTH:
             input_items_idx = input_items_idx[-Settings.SEQUENCE_LENGTH:]
 
-        # GPT output to predict
-        gpt_output = get_gpt_output(input_items_idx, output_item_idx)
+        #print( input_items_idx, customer_idx, output_item_idx )
+        features = {
+            'input_items_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=input_items_idx ) ),
+            'customer_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=[customer_idx] ) ),
+            'output_item_idx': tf.train.Feature( int64_list=tf.train.Int64List( value=[output_item_idx] ) )
+        }
+        write_transaction_to_example(features, eval_transaction)
 
-        write_transaction_to_example(input_items_idx, customer_idx, output_item_idx, gpt_output, writer)
-
-        if eval_transaction:
-            n_eval_samples += 1
-        else:
-            n_train_samples += 1
+        if not eval_transaction:
             # Count number of times each item is used as output, for class balancing in train
             train_item_n_outputs[output_item_idx] += 1
+
+
+def process_transaction(transaction: Transaction):
+
+    item_indices, customer_idx = transaction.to_net_inputs(item_labels, customer_labels)
+
+    # This trn will go to train or evaluation dataset?
+    eval_transaction = ( random.random() <= Settings.EVALUATION_RATIO )
+    if eval_transaction:
+        # Store original transaction, for real_eval.py
+        eval_trn_file.write( str(transaction) + '\n' )
+
+    # Get sequence items from this transaction
+    if Settings.MODEL_TYPE == ModelType.GPT:
+        process_trn_gpt_output(eval_transaction, item_indices, customer_idx)
+    else:
+        process_trn_single_item_output(eval_transaction, item_indices, customer_idx)
 
 
 # Get transactions

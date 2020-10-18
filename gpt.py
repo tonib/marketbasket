@@ -3,6 +3,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 # CODE FROM https://keras.io/examples/generative/text_generation_with_miniature_gpt/
+# UNDER  Apache-2.0 License LICENSE (https://github.com/keras-team/keras-io/blob/master/LICENSE)
 
 class MultiHeadSelfAttention(layers.Layer):
     def __init__(self, embed_dim, num_heads=8):

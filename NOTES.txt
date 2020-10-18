@@ -9,12 +9,14 @@ gather probably can be replaced by boolean_mask, anywhere
 Generate text file with train samples, to debug
 Conv model: Try to stack convolutional layers + pooling
 * Convert to multi-binary classifier: NO. It performs worse (Try it again)
+* Remove use of ragged tensors...
 
 Transformer / GPT info:
 https://www.tensorflow.org/tutorials/text/transformer
 https://github.com/tensorflow/tensorflow/issues/42848
 https://lilianweng.github.io/lil-log/2020/04/07/the-transformer-family.html
 https://keras.io/examples/generative/text_generation_with_miniature_gpt/
+https://jonathanbgn.com/gpt2/2020/01/20/slogan-generator.html
 
 
 SEQUENTIAL:

@@ -1,5 +1,5 @@
 import tensorflow as tf
-from settings import Settings
+from settings import Settings, ModelType
 from labels import Labels
 
 class DataSet:
@@ -15,9 +15,14 @@ class DataSet:
         # Feature mappings for training
         DataSet.keys_to_features = {
             'input_items_idx': tf.io.RaggedFeature(tf.int64, 'input_items_idx', row_splits_dtype=tf.int64),
-            'customer_idx': tf.io.FixedLenFeature([], tf.int64),
-            'output_item_idx': tf.io.FixedLenFeature([], tf.int64),
+            'customer_idx': tf.io.FixedLenFeature([], tf.int64)
         }
+        if Settings.MODEL_TYPE == ModelType.GPT:
+            DataSet.output_feature = 'output_items_idx'
+            DataSet.keys_to_features[DataSet.output_feature] = tf.io.FixedLenFeature([Settings.SEQUENCE_LENGTH], tf.int64)
+        else:
+            DataSet.output_feature = 'output_item_idx'
+            DataSet.keys_to_features[DataSet.output_feature] = tf.io.FixedLenFeature([], tf.int64)
         DataSet.n_items = len(items_labels.labels)
         DataSet.n_customers = len(customer_labels.labels)
 
@@ -31,7 +36,8 @@ class DataSet:
         input = ( parsed_features['input_items_idx'] , parsed_features['customer_idx'] )
 
         # Return tuple (net input, expected output)
-        return input, parsed_features['output_item_idx']
+        # In GPT, the output is the entire output sequence (see gen_dataset.py). In others, it's the single item to predict
+        return input, parsed_features[DataSet.output_feature]
             
     @staticmethod
     def n_eval_batches() -> int:

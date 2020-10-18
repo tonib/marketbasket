@@ -27,7 +27,7 @@ class Settings:
     CLASS_WEIGHT = False
 
     # Model type
-    MODEL_TYPE: ModelType = ModelType.CONVOLUTIONAL
+    MODEL_TYPE: ModelType = ModelType.GPT
 
     # Sequence length?
     SEQUENCE_LENGTH = 10
