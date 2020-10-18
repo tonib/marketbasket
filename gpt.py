@@ -100,7 +100,7 @@ class TransformerBlock(layers.Layer):
         ffn_output = self.dropout2(ffn_output)
         return self.layernorm2(out1 + ffn_output)
 
-
+# TODO: Remove this, replaced by AddPositionEmbedding
 class TokenAndPositionEmbedding(layers.Layer):
     def __init__(self, maxlen, vocab_size, embed_dim):
         super(TokenAndPositionEmbedding, self).__init__()
@@ -114,3 +114,13 @@ class TokenAndPositionEmbedding(layers.Layer):
         x = self.token_emb(x)
         return x + positions
 
+class AddPositionEmbedding(layers.Layer):
+    def __init__(self, maxlen, embed_dim):
+        super(AddPositionEmbedding, self).__init__()
+        self.pos_emb = layers.Embedding(input_dim=maxlen, output_dim=embed_dim)
+
+    def call(self, x):
+        maxlen = tf.shape(x)[1] # Sequence length (x shape is [batch_size, seq_length, token_embedding_size])
+        positions = tf.range(start=0, limit=maxlen, delta=1)
+        positions = self.pos_emb(positions)
+        return x + positions

@@ -125,7 +125,7 @@ def create_model_convolutional(item_labels: Labels, customer_labels: Labels) -> 
     # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
     # TODO: There is a bug in tf2.3: If you set mask_zero=True, GPU and CPU implementations return different values
     # TODO: It seems fixed in tf-nightly. See tf-bugs/gru-bug.py. Try it again in tf2.4
-    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM, mask_zero=False)(items_branch)
+    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
 
     # Customer index
     customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
@@ -188,9 +188,12 @@ def create_model_gpt(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
 
     # Items embedding
     # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
-    embedding_layer = TokenAndPositionEmbedding(Settings.SEQUENCE_LENGTH, n_items + 1, Settings.ITEMS_EMBEDDING_DIM)
-    x = embedding_layer(items_branch)
+    #embedding_layer = TokenAndPositionEmbedding(Settings.SEQUENCE_LENGTH, n_items + 1, Settings.ITEMS_EMBEDDING_DIM)
+    x = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
 
+    # Append positional encoding for each item sequence index
+    x = AddPositionEmbedding(Settings.SEQUENCE_LENGTH, Settings.ITEMS_EMBEDDING_DIM)(x)
+    
     # Magic voodoo
     transformer_block = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM, num_heads, feed_forward_dim)
     x = transformer_block(x)
