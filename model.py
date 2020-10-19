@@ -172,7 +172,7 @@ def create_model_gpt(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
 
     # Parameters...?
     num_heads = 2  # Number of attention heads
-    feed_forward_dim = 128  # Hidden layer size in feed forward network inside transformer
+    feed_forward_dim = 256  # Hidden layer size in feed forward network inside transformer
 
     # Customer index
     customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
@@ -188,7 +188,8 @@ def create_model_gpt(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
 
     # Items embedding
     # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
-    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
+    items_embeddings = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
+    items_branch = items_embeddings
 
     # Append positional encoding for each item sequence index
     items_branch = AddPositionEmbedding(Settings.SEQUENCE_LENGTH, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
@@ -198,12 +199,19 @@ def create_model_gpt(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
 
     # Repeat embedded customer for each timestep
     customer_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(customer_branch)
-    
-    # Concatenate embedded customer and transformer output on each timestep
-    classification_branch = tf.keras.layers.Concatenate()( [ items_branch , customer_branch ] )
+
+    # Convolution
+    convolution_branch = tf.keras.layers.Conv1D(64, 4, activation='relu')(items_embeddings)
+    # Flatten convolution outputs
+    convolution_branch = tf.keras.layers.Flatten()(convolution_branch)
+    # Repeat for each timestep
+    convolution_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(convolution_branch)
+
+    # Concatenate transformer output, convolution output, and embedded customer on each timestep
+    classification_branch = tf.keras.layers.Concatenate()( [ items_branch , convolution_branch, customer_branch ] )
 
     # Process transformer output and context 
-    classification_branch = tf.keras.layers.Dense(128, activation='relu')(classification_branch)
+    classification_branch = tf.keras.layers.Dense(1024, activation='relu')(classification_branch)
 
     # Classification (logits)
     classification_branch = layers.Dense(n_items)(classification_branch)
