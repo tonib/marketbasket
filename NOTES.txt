@@ -5,6 +5,7 @@ Tested version: Python 3.8.2
 
 TODO:
 Test CNN
+Try to add sequences reversed as input
 gather probably can be replaced by boolean_mask, anywhere
 Generate text file with train samples, to debug
 Conv model: Try to stack convolutional layers + pooling

@@ -170,15 +170,13 @@ def create_model_convolutional(item_labels: Labels, customer_labels: Labels) -> 
 
 def create_model_gpt(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
 
-    # Parameters...?
-    num_heads = 2  # Number of attention heads
-    feed_forward_dim = 256  # Hidden layer size in feed forward network inside transformer
-
     # Customer index
     customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
     n_customers = len(customer_labels.labels)
     # Embed customer
     customer_branch = tf.keras.layers.Embedding(n_customers, Settings.CUSTOMERS_EMBEDDING_DIM)(customer_input)
+    # Repeat embedded customer for each timestep
+    customer_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(customer_branch)
 
     # Input for input items will be a sequence of embeded items
     n_items = len(item_labels.labels)
@@ -188,27 +186,29 @@ def create_model_gpt(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
 
     # Items embedding
     # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
-    items_embeddings = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
-    items_branch = items_embeddings
+    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
 
     # Append positional encoding for each item sequence index
-    items_branch = AddPositionEmbedding(Settings.SEQUENCE_LENGTH, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
-    
-    # Magic voodoo
-    items_branch = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM, num_heads, feed_forward_dim)(items_branch)
+    transformer_branch = AddPositionEmbedding(Settings.SEQUENCE_LENGTH, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
+    # Concatenate embedded customer and items on each timestep
+    transformer_branch = tf.keras.layers.Concatenate()( [ transformer_branch , customer_branch ] )
+    # Transformer decoder
+    num_heads = 2  # Number of attention heads
+    feed_forward_dim = 256  # Hidden layer size in feed forward network inside transformer
+    transformer_branch = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM + Settings.CUSTOMERS_EMBEDDING_DIM, num_heads, feed_forward_dim)(transformer_branch)
 
-    # Repeat embedded customer for each timestep
-    customer_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(customer_branch)
-
+    # Add customer to input (without position encoding)
+    convolution_branch = tf.keras.layers.Concatenate()( [ items_branch , customer_branch ] )
+    print(">>>> convolution_branch", convolution_branch)
     # Convolution
-    convolution_branch = tf.keras.layers.Conv1D(64, 4, activation='relu')(items_embeddings)
+    convolution_branch = tf.keras.layers.Conv1D(64, 4, activation='relu')(convolution_branch)
     # Flatten convolution outputs
     convolution_branch = tf.keras.layers.Flatten()(convolution_branch)
     # Repeat for each timestep
     convolution_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(convolution_branch)
 
     # Concatenate transformer output, convolution output, and embedded customer on each timestep
-    classification_branch = tf.keras.layers.Concatenate()( [ items_branch , convolution_branch, customer_branch ] )
+    classification_branch = tf.keras.layers.Concatenate()( [ transformer_branch , convolution_branch ] )
 
     # Process transformer output and context 
     classification_branch = tf.keras.layers.Dense(1024, activation='relu')(classification_branch)
