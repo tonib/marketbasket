@@ -12,7 +12,7 @@ def create_model(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model
         # Pending
         return create_model_convolutional(item_labels, customer_labels)
     elif Settings.MODEL_TYPE == ModelType.GPT:
-        return create_model_gpt(item_labels, customer_labels)
+        return create_model_gpt_raw(item_labels, customer_labels)
     else:
         raise Exception("Unknown model type" + Settings.MODEL_TYPE)
 
@@ -168,7 +168,7 @@ def create_model_convolutional(item_labels: Labels, customer_labels: Labels) -> 
 # GPT
 ##########################################################################################
 
-def create_model_gpt(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
+def create_model_gpt_with_conv(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
 
     # Customer index
     customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
@@ -194,20 +194,20 @@ def create_model_gpt(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
     transformer_branch = tf.keras.layers.Concatenate()( [ transformer_branch , customer_branch ] )
     # Transformer decoder
     num_heads = 2  # Number of attention heads
-    feed_forward_dim = 256  # Hidden layer size in feed forward network inside transformer
+    feed_forward_dim = 128  # Hidden layer size in feed forward network inside transformer
     transformer_branch = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM + Settings.CUSTOMERS_EMBEDDING_DIM, num_heads, feed_forward_dim)(transformer_branch)
 
     # Add customer to input (without position encoding)
     convolution_branch = tf.keras.layers.Concatenate()( [ items_branch , customer_branch ] )
     print(">>>> convolution_branch", convolution_branch)
     # Convolution
-    convolution_branch = tf.keras.layers.Conv1D(64, 4, activation='relu')(convolution_branch)
+    convolution_branch = tf.keras.layers.Conv1D(128, 4, activation='relu')(convolution_branch)
     # Flatten convolution outputs
     convolution_branch = tf.keras.layers.Flatten()(convolution_branch)
     # Repeat for each timestep
     convolution_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(convolution_branch)
 
-    # Concatenate transformer output, convolution output, and embedded customer on each timestep
+    # Concatenate transformer output and convolution output on each timestep
     classification_branch = tf.keras.layers.Concatenate()( [ transformer_branch , convolution_branch ] )
 
     # Process transformer output and context 
@@ -217,3 +217,39 @@ def create_model_gpt(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
     classification_branch = layers.Dense(n_items)(classification_branch)
 
     return keras.Model(inputs=[items_input, customer_input], outputs=classification_branch)
+
+
+def create_model_gpt_raw(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
+
+    # Customer index
+    customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
+    n_customers = len(customer_labels.labels)
+    # Embed customer
+    customer_branch = tf.keras.layers.Embedding(n_customers, Settings.CUSTOMERS_EMBEDDING_DIM)(customer_input)
+    # Repeat embedded customer for each timestep
+    customer_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(customer_branch)
+
+    # Input for input items will be a sequence of embedded items
+    n_items = len(item_labels.labels)
+    items_input = tf.keras.layers.Input(shape=[None], name='input_items_idx', dtype=tf.int64, ragged=True)
+    # Pad items sequence:
+    items_branch = tf.keras.layers.Lambda(lambda x: pad_sequence(x), name="padded_sequence")(items_input)
+
+    # Items embedding
+    # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
+    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
+
+    # Append positional encoding for each item sequence index
+    transformer_branch = AddPositionEmbedding(Settings.SEQUENCE_LENGTH, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
+    # Concatenate embedded customer and items on each timestep
+    transformer_branch = tf.keras.layers.Concatenate()( [ transformer_branch , customer_branch ] )
+    # Transformer decoder
+    num_heads = 2  # Number of attention heads
+    feed_forward_dim = 128  # Hidden layer size in feed forward network inside transformer
+    transformer_branch = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM + Settings.CUSTOMERS_EMBEDDING_DIM, num_heads, feed_forward_dim)(transformer_branch)
+
+    # Classification (logits)
+    classification_branch = layers.Dense(n_items)(transformer_branch)
+
+    return keras.Model(inputs=[items_input, customer_input], outputs=classification_branch)
+

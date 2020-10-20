@@ -113,7 +113,10 @@ def process_transaction(transaction: Transaction):
 
     # Get sequence items from this transaction
     if Settings.MODEL_TYPE == ModelType.GPT:
+        # Add sequence and its reverse
         process_trn_gpt_output(eval_transaction, item_indices, customer_idx)
+        if not eval_transaction:
+            process_trn_gpt_output(eval_transaction, list(reversed(item_indices)), customer_idx)
     else:
         process_trn_single_item_output(eval_transaction, item_indices, customer_idx)
 
