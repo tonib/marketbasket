@@ -27,10 +27,10 @@ class Settings:
     CLASS_WEIGHT = False
 
     # Model type
-    MODEL_TYPE: ModelType = ModelType.GPT
+    MODEL_TYPE: ModelType = ModelType.CONVOLUTIONAL
 
     # Sequence length?
-    SEQUENCE_LENGTH = 10
+    SEQUENCE_LENGTH = 7
 
     # Sequence - Items embeding dimension
     ITEMS_EMBEDDING_DIM = 128

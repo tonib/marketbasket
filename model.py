@@ -156,7 +156,7 @@ def create_model_convolutional(item_labels: Labels, customer_labels: Labels) -> 
     # Merge convolution and RNN
     classification_branch = tf.keras.layers.Concatenate()( [ convolution_branch , rnn_branch] )
 
-    classification_branch = tf.keras.layers.Dense(1024, activation='relu')(classification_branch)
+    classification_branch = tf.keras.layers.Dense(512, activation='relu')(classification_branch)
     # classification_branch = tf.keras.layers.Dense(1024, activation='relu')(classification_branch)
 
     # Do the classification (logits)
