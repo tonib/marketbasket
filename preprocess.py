@@ -4,15 +4,15 @@ import heapq
 from labels import Labels
 from settings import Settings
 from transaction import Transaction
+from collections import Counter
 
 # Number of item/customer ocurrences in transactions (key = item key, value = n. ocurrences)
-items_occurrences: Dict[str, int] = {}
-customers_occurrences: Dict[str, int] = {}
+items_occurrences = Counter()
+customers_occurrences = Counter()
 
-def get_top_labels(occurrences: Dict[str, int], n_max: int) -> List[str]:
-    top_ocurrences: Dict[str, int] = dict( heapq.nlargest(n_max, occurrences.items(), key=itemgetter(1)) )
-    return top_ocurrences.keys()
-    
+def get_top_labels(occurrences: Counter, n_max: int) -> List[str]:
+    return [pair[0] for pair in occurrences.most_common(n_max)]
+
 n_transactions = 0
 n_total_item_sells = 0
 with open('data/transactions.txt') as trn_file:
@@ -26,16 +26,9 @@ with open('data/transactions.txt') as trn_file:
         if len(transaction.item_labels) > 1:
             n_transactions += 1
             for item in transaction.item_labels:
-                if item in items_occurrences:
-                    items_occurrences[item] += 1
-                else:
-                    items_occurrences[item] = 1
+                items_occurrences[item] += 1
                 n_total_item_sells += 1
-
-            if transaction.customer_label in customers_occurrences:
-                customers_occurrences[transaction.customer_label] += 1
-            else:
-                customers_occurrences[transaction.customer_label] = 1
+            customers_occurrences[transaction.customer_label] += 1
 
 print("# transactions with more than one item:", n_transactions )
 print("# item sells (trn. with more than one item):", n_total_item_sells )
@@ -51,6 +44,7 @@ n_transactions = 0
 n_transactions_with_customer_id = 0
 n_final_item_sells = 0
 there_are_unknown_customers = False
+sequences_lengths = Counter()
 with open('data/transactions.txt') as trn_file:
     with open(Transaction.TRANSACTIONS_TOP_ITEMS_PATH, 'w') as trn_top_file:
         for line in trn_file:
@@ -81,7 +75,7 @@ with open('data/transactions.txt') as trn_file:
 
                 trn_top_file.write( str(transaction) + '\n' )
                 n_transactions += 1
-
+                sequences_lengths[n_items_trn] += 1
 
 item_labels.save(Labels.ITEM_LABELS_FILE)
 if there_are_unknown_customers and not customer_labels.contains(Labels.UNKNOWN_LABEL):
@@ -96,3 +90,12 @@ print("# transactions with customer id:", n_transactions_with_customer_id )
 print("# item sells (final):", n_final_item_sells )
 if n_total_item_sells > 0:
     print("Ratio item sells supported:", str(n_final_item_sells/n_total_item_sells) )
+
+# print("Sequences lengths:")
+# for seq_length in sorted(sequences_lengths.keys()):
+#     print(seq_length, sequences_lengths[seq_length])
+
+sum_of_numbers = sum(number*count for number, count in sequences_lengths.items())
+count = sum(count for n, count in sequences_lengths.items())
+mean = sum_of_numbers / count
+print("Mean sequence length:", mean)
