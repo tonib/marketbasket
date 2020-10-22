@@ -193,7 +193,7 @@ def create_model_gpt_with_conv(item_labels: Labels, customer_labels: Labels) -> 
     # Concatenate embedded customer and items on each timestep
     transformer_branch = tf.keras.layers.Concatenate()( [ transformer_branch , customer_branch ] )
     # Transformer decoder
-    num_heads = 2  # Number of attention heads
+    num_heads = 8  # Number of attention heads
     feed_forward_dim = 128  # Hidden layer size in feed forward network inside transformer
     transformer_branch = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM + Settings.CUSTOMERS_EMBEDDING_DIM, num_heads, feed_forward_dim)(transformer_branch)
 
@@ -201,7 +201,7 @@ def create_model_gpt_with_conv(item_labels: Labels, customer_labels: Labels) -> 
     convolution_branch = tf.keras.layers.Concatenate()( [ items_branch , customer_branch ] )
     print(">>>> convolution_branch", convolution_branch)
     # Convolution
-    convolution_branch = tf.keras.layers.Conv1D(128, 4, activation='relu')(convolution_branch)
+    convolution_branch = tf.keras.layers.Conv1D(64, 4, activation='relu')(convolution_branch)
     # Flatten convolution outputs
     convolution_branch = tf.keras.layers.Flatten()(convolution_branch)
     # Repeat for each timestep
@@ -211,7 +211,7 @@ def create_model_gpt_with_conv(item_labels: Labels, customer_labels: Labels) -> 
     classification_branch = tf.keras.layers.Concatenate()( [ transformer_branch , convolution_branch ] )
 
     # Process transformer output and context 
-    classification_branch = tf.keras.layers.Dense(1024, activation='relu')(classification_branch)
+    classification_branch = tf.keras.layers.Dense(512, activation='relu')(classification_branch)
 
     # Classification (logits)
     classification_branch = layers.Dense(n_items)(classification_branch)
@@ -244,12 +244,11 @@ def create_model_gpt_raw(item_labels: Labels, customer_labels: Labels) -> tf.ker
     # Concatenate embedded customer and items on each timestep
     transformer_branch = tf.keras.layers.Concatenate()( [ transformer_branch , customer_branch ] )
     # Transformer decoder
-    num_heads = 2  # Number of attention heads
-    feed_forward_dim = 128  # Hidden layer size in feed forward network inside transformer
+    num_heads = 8  # Number of attention heads
+    feed_forward_dim = 256  # Hidden layer size in feed forward network inside transformer
     transformer_branch = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM + Settings.CUSTOMERS_EMBEDDING_DIM, num_heads, feed_forward_dim)(transformer_branch)
 
     # Classification (logits)
     classification_branch = layers.Dense(n_items)(transformer_branch)
 
     return keras.Model(inputs=[items_input, customer_input], outputs=classification_branch)
-
