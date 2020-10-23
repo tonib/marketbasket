@@ -2,6 +2,9 @@
 from model import create_model
 import tensorflow as tf
 from labels import Labels
+from datetime import datetime
+
+print(datetime.now(), "Process start")
 
 #with tf.device("CPU:0"):
 # Load product labels
@@ -18,3 +21,5 @@ model.summary()
 
 # Save full model
 model.save('model/exported_model', include_optimizer=False)
+
+print(datetime.now(), "Process end")

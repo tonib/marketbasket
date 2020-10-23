@@ -5,6 +5,9 @@ from labels import Labels
 from settings import Settings
 from transaction import Transaction
 from collections import Counter
+from datetime import datetime
+
+print(datetime.now(), "Process start")
 
 # Number of item/customer ocurrences in transactions (key = item key, value = n. ocurrences)
 items_occurrences = Counter()
@@ -99,3 +102,5 @@ sum_of_numbers = sum(number*count for number, count in sequences_lengths.items()
 count = sum(count for n, count in sequences_lengths.items())
 mean = sum_of_numbers / count
 print("Mean sequence length:", mean)
+
+print(datetime.now(), "Process end")

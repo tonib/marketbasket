@@ -9,8 +9,20 @@ from real_eval import run_real_eval
 from predict import Prediction
 from focal_loss import SparseCategoricalFocalLoss
 from class_weights import ClassWeights
+from datetime import datetime
+import argparse
 
 # To test with GPU disabled set environment variable CUDA_VISIBLE_DEVICES=-1
+
+print(datetime.now(), "Process start")
+
+# Configure train verbose mode
+parser = argparse.ArgumentParser(description='Train model')
+parser.add_argument('--verbose', type=int, nargs='?',
+                   help='Train verbose model: 0 = silent, 1 = progress bar, 2 = one line per epoch. Default is 1',
+                   default=1)
+args = parser.parse_args()
+
 
 # We need the batches number in evaluation dataset, so here is:
 # (This will be executed in eager mode)
@@ -71,4 +83,7 @@ model.fit(train_dataset,
         callbacks=[tensorboard_callback, cp_callback, RealEvaluationCallback()], 
         validation_data=eval_dataset,
         validation_steps=n_eval_batches,
-        class_weight=class_weight)
+        class_weight=class_weight,
+        verbose=args.verbose)
+
+print(datetime.now(), "Process end")
