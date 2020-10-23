@@ -65,7 +65,8 @@ wfastcgi-enable # This must to be run with elevated privileges (administrator)
 # Change user to run the new site to an user with permissions
 # Set permissions to the site directory
 # Set user in the application group with the right permissions
-
+# The setup time for the python process can be really large. To setup the site to ALWAYS have the python process running see https://stackoverflow.com/questions/55754555/django-run-constantly-running-background-task-on-iis-hosted-application
+# Dear lord... See also https://galleryserverpro.com/eliminate-startup-delay-in-your-galleries-using-application-initialization/ (Application Initialization in Windows Server 2012 and higher (IIS 8+))
 
 Show exported model
 saved_model_cli show --dir model/serving_model/1 --all
