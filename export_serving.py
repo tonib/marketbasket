@@ -1,5 +1,8 @@
 import tensorflow as tf
 from predict import Prediction
+from datetime import datetime
+
+print(datetime.now(), "Process start")
 
 # See:
 # https://www.tensorflow.org/api_docs/python/tf/saved_model/save
@@ -14,3 +17,5 @@ p = Prediction()
 
 # TODO: It seems the defautl signature name is "serving_default"...
 tf.saved_model.save(p, 'model/serving_model/1/', signatures={ 'predict': p.run_model_single })
+
+print(datetime.now(), "Process end")

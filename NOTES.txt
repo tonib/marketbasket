@@ -8,8 +8,6 @@ Test LSTM
 Try to add sequences reversed as input
 gather probably can be replaced by boolean_mask, anywhere
 Generate text file with train samples, to debug
-Conv model: Try to stack convolutional layers + pooling
-* Convert to multi-binary classifier: NO. It performs worse (Try it again)
 * Remove use of ragged tensors...
 
 Transformer / GPT info:
@@ -93,3 +91,4 @@ Windows:
 D:\kbases\subversion\marketBasket-tf>docker run -p 8501:8501 --mount type=bind,source=C:\xxxxxx\model\serving_model,target=/models/basket -e MODEL_NAME=basket -t tensorflow/serving
 C:\xxxxx\venv\Scripts\activate.ps1 (or .bat)
 
+GPU train epoch: 97 seg. CPU train epoch 314 seg.
