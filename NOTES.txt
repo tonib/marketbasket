@@ -92,3 +92,5 @@ D:\kbases\subversion\marketBasket-tf>docker run -p 8501:8501 --mount type=bind,s
 C:\xxxxx\venv\Scripts\activate.ps1 (or .bat)
 
 GPU train epoch: 97 seg. CPU train epoch 314 seg.
+
+To run without GPU support, set environment variable CUDA_VISIBLE_DEVICES=-1

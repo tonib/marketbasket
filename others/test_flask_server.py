@@ -28,9 +28,9 @@ data = '''
 # url = 'http://localhost:5001/predict'
 url = 'http://127.0.0.1:5001/v1/models/basket:predict'
 
-
-for _ in range(5):
-    start = time.time()
-    response = requests.post(url, data=data)
-    print("Total time:", time.time() - start)
-    print(response.text)
+if __name__=='__main__':
+    for _ in range(5):
+        start = time.time()
+        response = requests.post(url, data=data)
+        print("Total time:", time.time() - start)
+        print(response.text)
