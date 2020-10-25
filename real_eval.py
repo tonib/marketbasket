@@ -47,7 +47,7 @@ def run_real_eval(predictor):
 
         input_batch = [ trn_with_expected[0] for trn_with_expected in batch ]
 
-        results = predictor.predict_batch(input_batch, 10)
+        results = predictor.predict_batch(input_batch, 8)
         #print(results)
 
         for idx, transaction_with_expected_result in enumerate(batch):
@@ -65,10 +65,12 @@ def run_real_eval(predictor):
             #     score += +1
             expected_item_idx = np.where( predicted_item_labels == expected_item.encode() )[0]
             if expected_item_idx.shape[0] > 0:
-                score += +1
-                probs_sum += results[1][idx][ expected_item_idx[0] ]
+                prob = results[1][idx][ expected_item_idx[0] ]
+                if prob >= 0.01:
+                    score += +1
+                    probs_sum += results[1][idx][ expected_item_idx[0] ]
 
-    txt_result = "* N. times next item in top ten predictions: " + str(score) + " of " + str(n_predictions)
+    txt_result = "* N. times next item in top eight predictions, with prob. >= 1%: " + str(score) + " of " + str(n_predictions)
     if n_predictions > 0:
         txt_result += " / Ratio:" + str(score / n_predictions)
     print(txt_result)
