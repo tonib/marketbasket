@@ -14,6 +14,9 @@ $TargetFile = "$CurrentDir\Data\transactions.txt"
 # Go back to python dir.
 Set-Location -Path $CurrentDir
 
+# Delete previous model
+Remove-Item -Recurse -Force model
+
 # Generate model from data
 python preprocess.py
 python gen_dataset.py
