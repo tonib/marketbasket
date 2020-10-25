@@ -1,9 +1,16 @@
 import flask
 from predict import Prediction
 from transaction import Transaction
+import logging
 
 app = flask.Flask(__name__)
 #app.config["DEBUG"] = True
+
+# Log errors and warnings to file
+file_handler = logging.FileHandler('logs/flask_log.txt')
+file_handler.setLevel(logging.WARNING)
+file_handler.setFormatter( logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s') )
+app.logger.addHandler(file_handler)
 
 predictor = Prediction()
 
@@ -24,8 +31,9 @@ def predict():
         # astype is required in Windows, otherwise it throws "TypeError: Object of type bytes is not JSON serializable"
         prediction = { 'outputs': { 'output_0': prediction[0].astype('U').tolist() , 'output_1': prediction[1].tolist() } }
         return flask.jsonify( prediction )
+
     except Exception as err:
-        print(err)
+        app.logger.error(err, exc_info=err)
         return flask.jsonify( { 'error': str(err) } )
 
 @app.route("/hello")

@@ -5,7 +5,6 @@ Tested version: Python 3.8.2
 
 TODO:
 Test LSTM
-Log flask errors (with log level)
 Test concurrency with flask / IIS (single thread supported)
 gather probably can be replaced by boolean_mask, anywhere
 Generate text file with train samples, to debug
