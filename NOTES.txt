@@ -5,10 +5,11 @@ Tested version: Python 3.8.2
 
 TODO:
 Test LSTM
-Try to add sequences reversed as input
+Log flask errors (with log level)
+Test concurrency with flask / IIS (single thread supported)
 gather probably can be replaced by boolean_mask, anywhere
 Generate text file with train samples, to debug
-* Remove use of ragged tensors...
+Remove use of ragged tensors...
 
 Transformer / GPT info:
 https://www.tensorflow.org/tutorials/text/transformer
