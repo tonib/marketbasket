@@ -37,3 +37,6 @@ class Settings:
 
     # Sequence - Customers embeding dimension
     CUSTOMERS_EMBEDDING_DIM = 64
+
+    # Transactions file path
+    TRANSACTIONS_FILE = 'data/transactions.txt'

@@ -43,7 +43,7 @@ python.exe -m pip install --upgrade pip
 # In VM, to confirm AVX is available, install https://downloadcenter.intel.com/es/download/19792/Intel-Processor-Diagnostic-Tool and run avx.exe
 
 Install requeriments (both)
-pip install tensorflow==2.3
+pip install tensorflow==2.3.1
 pip install requests # Only needed to test tf serving performance
 pip install focal-loss # https://github.com/artemmavrin/focal-loss
 pip install flask # Flask server (serving without TF Serving) requirements

@@ -16,6 +16,7 @@ def transactions_with_expected_item() -> Iterable[Tuple[Transaction, str]]:
     with open(Transaction.TRANSACTIONS_EVAL_DATASET_FILE) as eval_trn_file:
         for line in eval_trn_file:
             transaction = Transaction(line)
+            #print("\n\ntransaction:", transaction)
 
             for idx in range(1, len(transaction.item_labels)):
                 input_items_labels = transaction.item_labels[0:idx]
@@ -43,12 +44,11 @@ def run_real_eval(predictor):
     n_predictions = 0
     for batch in transactions_with_expected_item_batches():
 
-        #print("got batch")
-
         input_batch = [ trn_with_expected[0] for trn_with_expected in batch ]
+        #print("input_batch:", input_batch)
 
         results = predictor.predict_batch(input_batch, 8)
-        #print(results)
+        #print("results:", results)
 
         for idx, transaction_with_expected_result in enumerate(batch):
 
@@ -57,16 +57,15 @@ def run_real_eval(predictor):
             predicted_item_labels = results[0][idx]
 
             n_predictions += 1
-            # if n_predictions % 1000 == 0:
-            #     print(n_predictions)
             
             expected_item = transaction_with_expected_result[1]
-            # if expected_item.encode() in predicted_item_labels:
-            #     score += +1
+            #print("expected_item", expected_item)
+
             expected_item_idx = np.where( predicted_item_labels == expected_item.encode() )[0]
             if expected_item_idx.shape[0] > 0:
                 prob = results[1][idx][ expected_item_idx[0] ]
                 if prob >= 0.01:
+                    #print( ">> in" )
                     score += +1
                     probs_sum += results[1][idx][ expected_item_idx[0] ]
 

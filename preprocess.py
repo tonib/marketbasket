@@ -18,7 +18,7 @@ def get_top_labels(occurrences: Counter, n_max: int) -> List[str]:
 
 n_transactions = 0
 n_total_item_sells = 0
-with open('data/transactions.txt') as trn_file:
+with open(Settings.TRANSACTIONS_FILE) as trn_file:
     for line in trn_file:
         transaction = Transaction(line)
 
@@ -48,7 +48,7 @@ n_transactions_with_customer_id = 0
 n_final_item_sells = 0
 there_are_unknown_customers = False
 sequences_lengths = Counter()
-with open('data/transactions.txt') as trn_file:
+with open(Settings.TRANSACTIONS_FILE) as trn_file:
     with open(Transaction.TRANSACTIONS_TOP_ITEMS_PATH, 'w') as trn_top_file:
         for line in trn_file:
             transaction = Transaction(line)
