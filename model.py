@@ -57,7 +57,8 @@ def create_model_non_sequential(item_labels: Labels, customer_labels: Labels) ->
 ##########################################################################################
 
 @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None,None], dtype=tf.int64)])
-def pad_sequence( sequences_batch: tf.RaggedTensor) -> tf.Tensor:
+def pad_sequence_right( sequences_batch: tf.RaggedTensor) -> tf.Tensor:
+    """ Pad sequences with zeros on right side """
 
     # Avoid sequences larger than sequence_length: Get last sequence_length of each sequence
     sequences_batch = sequences_batch[:,-Settings.SEQUENCE_LENGTH:]
@@ -67,12 +68,27 @@ def pad_sequence( sequences_batch: tf.RaggedTensor) -> tf.Tensor:
     sequences_batch = sequences_batch.to_tensor(0, shape=[None, Settings.SEQUENCE_LENGTH])
     return sequences_batch
 
+@tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None,None], dtype=tf.int64)])
+def pad_sequence_left(sequences_batch: tf.RaggedTensor):
+    """ Pad sequences with zeros on left side """
+
+    sequences_batch = sequences_batch[:,-Settings.SEQUENCE_LENGTH:]  # Truncate rows to have at most `Settings.SEQUENCE_LENGTH` items
+
+    # Add one to indices, to reserve 0 index for padding
+    sequences_batch = sequences_batch + 1
+
+    pad_row_lengths = Settings.SEQUENCE_LENGTH - sequences_batch.row_lengths()
+    pad_values = tf.zeros( [(Settings.SEQUENCE_LENGTH * sequences_batch.nrows()) - tf.size(sequences_batch, tf.int64)] , sequences_batch.dtype)
+    padding = tf.RaggedTensor.from_row_lengths(pad_values, pad_row_lengths)
+    return tf.concat([padding, sequences_batch], axis=1).to_tensor()
+
+
 def create_model_rnn(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
 
     # Input for input items will be a sequence of embeded items
     items_input = tf.keras.layers.Input(shape=[None], name='input_items_idx', dtype=tf.int64, ragged=True)
     # Pad items sequence:
-    items_branch = tf.keras.layers.Lambda(lambda x: pad_sequence(x), name="padded_sequence")(items_input)
+    items_branch = tf.keras.layers.Lambda(lambda x: pad_sequence_right(x), name="padded_sequence")(items_input)
     # Embed items sequence:
     n_items = len(item_labels.labels)
     # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
@@ -119,13 +135,13 @@ def create_model_convolutional(item_labels: Labels, customer_labels: Labels) -> 
     # Input for input items will be a sequence of embeded items
     items_input = tf.keras.layers.Input(shape=[None], name='input_items_idx', dtype=tf.int64, ragged=True)
     # Pad items sequence:
-    items_branch = tf.keras.layers.Lambda(lambda x: pad_sequence(x), name="padded_sequence")(items_input)
+    items_branch = tf.keras.layers.Lambda(lambda x: pad_sequence_right(x), name="padded_sequence")(items_input)
     # Embed items sequence:
     n_items = len(item_labels.labels)
     # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
     # TODO: There is a bug in tf2.3: If you set mask_zero=True, GPU and CPU implementations return different values
     # TODO: It seems fixed in tf-nightly. See tf-bugs/gru-bug.py. Try it again in tf2.4
-    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
+    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM, mask_zero=True)(items_branch)
 
     # Customer index
     customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
@@ -145,13 +161,12 @@ def create_model_convolutional(item_labels: Labels, customer_labels: Labels) -> 
 
     # RNN
     RNN_LAYER_SIZE = 128
-    rnn_layer = tf.keras.layers.GRU(RNN_LAYER_SIZE, return_sequences=True)
+    rnn_layer = tf.keras.layers.GRU(RNN_LAYER_SIZE, return_sequences=False)
     rnn_branch = tf.keras.layers.Bidirectional(rnn_layer)(classification_branch)
 
     # Dropout. I don't know if this is right for a bidirectional RNN: This can drop a RNN element in forward sequence, but
     # not in backward, and viceversa...
-    rnn_branch = tf.keras.layers.Dropout(0.2, noise_shape=[None, 1, RNN_LAYER_SIZE*2])(rnn_branch)
-    rnn_branch = tf.keras.layers.Flatten()(rnn_branch)
+    rnn_branch = tf.keras.layers.Dropout(0.2)(rnn_branch)
 
     # Merge convolution and RNN
     classification_branch = tf.keras.layers.Concatenate()( [ convolution_branch , rnn_branch] )
@@ -182,7 +197,7 @@ def create_model_gpt_with_conv(item_labels: Labels, customer_labels: Labels) -> 
     n_items = len(item_labels.labels)
     items_input = tf.keras.layers.Input(shape=[None], name='input_items_idx', dtype=tf.int64, ragged=True)
     # Pad items sequence:
-    items_branch = tf.keras.layers.Lambda(lambda x: pad_sequence(x), name="padded_sequence")(items_input)
+    items_branch = tf.keras.layers.Lambda(lambda x: pad_sequence_right(x), name="padded_sequence")(items_input)
 
     # Items embedding
     # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
@@ -233,7 +248,7 @@ def create_model_gpt_raw(item_labels: Labels, customer_labels: Labels) -> tf.ker
     n_items = len(item_labels.labels)
     items_input = tf.keras.layers.Input(shape=[None], name='input_items_idx', dtype=tf.int64, ragged=True)
     # Pad items sequence:
-    items_branch = tf.keras.layers.Lambda(lambda x: pad_sequence(x), name="padded_sequence")(items_input)
+    items_branch = tf.keras.layers.Lambda(lambda x: pad_sequence_right(x), name="padded_sequence")(items_input)
 
     # Items embedding
     # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding

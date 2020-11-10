@@ -2,7 +2,7 @@ import tensorflow as tf
 from labels import Labels
 from typing import List, Tuple
 from transaction import Transaction
-from model import pad_sequence # Required to load the model...
+from model import pad_sequence_left, pad_sequence_right # Required to load the model...
 from settings import Settings, ModelType
 
 class Prediction(tf.Module):

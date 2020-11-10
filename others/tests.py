@@ -1,15 +1,16 @@
 import tensorflow as tf
 
-seq_len = 2
+#@tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None,None], dtype=tf.int64)])
+def pad_sequence_left(sequences_batch: tf.RaggedTensor, width):
+    """ Pad sequences with zeros on left side """
 
-batch = tf.constant( [ [[ 10 , 11 ] , [ 12 , 13 ]] , [[ 14 , 15 ] , [ 16 , 17 ]] ] )
+    sequences_batch = sequences_batch[:,-width:]  # Truncate rows to have at most `width` items
+    pad_row_lengths = width - sequences_batch.row_lengths()
+    pad_values = tf.zeros([(width * sequences_batch.nrows()) - tf.size(sequences_batch, tf.int64)], sequences_batch.dtype)
+    padding = tf.RaggedTensor.from_row_lengths(pad_values, pad_row_lengths)
+    return tf.concat([padding, sequences_batch], axis=1).to_tensor()
 
-context_features = tf.constant( [ [ 1 , 2 , 3 ] , [ 4 , 5 , 6 ] ] )
-context_features = tf.expand_dims(context_features, 1 )
-print( "context_features", context_features )
+x = tf.ragged.constant( [ [ 1 , 2 ] , [] , [ 5 ,6 ,7 ] , [1] ] )
+x = pad_sequence_left(x, 2)
+print(x)
 
-repeats = tf.repeat(context_features, seq_len, axis=1 )
-print("repeats", repeats)
-
-result = tf.concat( [batch, repeats] , 2 )
-print("result", result)
