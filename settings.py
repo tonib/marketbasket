@@ -30,7 +30,7 @@ class Settings:
     MODEL_TYPE: ModelType = ModelType.CONVOLUTIONAL
 
     # Sequence length?
-    SEQUENCE_LENGTH = 7
+    SEQUENCE_LENGTH = 16
 
     # Sequence - Items embeding dimension
     ITEMS_EMBEDDING_DIM = 128
