@@ -21,9 +21,9 @@ customer_labels = Labels.load(Labels.CUSTOMER_LABELS_FILE)
 item_labels = Labels.load(Labels.ITEM_LABELS_FILE)
 
 # File to store train samples
-train_writer = tf.io.TFRecordWriter(DataSet.TRAIN_DATASET_FILE)
+train_writer = tf.io.TFRecordWriter( DataSet.train_dataset_file_path() )
 # File to store eval samples
-eval_writer = tf.io.TFRecordWriter(DataSet.EVAL_DATASET_FILE)
+eval_writer = tf.io.TFRecordWriter( DataSet.eval_dataset_file_path() )
 # File to store eval transactions, to use in real_eval.py
 eval_trn_file = open(Transaction.TRANSACTIONS_EVAL_DATASET_FILE, 'w')
 

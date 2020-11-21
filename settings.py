@@ -102,9 +102,12 @@ class Settings:
         print("-----------------------------------------")
 
 
-    def get_data_dir(self) -> str:
-        """ Returns data directory """
-        return os.path.dirname(self.transactions_file)
+    def get_data_path(self, rel_path: str = None) -> str:
+        """ Returns data directory if rel_path is None . Path to a file inside data directory otherwise """
+        path = os.path.dirname(self.transactions_file)
+        if rel_path != None:
+            path = os.path.join(path, rel_path)
+        return path
 
 # Global variable. TODO: It should not be a global variable
 settings = Settings()
