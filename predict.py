@@ -158,7 +158,7 @@ class Prediction(tf.Module):
         # Convert logits to probabilities
         result = tf.nn.softmax(result)
 
-        if settings.MODEL_TYPE == ModelType.GPT:
+        if settings.model_type == ModelType.GPT:
             
             # GPT return probabilities for each sequence timestep. 
             # We need the probabilities for the LAST input timested.

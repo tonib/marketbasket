@@ -5,6 +5,6 @@ from settings import settings
 random.seed(1)
 
 # Shuffle transactions, to be sure there are no sequences with same features together
-lines = open(settings.TRANSACTIONS_FILE).readlines()
+lines = open(settings.transactions_file).readlines()
 random.shuffle(lines)
-open(settings.TRANSACTIONS_FILE, 'w').writelines(lines)
+open(settings.transactions_file, 'w').writelines(lines)

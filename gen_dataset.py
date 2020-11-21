@@ -49,12 +49,12 @@ def write_transaction_to_example(features: dict, eval_transaction: bool):
 def write_gpt_sample(eval_transaction, input_items_idx, customer_idx, output_items_idx):
 
     # Pad output sequence if required
-    padding_size = settings.SEQUENCE_LENGTH - len(output_items_idx)
+    padding_size = settings.sequence_length - len(output_items_idx)
     if padding_size > 0:
         # Pad with the last output item
         output_items_idx += [output_items_idx[-1]] * padding_size
     elif padding_size < 0:
-        output_items_idx = output_items_idx[-settings.SEQUENCE_LENGTH:]
+        output_items_idx = output_items_idx[-settings.sequence_length:]
 
     #print( input_items_idx, customer_idx, output_items_idx )
 
@@ -72,8 +72,8 @@ def process_trn_gpt_output(eval_transaction, item_indices, customer_idx):
     for item_idx in range(1, len(item_indices)):
         # Input item indices sequence. If input is larger than sequence length, truncate (waste of space)
         input_items_idx: List[int] = item_indices[0:item_idx]
-        if len(input_items_idx) > settings.SEQUENCE_LENGTH:
-            input_items_idx = input_items_idx[-settings.SEQUENCE_LENGTH:]
+        if len(input_items_idx) > settings.sequence_length:
+            input_items_idx = input_items_idx[-settings.sequence_length:]
 
         # Output item indices: The input shifted to the left one position, plus target item
         output_items_idx = input_items_idx[1:] + [ item_indices[item_idx] ]
@@ -88,8 +88,8 @@ def process_trn_single_item_output(eval_transaction, item_indices, customer_idx)
 
         # Input item indices sequence. If input is larger than sequence length, truncate (waste of space)
         input_items_idx: List[int] = item_indices[0:item_idx]
-        if len(input_items_idx) > settings.SEQUENCE_LENGTH:
-            input_items_idx = input_items_idx[-settings.SEQUENCE_LENGTH:]
+        if len(input_items_idx) > settings.sequence_length:
+            input_items_idx = input_items_idx[-settings.sequence_length:]
 
         #print( input_items_idx, customer_idx, output_item_idx )
         features = {
@@ -109,13 +109,13 @@ def process_transaction(transaction: Transaction):
     item_indices, customer_idx = transaction.to_net_inputs(item_labels, customer_labels)
 
     # This trn will go to train or evaluation dataset?
-    eval_transaction = ( random.random() <= settings.EVALUATION_RATIO )
+    eval_transaction = ( random.random() <= settings.evaluation_ratio )
     if eval_transaction:
         # Store original transaction, for real_eval.py
         eval_trn_file.write( str(transaction) + '\n' )
 
     # Get sequence items from this transaction
-    if settings.MODEL_TYPE == ModelType.GPT:
+    if settings.model_type == ModelType.GPT:
         # Add sequence and its reverse (finally not reverse)
         process_trn_gpt_output(eval_transaction, item_indices, customer_idx)
         # if not eval_transaction:

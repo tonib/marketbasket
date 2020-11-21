@@ -72,14 +72,14 @@ class RealEvaluationCallback(tf.keras.callbacks.Callback):
 # with None it throws exception
 
 # Add this for class weights (currently works worse)
-if settings.CLASS_WEIGHT:
+if settings.class_weight:
     class_weights = ClassWeights.load(ClassWeights.CLASS_WEIGHTS_PATH)
     class_weight = class_weights.keras_class_weights()
 else:
     class_weight = None
 
 model.fit(train_dataset, 
-        epochs=settings.N_EPOCHS,
+        epochs=settings.n_epochs,
         callbacks=[tensorboard_callback, cp_callback, RealEvaluationCallback()], 
         validation_data=eval_dataset,
         validation_steps=n_eval_batches,

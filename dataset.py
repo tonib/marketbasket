@@ -17,9 +17,9 @@ class DataSet:
             'input_items_idx': tf.io.RaggedFeature(tf.int64, 'input_items_idx', row_splits_dtype=tf.int64),
             'customer_idx': tf.io.FixedLenFeature([], tf.int64)
         }
-        if settings.MODEL_TYPE == ModelType.GPT:
+        if settings.model_type == ModelType.GPT:
             DataSet.output_feature = 'output_items_idx'
-            DataSet.keys_to_features[DataSet.output_feature] = tf.io.FixedLenFeature([settings.SEQUENCE_LENGTH], tf.int64)
+            DataSet.keys_to_features[DataSet.output_feature] = tf.io.FixedLenFeature([settings.sequence_length], tf.int64)
         else:
             DataSet.output_feature = 'output_item_idx'
             DataSet.keys_to_features[DataSet.output_feature] = tf.io.FixedLenFeature([], tf.int64)
@@ -44,7 +44,7 @@ class DataSet:
         # We need the batches number in evaluation dataset, so here is:
         # (This will be executed in eager mode)
         train_dataset = tf.data.TFRecordDataset( [ DataSet.EVAL_DATASET_FILE ] )
-        train_dataset = train_dataset.batch( settings.BATCH_SIZE )
+        train_dataset = train_dataset.batch( settings.batch_size )
         for n_eval_batches, _ in enumerate(train_dataset):
             pass
         # print(f'Number of elements: {n_eval_batches}')
@@ -54,7 +54,7 @@ class DataSet:
     def load_train_dataset() -> tf.data.Dataset:
         train_dataset = tf.data.TFRecordDataset( [ DataSet.TRAIN_DATASET_FILE ] )
         train_dataset = train_dataset.prefetch(10000)
-        train_dataset = train_dataset.shuffle(10000).batch( settings.BATCH_SIZE )
+        train_dataset = train_dataset.shuffle(10000).batch( settings.batch_size )
         train_dataset = train_dataset.map( DataSet.example_parse_function , num_parallel_calls=8 )
         return train_dataset
 
@@ -62,7 +62,7 @@ class DataSet:
     def load_eval_dataset() -> tf.data.Dataset:
         eval_dataset = tf.data.TFRecordDataset( [ DataSet.EVAL_DATASET_FILE ] )
         eval_dataset = eval_dataset.prefetch(10000)
-        eval_dataset = eval_dataset.batch( settings.BATCH_SIZE )
+        eval_dataset = eval_dataset.batch( settings.batch_size )
         eval_dataset = eval_dataset.map( DataSet.example_parse_function )
         return eval_dataset
 
