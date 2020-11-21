@@ -5,6 +5,7 @@ Tested version: Python 3.8.2
 
 TODO:
 ERROR: If sequence length is too small, conv1d declaration throws exception
+Move # Configure train verbose mode to settings
 reduce tf messages (configure in settings)
 Test LSTM
 Test concurrency with flask / IIS (single thread supported)
@@ -12,6 +13,7 @@ gather probably can be replaced by boolean_mask, anywhere
 Generate text file with train samples, to debug
 Remove use of ragged tensors...
 Allow to configure num_parallel_calls
+install CUPTI
 
 Transformer / GPT info:
 https://www.tensorflow.org/tutorials/text/transformer

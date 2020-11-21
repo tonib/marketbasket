@@ -1,8 +1,8 @@
+from settings import settings # Setup. Must to be first
 import tensorflow as tf
 from labels import Labels
 from datetime import datetime
 from tensorflow.python.framework.ops import disable_eager_execution
-from settings import settings
 from model import create_model
 from dataset import DataSet
 from real_eval import run_real_eval

@@ -1,6 +1,7 @@
 from enum import Enum
 import argparse
 import json
+import os
 
 class ModelType(Enum):
     """ Available model types """
@@ -56,11 +57,21 @@ class Settings:
         # Transactions file path
         self.transactions_file = self._read_setting( settings_json, 'transactions_file' , str , 'data/transactions.txt' )
 
+        # Log level for TF core (C++). This MUST to be executed before import tf
+        # See https://stackoverflow.com/questions/35869137/avoid-tensorflow-print-on-standard-error
+        # See https://github.com/tensorflow/tensorflow/issues/31870
+        self.tf_log_level = self._read_setting( settings_json, 'tf_log_level' , str , 'WARNING' )
+        if self.tf_log_level == 'WARNING':
+            os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
+        elif self.tf_log_level == 'ERROR':
+            os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+        
 
     def _read_setting(self, settings_json: dict, key: str, value_type: type, default_value: object) -> object:
         if key in settings_json:
             return value_type( settings_json[key] )
         return default_value
+
 
     def _parse_cmd_line(self) -> object:
         """ Parse command line and return options """
@@ -84,8 +95,11 @@ class Settings:
             print(key + ': ' + str(self.__dict__[key]))
         print("-----------------------------------------")
 
+
 # Global variable. TODO: It should not be a global variable
 settings = Settings()
 settings.print_summary()
 
-exit()
+# Set python tf log level
+import tensorflow as tf
+tf.get_logger().setLevel(settings.tf_log_level)

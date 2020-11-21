@@ -1,3 +1,4 @@
+import settings # Setup. Must to be first
 import flask
 from predict import Prediction
 from transaction import Transaction

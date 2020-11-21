@@ -1,4 +1,4 @@
-
+import settings # Setup. Must to be first
 from model import create_model
 import tensorflow as tf
 from labels import Labels

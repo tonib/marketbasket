@@ -1,3 +1,4 @@
+import settings # Setup, do not remove it
 import tensorflow as tf
 from predict import Prediction
 from datetime import datetime
