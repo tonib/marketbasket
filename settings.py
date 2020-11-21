@@ -57,6 +57,9 @@ class Settings:
         # Transactions file path
         self.transactions_file = self._read_setting( settings_json, 'transactions_file' , str , 'data/transactions.txt' )
 
+        # Train verbose log level
+        self.train_log_level = cmd_line_options.trainlog
+
         # Log level for TF core (C++). This MUST to be executed before import tf
         # See https://stackoverflow.com/questions/35869137/avoid-tensorflow-print-on-standard-error
         # See https://github.com/tensorflow/tensorflow/issues/31870
@@ -75,12 +78,13 @@ class Settings:
 
     def _parse_cmd_line(self) -> object:
         """ Parse command line and return options """
-
         parser = argparse.ArgumentParser(description='Market basket analysis')
         parser.add_argument('--configfile', metavar='file_path', type=str, 
             help='Path to JSON file with configuration. If not specified a default configuration will be used')
+        parser.add_argument('--trainlog', type=int, nargs='?',
+            help='Train verbose log level: 0 = silent, 1 = progress bar, 2 = one line per epoch. Default is 1',
+            default=1)
         return parser.parse_args()
-
 
     def _load_config_file(self, config_file_path: str):
         with open( config_file_path , 'r' , encoding='utf-8' )  as file:
@@ -89,6 +93,8 @@ class Settings:
 
 
     def print_summary(self):
+        """ Print configuration in stdout """
+
         print("Settings:")
         print("-----------------------------------------")
         for key in self.__dict__:
@@ -96,9 +102,12 @@ class Settings:
         print("-----------------------------------------")
 
 
+    def get_data_dir(self) -> str:
+        """ Returns data directory """
+        return os.path.dirname(self.transactions_file)
+
 # Global variable. TODO: It should not be a global variable
 settings = Settings()
-settings.print_summary()
 
 # Set python tf log level
 import tensorflow as tf

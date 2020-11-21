@@ -14,15 +14,8 @@ import argparse
 
 # To test with GPU disabled set environment variable CUDA_VISIBLE_DEVICES=-1
 
-print(datetime.now(), "Process start")
-
-# Configure train verbose mode
-parser = argparse.ArgumentParser(description='Train model')
-parser.add_argument('--verbose', type=int, nargs='?',
-                   help='Train verbose model: 0 = silent, 1 = progress bar, 2 = one line per epoch. Default is 1',
-                   default=1)
-args = parser.parse_args()
-
+print(datetime.now(), "Process start: Train")
+settings.print_summary()
 
 # We need the batches number in evaluation dataset, so here is:
 # (This will be executed in eager mode)
@@ -84,6 +77,6 @@ model.fit(train_dataset,
         validation_data=eval_dataset,
         validation_steps=n_eval_batches,
         class_weight=class_weight,
-        verbose=args.verbose)
+        verbose=settings.train_log_level)
 
-print(datetime.now(), "Process end")
+print(datetime.now(), "Process end: Train")

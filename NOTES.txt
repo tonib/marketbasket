@@ -5,8 +5,6 @@ Tested version: Python 3.8.2
 
 TODO:
 ERROR: If sequence length is too small, conv1d declaration throws exception
-Move # Configure train verbose mode to settings
-reduce tf messages (configure in settings)
 Test LSTM
 Test concurrency with flask / IIS (single thread supported)
 gather probably can be replaced by boolean_mask, anywhere
