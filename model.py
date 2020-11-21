@@ -1,20 +1,20 @@
 import tensorflow as tf
 from labels import Labels
-from settings import Settings, ModelType
+from settings import settings, ModelType
 from gpt import *
 
 def create_model(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
-    if Settings.MODEL_TYPE == ModelType.RNN:
+    if settings.MODEL_TYPE == ModelType.RNN:
         return create_model_rnn(item_labels, customer_labels)
-    elif Settings.MODEL_TYPE == ModelType.DENSE:
+    elif settings.MODEL_TYPE == ModelType.DENSE:
         return create_model_non_sequential(item_labels, customer_labels)
-    elif Settings.MODEL_TYPE == ModelType.CONVOLUTIONAL:
+    elif settings.MODEL_TYPE == ModelType.CONVOLUTIONAL:
         # Pending
         return create_model_convolutional_v2(item_labels, customer_labels)
-    elif Settings.MODEL_TYPE == ModelType.GPT:
+    elif settings.MODEL_TYPE == ModelType.GPT:
         return create_model_gpt_raw(item_labels, customer_labels)
     else:
-        raise Exception("Unknown model type" + Settings.MODEL_TYPE)
+        raise Exception("Unknown model type" + settings.MODEL_TYPE)
 
 ##########################################################################################
 # DENSE
@@ -61,24 +61,24 @@ def pad_sequence_right( sequences_batch: tf.RaggedTensor) -> tf.Tensor:
     """ Pad sequences with zeros on right side """
 
     # Avoid sequences larger than sequence_length: Get last sequence_length of each sequence
-    sequences_batch = sequences_batch[:,-Settings.SEQUENCE_LENGTH:]
+    sequences_batch = sequences_batch[:,-settings.SEQUENCE_LENGTH:]
     # Add one to indices, to reserve 0 index for padding
     sequences_batch = sequences_batch + 1
     # Convert to dense, padding zeros to the right
-    sequences_batch = sequences_batch.to_tensor(0, shape=[None, Settings.SEQUENCE_LENGTH])
+    sequences_batch = sequences_batch.to_tensor(0, shape=[None, settings.SEQUENCE_LENGTH])
     return sequences_batch
 
 @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None,None], dtype=tf.int64)])
 def pad_sequence_left(sequences_batch: tf.RaggedTensor):
     """ Pad sequences with zeros on left side """
 
-    sequences_batch = sequences_batch[:,-Settings.SEQUENCE_LENGTH:]  # Truncate rows to have at most `Settings.SEQUENCE_LENGTH` items
+    sequences_batch = sequences_batch[:,-settings.SEQUENCE_LENGTH:]  # Truncate rows to have at most `settings.SEQUENCE_LENGTH` items
 
     # Add one to indices, to reserve 0 index for padding
     sequences_batch = sequences_batch + 1
 
-    pad_row_lengths = Settings.SEQUENCE_LENGTH - sequences_batch.row_lengths()
-    pad_values = tf.zeros( [(Settings.SEQUENCE_LENGTH * sequences_batch.nrows()) - tf.size(sequences_batch, tf.int64)] , sequences_batch.dtype)
+    pad_row_lengths = settings.SEQUENCE_LENGTH - sequences_batch.row_lengths()
+    pad_values = tf.zeros( [(settings.SEQUENCE_LENGTH * sequences_batch.nrows()) - tf.size(sequences_batch, tf.int64)] , sequences_batch.dtype)
     padding = tf.RaggedTensor.from_row_lengths(pad_values, pad_row_lengths)
     return tf.concat([padding, sequences_batch], axis=1).to_tensor()
 
@@ -94,15 +94,15 @@ def create_model_rnn(item_labels: Labels, customer_labels: Labels) -> tf.keras.M
     # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
     # TODO: There is a bug in tf2.3: If you set mask_zero=True, GPU and CPU implementations return different values
     # TODO: It seems fixed in tf-nightly. See tf-bugs/gru-bug.py. Try it again in tf2.4
-    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM, mask_zero=False)(items_branch)
+    items_branch = tf.keras.layers.Embedding(n_items + 1, settings.ITEMS_EMBEDDING_DIM, mask_zero=False)(items_branch)
 
     # Customer index
     customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
     n_customers = len(customer_labels.labels)
     # Embed customer
-    customer_branch = tf.keras.layers.Embedding(n_customers, Settings.CUSTOMERS_EMBEDDING_DIM, mask_zero=False)(customer_input)
+    customer_branch = tf.keras.layers.Embedding(n_customers, settings.CUSTOMERS_EMBEDDING_DIM, mask_zero=False)(customer_input)
     # Repeat embedded customer for each timestep
-    customer_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(customer_branch)
+    customer_branch = tf.keras.layers.RepeatVector(settings.SEQUENCE_LENGTH)(customer_branch)
 
     # Concatenate embedded customer and items on each timestep
     classification_branch = tf.keras.layers.Concatenate()( [ items_branch , customer_branch ] )
@@ -141,15 +141,15 @@ def create_model_convolutional(item_labels: Labels, customer_labels: Labels) -> 
     # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
     # TODO: There is a bug in tf2.3: If you set mask_zero=True, GPU and CPU implementations return different values
     # TODO: It seems fixed in tf-nightly. See tf-bugs/gru-bug.py. Try it again in tf2.4
-    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM, mask_zero=True)(items_branch)
+    items_branch = tf.keras.layers.Embedding(n_items + 1, settings.ITEMS_EMBEDDING_DIM, mask_zero=True)(items_branch)
 
     # Customer index
     customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
     n_customers = len(customer_labels.labels)
     # Embed customer
-    customer_branch = tf.keras.layers.Embedding(n_customers, Settings.CUSTOMERS_EMBEDDING_DIM, mask_zero=False)(customer_input)
+    customer_branch = tf.keras.layers.Embedding(n_customers, settings.CUSTOMERS_EMBEDDING_DIM, mask_zero=False)(customer_input)
     # Repeat embedded customer for each timestep
-    customer_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(customer_branch)
+    customer_branch = tf.keras.layers.RepeatVector(settings.SEQUENCE_LENGTH)(customer_branch)
 
     # Concatenate embedded customer and items on each timestep
     classification_branch = tf.keras.layers.Concatenate()( [ items_branch , customer_branch ] )
@@ -194,15 +194,15 @@ def create_model_convolutional_v2(item_labels: Labels, customer_labels: Labels) 
     # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
     # TODO: There is a bug in tf2.3: If you set mask_zero=True, GPU and CPU implementations return different values
     # TODO: It seems fixed in tf-nightly. See tf-bugs/gru-bug.py. Try it again in tf2.4
-    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM, mask_zero=True)(items_branch)
+    items_branch = tf.keras.layers.Embedding(n_items + 1, settings.ITEMS_EMBEDDING_DIM, mask_zero=True)(items_branch)
 
     # Customer index
     customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
     n_customers = len(customer_labels.labels)
     # Embed customer
-    customer_branch = tf.keras.layers.Embedding(n_customers, Settings.CUSTOMERS_EMBEDDING_DIM, mask_zero=False)(customer_input)
+    customer_branch = tf.keras.layers.Embedding(n_customers, settings.CUSTOMERS_EMBEDDING_DIM, mask_zero=False)(customer_input)
     # Repeat embedded customer for each timestep
-    customer_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(customer_branch)
+    customer_branch = tf.keras.layers.RepeatVector(settings.SEQUENCE_LENGTH)(customer_branch)
 
     # Concatenate embedded customer and items on each timestep
     classification_branch = tf.keras.layers.Concatenate()( [ items_branch , customer_branch ] )
@@ -244,9 +244,9 @@ def create_model_gpt_with_conv(item_labels: Labels, customer_labels: Labels) -> 
     customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
     n_customers = len(customer_labels.labels)
     # Embed customer
-    customer_branch = tf.keras.layers.Embedding(n_customers, Settings.CUSTOMERS_EMBEDDING_DIM)(customer_input)
+    customer_branch = tf.keras.layers.Embedding(n_customers, settings.CUSTOMERS_EMBEDDING_DIM)(customer_input)
     # Repeat embedded customer for each timestep
-    customer_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(customer_branch)
+    customer_branch = tf.keras.layers.RepeatVector(settings.SEQUENCE_LENGTH)(customer_branch)
 
     # Input for input items will be a sequence of embeded items
     n_items = len(item_labels.labels)
@@ -256,16 +256,16 @@ def create_model_gpt_with_conv(item_labels: Labels, customer_labels: Labels) -> 
 
     # Items embedding
     # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
-    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
+    items_branch = tf.keras.layers.Embedding(n_items + 1, settings.ITEMS_EMBEDDING_DIM)(items_branch)
 
     # Append positional encoding for each item sequence index
-    transformer_branch = AddPositionEmbedding(Settings.SEQUENCE_LENGTH, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
+    transformer_branch = AddPositionEmbedding(settings.SEQUENCE_LENGTH, settings.ITEMS_EMBEDDING_DIM)(items_branch)
     # Concatenate embedded customer and items on each timestep
     transformer_branch = tf.keras.layers.Concatenate()( [ transformer_branch , customer_branch ] )
     # Transformer decoder
     num_heads = 8  # Number of attention heads
     feed_forward_dim = 128  # Hidden layer size in feed forward network inside transformer
-    transformer_branch = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM + Settings.CUSTOMERS_EMBEDDING_DIM, num_heads, feed_forward_dim)(transformer_branch)
+    transformer_branch = TransformerBlock(settings.ITEMS_EMBEDDING_DIM + settings.CUSTOMERS_EMBEDDING_DIM, num_heads, feed_forward_dim)(transformer_branch)
 
     # Add customer to input (without position encoding)
     convolution_branch = tf.keras.layers.Concatenate()( [ items_branch , customer_branch ] )
@@ -275,7 +275,7 @@ def create_model_gpt_with_conv(item_labels: Labels, customer_labels: Labels) -> 
     # Flatten convolution outputs
     convolution_branch = tf.keras.layers.Flatten()(convolution_branch)
     # Repeat for each timestep
-    convolution_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(convolution_branch)
+    convolution_branch = tf.keras.layers.RepeatVector(settings.SEQUENCE_LENGTH)(convolution_branch)
 
     # Concatenate transformer output and convolution output on each timestep
     classification_branch = tf.keras.layers.Concatenate()( [ transformer_branch , convolution_branch ] )
@@ -295,9 +295,9 @@ def create_model_gpt_raw(item_labels: Labels, customer_labels: Labels) -> tf.ker
     customer_input = tf.keras.layers.Input(shape=(), name='customer_idx', dtype=tf.int64)
     n_customers = len(customer_labels.labels)
     # Embed customer
-    customer_branch = tf.keras.layers.Embedding(n_customers, Settings.CUSTOMERS_EMBEDDING_DIM)(customer_input)
+    customer_branch = tf.keras.layers.Embedding(n_customers, settings.CUSTOMERS_EMBEDDING_DIM)(customer_input)
     # Repeat embedded customer for each timestep
-    customer_branch = tf.keras.layers.RepeatVector(Settings.SEQUENCE_LENGTH)(customer_branch)
+    customer_branch = tf.keras.layers.RepeatVector(settings.SEQUENCE_LENGTH)(customer_branch)
 
     # Input for input items will be a sequence of embedded items
     n_items = len(item_labels.labels)
@@ -307,16 +307,16 @@ def create_model_gpt_raw(item_labels: Labels, customer_labels: Labels) -> tf.ker
 
     # Items embedding
     # +1 in "n_items + 1" is for padding element. Value zero is reserved for padding
-    items_branch = tf.keras.layers.Embedding(n_items + 1, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
+    items_branch = tf.keras.layers.Embedding(n_items + 1, settings.ITEMS_EMBEDDING_DIM)(items_branch)
 
     # Append positional encoding for each item sequence index
-    transformer_branch = AddPositionEmbedding(Settings.SEQUENCE_LENGTH, Settings.ITEMS_EMBEDDING_DIM)(items_branch)
+    transformer_branch = AddPositionEmbedding(settings.SEQUENCE_LENGTH, settings.ITEMS_EMBEDDING_DIM)(items_branch)
     # Concatenate embedded customer and items on each timestep
     transformer_branch = tf.keras.layers.Concatenate()( [ transformer_branch , customer_branch ] )
     # Transformer decoder
     num_heads = 8  # Number of attention heads
     feed_forward_dim = 256  # Hidden layer size in feed forward network inside transformer
-    transformer_branch = TransformerBlock(Settings.ITEMS_EMBEDDING_DIM + Settings.CUSTOMERS_EMBEDDING_DIM, num_heads, feed_forward_dim)(transformer_branch)
+    transformer_branch = TransformerBlock(settings.ITEMS_EMBEDDING_DIM + settings.CUSTOMERS_EMBEDDING_DIM, num_heads, feed_forward_dim)(transformer_branch)
 
     # Classification (logits)
     classification_branch = layers.Dense(n_items)(transformer_branch)

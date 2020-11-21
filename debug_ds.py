@@ -1,5 +1,4 @@
 import tensorflow as tf
-from settings import Settings
 from labels import Labels
 from dataset import DataSet
 

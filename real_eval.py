@@ -1,5 +1,4 @@
 from labels import Labels
-from settings import Settings
 from predict import Prediction
 from transaction import Transaction
 from typing import List, Tuple, Iterable

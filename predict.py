@@ -3,7 +3,7 @@ from labels import Labels
 from typing import List, Tuple
 from transaction import Transaction
 from model import pad_sequence_left, pad_sequence_right # Required to load the model...
-from settings import Settings, ModelType
+from settings import settings, ModelType
 
 class Prediction(tf.Module):
 
@@ -158,7 +158,7 @@ class Prediction(tf.Module):
         # Convert logits to probabilities
         result = tf.nn.softmax(result)
 
-        if Settings.MODEL_TYPE == ModelType.GPT:
+        if settings.MODEL_TYPE == ModelType.GPT:
             
             # GPT return probabilities for each sequence timestep. 
             # We need the probabilities for the LAST input timested.

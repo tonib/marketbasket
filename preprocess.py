@@ -2,7 +2,7 @@ from typing import List, Dict
 from operator import itemgetter
 import heapq
 from labels import Labels
-from settings import Settings
+from settings import settings
 from transaction import Transaction
 from collections import Counter
 from datetime import datetime
@@ -18,7 +18,7 @@ def get_top_labels(occurrences: Counter, n_max: int) -> List[str]:
 
 n_transactions = 0
 n_total_item_sells = 0
-with open(Settings.TRANSACTIONS_FILE) as trn_file:
+with open(settings.TRANSACTIONS_FILE) as trn_file:
     for line in trn_file:
         transaction = Transaction(line)
 
@@ -39,8 +39,8 @@ print("# total items:", len(items_occurrences))
 print("# total customers:", len(customers_occurrences))
 
 # Save top item/customer labels
-item_labels = Labels( get_top_labels(items_occurrences, Settings.N_MAX_ITEMS) )
-customer_labels = Labels( get_top_labels(customers_occurrences, Settings.N_MAX_CUSTOMERS) )
+item_labels = Labels( get_top_labels(items_occurrences, settings.N_MAX_ITEMS) )
+customer_labels = Labels( get_top_labels(customers_occurrences, settings.N_MAX_CUSTOMERS) )
 
 # Filter transactions
 n_transactions = 0
@@ -48,7 +48,7 @@ n_transactions_with_customer_id = 0
 n_final_item_sells = 0
 there_are_unknown_customers = False
 sequences_lengths = Counter()
-with open(Settings.TRANSACTIONS_FILE) as trn_file:
+with open(settings.TRANSACTIONS_FILE) as trn_file:
     with open(Transaction.TRANSACTIONS_TOP_ITEMS_PATH, 'w') as trn_top_file:
         for line in trn_file:
             transaction = Transaction(line)

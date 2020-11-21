@@ -8,35 +8,42 @@ class ModelType(Enum):
 
 class Settings:
 
-    # Max number of items to handle
-    N_MAX_ITEMS = 3000
+    def __init__(self):
 
-    # Max number customers to handle. If zero, customer code will not be trained
-    N_MAX_CUSTOMERS = 1000
+        # Max number of items to handle
+        self.N_MAX_ITEMS = 100
 
-    # Ratio (1 = 100%) of samples to use for evaluation
-    EVALUATION_RATIO = 0.15
+        # Max number customers to handle. If zero, customer code will not be trained
+        self.N_MAX_CUSTOMERS = 100
 
-    # Batch size
-    BATCH_SIZE = 64
+        # Ratio (1 = 100%) of samples to use for evaluation
+        self.EVALUATION_RATIO = 0.15
 
-    # Epochs to train
-    N_EPOCHS = 15
-    
-    # Use class weights to correct labels imbalance?
-    CLASS_WEIGHT = False
+        # Batch size
+        self.BATCH_SIZE = 64
 
-    # Model type
-    MODEL_TYPE: ModelType = ModelType.CONVOLUTIONAL
+        # Epochs to train
+        self.N_EPOCHS = 15
+        
+        # Use class weights to correct labels imbalance?
+        self.CLASS_WEIGHT = False
 
-    # Sequence length?
-    SEQUENCE_LENGTH = 16
+        # Model type
+        self.MODEL_TYPE: ModelType = ModelType.CONVOLUTIONAL
 
-    # Sequence - Items embeding dimension
-    ITEMS_EMBEDDING_DIM = 128
+        # Sequence length?
+        self.SEQUENCE_LENGTH = 16
 
-    # Sequence - Customers embeding dimension
-    CUSTOMERS_EMBEDDING_DIM = 64
+        # Sequence - Items embeding dimension
+        self.ITEMS_EMBEDDING_DIM = 128
 
-    # Transactions file path
-    TRANSACTIONS_FILE = 'data/transactions.txt'
+        # Sequence - Customers embeding dimension
+        self.CUSTOMERS_EMBEDDING_DIM = 64
+
+        # Transactions file path
+        self.TRANSACTIONS_FILE = 'data/transactions.txt'
+
+
+# Global variable. TODO: It should not be a global variable
+settings = Settings()
+

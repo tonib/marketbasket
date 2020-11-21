@@ -2,7 +2,7 @@ import tensorflow as tf
 from labels import Labels
 from datetime import datetime
 from tensorflow.python.framework.ops import disable_eager_execution
-from settings import Settings
+from settings import settings
 from model import create_model
 from dataset import DataSet
 from real_eval import run_real_eval
@@ -72,14 +72,14 @@ class RealEvaluationCallback(tf.keras.callbacks.Callback):
 # with None it throws exception
 
 # Add this for class weights (currently works worse)
-if Settings.CLASS_WEIGHT:
+if settings.CLASS_WEIGHT:
     class_weights = ClassWeights.load(ClassWeights.CLASS_WEIGHTS_PATH)
     class_weight = class_weights.keras_class_weights()
 else:
     class_weight = None
 
 model.fit(train_dataset, 
-        epochs=Settings.N_EPOCHS,
+        epochs=settings.N_EPOCHS,
         callbacks=[tensorboard_callback, cp_callback, RealEvaluationCallback()], 
         validation_data=eval_dataset,
         validation_steps=n_eval_batches,
