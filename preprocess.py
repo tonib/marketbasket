@@ -7,7 +7,8 @@ from transaction import Transaction
 from collections import Counter
 from datetime import datetime
 
-print(datetime.now(), "Process start")
+print(datetime.now(), "Process start: Preprocess")
+settings.print_summary()
 
 # Number of item/customer ocurrences in transactions (key = item key, value = n. ocurrences)
 items_occurrences = Counter()

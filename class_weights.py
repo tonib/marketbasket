@@ -1,8 +1,9 @@
+from settings import settings
 import numpy as np
 
 class ClassWeights:
 
-    CLASS_WEIGHTS_PATH = 'data/classweights.npy'
+    CLASS_WEIGHTS_NAME = 'classweights.npy'
 
     def __init__(self, train_item_n_outputs: np.ndarray = None):
         if train_item_n_outputs is None:
@@ -38,6 +39,11 @@ class ClassWeights:
     def keras_class_weights(self):
         return dict(enumerate(self.class_weights))
         
+    @staticmethod
+    def class_weights_path() -> str:
+        """ Returns the class weights path in data directory """
+        return settings.get_data_path( ClassWeights.CLASS_WEIGHTS_NAME )
+
     @staticmethod
     def load(path: str) -> 'ClassWeights':
         cw = ClassWeights()

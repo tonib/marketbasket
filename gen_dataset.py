@@ -9,7 +9,7 @@ import numpy as np
 from class_weights import ClassWeights
 from datetime import datetime
 
-print(datetime.now(), "Process start")
+print(datetime.now(), "Process start: Generate datasets")
 
 # Fix seed to  get reproducible datasets
 random.seed(1)
@@ -138,6 +138,6 @@ print("N. eval samples", n_eval_samples)
 
 # Save class weights to correct class imbalance
 class_weights = ClassWeights(train_item_n_outputs)
-class_weights.save(ClassWeights.CLASS_WEIGHTS_PATH)
+class_weights.save( ClassWeights.class_weights_path() )
 
 print(datetime.now(), "Process end")

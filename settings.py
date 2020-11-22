@@ -18,6 +18,10 @@ class Settings:
         
         # Read config JSON file, if it was specified
         cmd_line_options = self._parse_cmd_line()
+        if cmd_line_options.configfile == None and os.path.exists('data/config.json') :
+            # Use this as default
+            cmd_line_options.configfile = 'data/config.json'
+
         if cmd_line_options.configfile != None:
             settings_json = self._load_config_file(cmd_line_options.configfile)
         else:
@@ -80,7 +84,8 @@ class Settings:
         """ Parse command line and return options """
         parser = argparse.ArgumentParser(description='Market basket analysis')
         parser.add_argument('--configfile', metavar='file_path', type=str, 
-            help='Path to JSON file with configuration. If not specified a default configuration will be used')
+            help='Path to JSON file with configuration. If not specified and data/config.json exists, this will be used. ' + 
+            'Otherwise, a default configuration will be used' )
         parser.add_argument('--trainlog', type=int, nargs='?',
             help='Train verbose log level: 0 = silent, 1 = progress bar, 2 = one line per epoch. Default is 1',
             default=1)

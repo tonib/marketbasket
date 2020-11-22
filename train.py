@@ -46,7 +46,6 @@ model.compile(
 model.summary()
 
 # Tensorboard
-#logdir = "logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
 logdir = "model/logs"
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 
@@ -66,7 +65,7 @@ class RealEvaluationCallback(tf.keras.callbacks.Callback):
 
 # Add this for class weights (currently works worse)
 if settings.class_weight:
-    class_weights = ClassWeights.load(ClassWeights.CLASS_WEIGHTS_PATH)
+    class_weights = ClassWeights.load( ClassWeights.class_weights_path() )
     class_weight = class_weights.keras_class_weights()
 else:
     class_weight = None
