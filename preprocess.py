@@ -81,10 +81,10 @@ with open(settings.transactions_file) as trn_file:
                 n_transactions += 1
                 sequences_lengths[n_items_trn] += 1
 
-item_labels.save(Labels.ITEM_LABELS_FILE)
+item_labels.save(Labels.item_labels_path())
 if there_are_unknown_customers and not customer_labels.contains(Labels.UNKNOWN_LABEL):
     customer_labels.append(Labels.UNKNOWN_LABEL)
-customer_labels.save(Labels.CUSTOMER_LABELS_FILE)
+customer_labels.save(Labels.customer_labels_path())
 
 print()
 print("# top items:", len(item_labels.labels) )

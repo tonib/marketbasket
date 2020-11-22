@@ -11,8 +11,8 @@ class Prediction(tf.Module):
 
     def __init__(self, model = None):
 
-        self.item_labels_path = Labels.ITEM_LABELS_FILE
-        self.customer_labels_path = Labels.CUSTOMER_LABELS_FILE
+        self.item_labels_path = Labels.item_labels_path()
+        self.customer_labels_path = Labels.customer_labels_path()
 
         if model:
             self.model: tf.keras.Model = model

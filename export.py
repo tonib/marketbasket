@@ -8,8 +8,8 @@ print(datetime.now(), "Process start")
 
 #with tf.device("CPU:0"):
 # Load product labels
-item_labels = Labels.load(Labels.ITEM_LABELS_FILE)
-customer_labels = Labels.load(Labels.CUSTOMER_LABELS_FILE)
+item_labels = Labels.load(Labels.item_labels_path())
+customer_labels = Labels.load(Labels.customer_labels_path())
 
 model = create_model(item_labels, customer_labels)
 

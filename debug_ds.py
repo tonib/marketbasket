@@ -2,8 +2,8 @@ import tensorflow as tf
 from labels import Labels
 from dataset import DataSet
 
-item_labels = Labels.load(Labels.ITEM_LABELS_FILE)
-customer_labels = Labels.load(Labels.CUSTOMER_LABELS_FILE)
+item_labels = Labels.load( Labels.item_labels_path() )
+customer_labels = Labels.load( Labels.customer_labels_path() )
 DataSet.setup_feature_keys(item_labels, customer_labels)
 
 # Define train dataset

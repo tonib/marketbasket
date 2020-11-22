@@ -17,8 +17,8 @@ random.seed(1)
 n_train_samples = 0
 n_eval_samples = 0
 
-customer_labels = Labels.load(Labels.CUSTOMER_LABELS_FILE)
-item_labels = Labels.load(Labels.ITEM_LABELS_FILE)
+customer_labels = Labels.load(Labels.customer_labels_path())
+item_labels = Labels.load(Labels.item_labels_path())
 
 # File to store train samples
 train_writer = tf.io.TFRecordWriter( DataSet.train_dataset_file_path() )

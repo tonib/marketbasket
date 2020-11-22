@@ -1,3 +1,4 @@
+from settings import settings
 from typing import List, Dict
 import numpy as np
 
@@ -6,11 +7,11 @@ class Labels:
     # Label for unknown customers
     UNKNOWN_LABEL = "[UNKNOWN]"
 
-    # Items labels file path
-    ITEM_LABELS_FILE = 'data/itemlabels.txt'
+    # Items labels file name
+    ITEM_LABELS_FILE = 'itemlabels.txt'
     
-    # Customer labels file path
-    CUSTOMER_LABELS_FILE = 'data/customerlabels.txt'
+    # Customer labels file name
+    CUSTOMER_LABELS_FILE = 'customerlabels.txt'
 
     def __init__(self, labels: List[str]):
 
@@ -58,3 +59,13 @@ class Labels:
             for label in labels_file:
                 labels.append(label.strip())
         return Labels(labels)
+
+    @staticmethod
+    def item_labels_path() -> str:
+        """ Returns item labels path """
+        return settings.get_data_path(Labels.ITEM_LABELS_FILE)
+    
+    @staticmethod
+    def customer_labels_path() -> str:
+        """ Returns item labels path """
+        return settings.get_data_path(Labels.CUSTOMER_LABELS_FILE)
