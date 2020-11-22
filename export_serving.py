@@ -1,6 +1,6 @@
-from settings import settings # Setup, do not remove it
+from marketbasket.settings import settings # Setup, do not remove it
 import tensorflow as tf
-from predict import Prediction
+from marketbasket.predict import Prediction
 from datetime import datetime
 
 print(datetime.now(), "Process start: Export serving")

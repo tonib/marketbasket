@@ -1,7 +1,6 @@
-from settings import settings
+from .settings import settings, ModelType
 import tensorflow as tf
-from settings import settings, ModelType
-from labels import Labels
+from .labels import Labels
 import os
 
 class DataSet:

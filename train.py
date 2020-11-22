@@ -1,14 +1,14 @@
-from settings import settings # Setup. Must to be first
+from marketbasket.settings import settings # Setup. Must to be first
 import tensorflow as tf
-from labels import Labels
+from marketbasket.labels import Labels
 from datetime import datetime
 from tensorflow.python.framework.ops import disable_eager_execution
-from model import create_model
-from dataset import DataSet
+from marketbasket.model import create_model
+from marketbasket.dataset import DataSet
 from real_eval import run_real_eval
-from predict import Prediction
+from marketbasket.predict import Prediction
 from focal_loss import SparseCategoricalFocalLoss
-from class_weights import ClassWeights
+from marketbasket.class_weights import ClassWeights
 from datetime import datetime
 import argparse
 

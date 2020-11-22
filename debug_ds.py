@@ -1,6 +1,7 @@
+from marketbasket.settings import settings
 import tensorflow as tf
-from labels import Labels
-from dataset import DataSet
+from marketbasket.labels import Labels
+from marketbasket.dataset import DataSet
 
 item_labels = Labels.load( Labels.item_labels_path() )
 customer_labels = Labels.load( Labels.customer_labels_path() )

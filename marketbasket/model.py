@@ -1,7 +1,7 @@
 import tensorflow as tf
-from labels import Labels
-from settings import settings, ModelType
-from gpt import *
+from .labels import Labels
+from .settings import settings, ModelType
+from .gpt import *
 
 def create_model(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
     if settings.model_type == ModelType.RNN:

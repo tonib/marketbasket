@@ -1,6 +1,6 @@
 import tensorflow as tf
-from predict import Prediction
-from transaction import Transaction
+from marketbasket.predict import Prediction
+from marketbasket.transaction import Transaction
 
 #tf.config.run_functions_eagerly(True)
 

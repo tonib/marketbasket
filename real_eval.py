@@ -1,6 +1,6 @@
-from labels import Labels
-from predict import Prediction
-from transaction import Transaction
+from marketbasket.labels import Labels
+from marketbasket.predict import Prediction
+from marketbasket.transaction import Transaction
 from typing import List, Tuple, Iterable
 import cProfile
 import re

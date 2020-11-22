@@ -1,6 +1,6 @@
-from settings import settings
+from .settings import settings
 from typing import List, Tuple
-from labels import Labels
+from .labels import Labels
 
 class Transaction:
     

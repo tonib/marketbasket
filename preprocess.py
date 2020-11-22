@@ -1,9 +1,9 @@
 from typing import List, Dict
 from operator import itemgetter
 import heapq
-from labels import Labels
-from settings import settings
-from transaction import Transaction
+from marketbasket.labels import Labels
+from marketbasket.settings import settings
+from marketbasket.transaction import Transaction
 from collections import Counter
 from datetime import datetime
 

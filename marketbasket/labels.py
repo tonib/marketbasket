@@ -1,4 +1,4 @@
-from settings import settings
+from .settings import settings
 from typing import List, Dict
 import numpy as np
 

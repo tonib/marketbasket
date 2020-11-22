@@ -1,4 +1,4 @@
-from settings import settings
+from .settings import settings
 import numpy as np
 
 class ClassWeights:

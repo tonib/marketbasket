@@ -1,12 +1,12 @@
 from typing import List, Tuple
 import tensorflow as tf
 import random
-from settings import settings, ModelType
-from transaction import Transaction
-from labels import Labels
-from dataset import DataSet
+from marketbasket.settings import settings, ModelType
+from marketbasket.transaction import Transaction
+from marketbasket.labels import Labels
+from marketbasket.dataset import DataSet
 import numpy as np
-from class_weights import ClassWeights
+from marketbasket.class_weights import ClassWeights
 from datetime import datetime
 
 print(datetime.now(), "Process start: Generate datasets")

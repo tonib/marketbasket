@@ -4,15 +4,16 @@ Tested version: Python 3.8.2
 
 
 TODO:
+Support for features definitions (context and sequence)
 Windows: Test flask server in IIS with configuration
 ERROR: If sequence length is too small, conv1d declaration throws exception
 Test LSTM
-Test concurrency with flask / IIS (single thread supported)
 gather probably can be replaced by boolean_mask, anywhere
 Generate text file with train samples, to debug
 Remove use of ragged tensors...
 Allow to configure num_parallel_calls
 install CUPTI
+Update (minimize) requirements.txt
 
 Transformer / GPT info:
 https://www.tensorflow.org/tutorials/text/transformer

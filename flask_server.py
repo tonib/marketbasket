@@ -1,7 +1,7 @@
-import settings # Setup. Must to be first
+import marketbasket.settings # Setup. Must to be first
 import flask
-from predict import Prediction
-from transaction import Transaction
+from marketbasket.predict import Prediction
+from marketbasket.transaction import Transaction
 import logging
 import os
 

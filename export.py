@@ -1,7 +1,7 @@
-from settings import settings # Setup. Must to be first
-from model import create_model
+from marketbasket.settings import settings # Setup. Must to be first
+from marketbasket.model import create_model
 import tensorflow as tf
-from labels import Labels
+from marketbasket.labels import Labels
 from datetime import datetime
 
 print(datetime.now(), "Process start: Export")
