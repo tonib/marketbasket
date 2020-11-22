@@ -25,7 +25,7 @@ train_writer = tf.io.TFRecordWriter( DataSet.train_dataset_file_path() )
 # File to store eval samples
 eval_writer = tf.io.TFRecordWriter( DataSet.eval_dataset_file_path() )
 # File to store eval transactions, to use in real_eval.py
-eval_trn_file = open(Transaction.TRANSACTIONS_EVAL_DATASET_FILE, 'w')
+eval_trn_file = open(Transaction.eval_dataset_path(), 'w')
 
 # Number of times each item is used as output (used to weight loss of few used items)
 train_item_n_outputs = np.zeros( item_labels.length() , dtype=int)
@@ -125,7 +125,7 @@ def process_transaction(transaction: Transaction):
 
 
 # Get transactions
-with open(Transaction.TRANSACTIONS_TOP_ITEMS_PATH) as trn_file:
+with open(Transaction.top_items_path()) as trn_file:
     for line in trn_file:
         process_transaction( Transaction(line) )
     

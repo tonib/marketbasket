@@ -6,13 +6,7 @@ class Labels:
 
     # Label for unknown customers
     UNKNOWN_LABEL = "[UNKNOWN]"
-
-    # Items labels file name
-    ITEM_LABELS_FILE = 'itemlabels.txt'
     
-    # Customer labels file name
-    CUSTOMER_LABELS_FILE = 'customerlabels.txt'
-
     def __init__(self, labels: List[str]):
 
         # Only unique labels
@@ -63,9 +57,9 @@ class Labels:
     @staticmethod
     def item_labels_path() -> str:
         """ Returns item labels path """
-        return settings.get_data_path(Labels.ITEM_LABELS_FILE)
+        return settings.get_data_path('itemlabels.txt')
     
     @staticmethod
     def customer_labels_path() -> str:
         """ Returns item labels path """
-        return settings.get_data_path(Labels.CUSTOMER_LABELS_FILE)
+        return settings.get_data_path('customerlabels.txt')

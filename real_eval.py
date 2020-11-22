@@ -12,7 +12,7 @@ import numpy as np
 TEST_BATCH_SIZE = 256
 
 def transactions_with_expected_item() -> Iterable[Tuple[Transaction, str]]:
-    with open(Transaction.TRANSACTIONS_EVAL_DATASET_FILE) as eval_trn_file:
+    with open(Transaction.eval_dataset_path()) as eval_trn_file:
         for line in eval_trn_file:
             transaction = Transaction(line)
             #print("\n\ntransaction:", transaction)

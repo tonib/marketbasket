@@ -50,7 +50,7 @@ n_final_item_sells = 0
 there_are_unknown_customers = False
 sequences_lengths = Counter()
 with open(settings.transactions_file) as trn_file:
-    with open(Transaction.TRANSACTIONS_TOP_ITEMS_PATH, 'w') as trn_top_file:
+    with open(Transaction.top_items_path(), 'w') as trn_top_file:
         for line in trn_file:
             transaction = Transaction(line)
 

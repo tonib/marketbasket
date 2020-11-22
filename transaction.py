@@ -1,14 +1,9 @@
+from settings import settings
 from typing import List, Tuple
 from labels import Labels
 
 class Transaction:
-
-    # Top items transactions file path
-    TRANSACTIONS_TOP_ITEMS_PATH = 'data/transactions_top_items.txt'
     
-    # Raw eval transactions file path
-    TRANSACTIONS_EVAL_DATASET_FILE = 'data/eval_transactions.txt'
-
     def __init__(self, text_line: str = None):
 
         if not text_line:
@@ -65,3 +60,13 @@ class Transaction:
         transaction.item_labels = item_labels
         transaction.customer_label = customer_label
         return transaction
+
+    @staticmethod
+    def top_items_path() -> str:
+        """ Returns top items transactions file path """
+        return settings.get_data_path('transactions_top_items.txt')
+
+    @staticmethod
+    def eval_dataset_path() -> str:
+        """ Returns raw eval transactions file path """
+        return settings.get_data_path('eval_transactions.txt')
