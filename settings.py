@@ -61,6 +61,9 @@ class Settings:
         # Transactions file path
         self.transactions_file = self._read_setting( settings_json, 'transactions_file' , str , 'data/transactions.txt' )
 
+        # Model generation directory
+        self.model_dir = self._read_setting( settings_json, 'model_dir' , str , 'model' )
+
         # Train verbose log level
         self.train_log_level = cmd_line_options.trainlog
 
@@ -108,8 +111,15 @@ class Settings:
 
 
     def get_data_path(self, rel_path: str = None) -> str:
-        """ Returns data directory if rel_path is None . Path to a file inside data directory otherwise """
+        """ Returns data directory if rel_path is None. Path to a file inside data directory otherwise """
         path = os.path.dirname(self.transactions_file)
+        if rel_path != None:
+            path = os.path.join(path, rel_path)
+        return path
+
+    def get_model_path(self, rel_path: str = None) -> str:
+        """ Returns model generation directory if rel_path is None. Path to a file inside model directory otherwise """
+        path = self.model_dir
         if rel_path != None:
             path = os.path.join(path, rel_path)
         return path

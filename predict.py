@@ -1,9 +1,9 @@
+from settings import settings, ModelType
 import tensorflow as tf
 from labels import Labels
 from typing import List, Tuple
 from transaction import Transaction
 from model import pad_sequence_left, pad_sequence_right # Required to load the model...
-from settings import settings, ModelType
 
 class Prediction(tf.Module):
 
@@ -17,7 +17,7 @@ class Prediction(tf.Module):
         if model:
             self.model: tf.keras.Model = model
         else:
-            self.model: tf.keras.Model = tf.keras.models.load_model('model/exported_model')
+            self.model: tf.keras.Model = tf.keras.models.load_model( settings.get_model_path('exported_model') )
             #print(">>>", self.model)
             self.model.summary()
 

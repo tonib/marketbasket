@@ -1,9 +1,9 @@
-import settings # Setup, do not remove it
+from settings import settings # Setup, do not remove it
 import tensorflow as tf
 from predict import Prediction
 from datetime import datetime
 
-print(datetime.now(), "Process start")
+print(datetime.now(), "Process start: Export serving")
 
 # See:
 # https://www.tensorflow.org/api_docs/python/tf/saved_model/save
@@ -17,6 +17,6 @@ p = Prediction()
 #print(p._run_model_prediction.get_concrete_function().graph.as_graph_def())
 
 # TODO: It seems the defautl signature name is "serving_default"...
-tf.saved_model.save(p, 'model/serving_model/1/', signatures={ 'predict': p.run_model_single })
+tf.saved_model.save(p, settings.get_model_path('serving_model/1/'), signatures={ 'predict': p.run_model_single })
 
-print(datetime.now(), "Process end")
+print(datetime.now(), "Process end: Export serving")

@@ -3,11 +3,14 @@ import flask
 from predict import Prediction
 from transaction import Transaction
 import logging
+import os
 
 app = flask.Flask(__name__)
 #app.config["DEBUG"] = True
 
 # Log errors and warnings to file
+if not os.path.exists('logs'):
+    os.mkdir('logs')
 file_handler = logging.FileHandler('logs/flask_log.txt')
 file_handler.setLevel(logging.WARNING)
 file_handler.setFormatter( logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s') )
