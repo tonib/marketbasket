@@ -16,6 +16,8 @@ file_handler.setLevel(logging.WARNING)
 file_handler.setFormatter( logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s') )
 app.logger.addHandler(file_handler)
 
+
+# Predictions generator. Probably it's not thread safe, so Flask application should use a single thread
 predictor = Prediction()
 
 @app.route('/v1/models/basket:predict', methods=['POST'])

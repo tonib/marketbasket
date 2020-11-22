@@ -4,6 +4,7 @@ Tested version: Python 3.8.2
 
 
 TODO:
+Windows: Test flask server in IIS with configuration
 ERROR: If sequence length is too small, conv1d declaration throws exception
 Test LSTM
 Test concurrency with flask / IIS (single thread supported)

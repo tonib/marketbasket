@@ -18,16 +18,26 @@ class Settings:
         
         # Read config JSON file, if it was specified
         cmd_line_options = self._parse_cmd_line()
-        if cmd_line_options.configfile == None and os.path.exists('data/config.json') :
+
+        # Get configuration file location
+        if cmd_line_options.configfile == None and 'MARKETBASKET_CONFIG_FILE_PATH' in os.environ:
+            # Not specified in command line. Get from variable environment
+            cmd_line_options.configfile = os.environ['MARKETBASKET_CONFIG_FILE_PATH']
+        if cmd_line_options.configfile == None and os.path.exists('data/config.json'):
             # Use this as default
             cmd_line_options.configfile = 'data/config.json'
 
+        # Load config file
         if cmd_line_options.configfile != None:
             settings_json = self._load_config_file(cmd_line_options.configfile)
         else:
             settings_json = {}
 
         # Setup configuration
+
+        # Configuration file source
+        self.config_file_path = cmd_line_options.configfile
+
         # Max number of items to handle
         self.n_max_items = self._read_setting( settings_json, 'n_max_items' , int , 100 )
 
