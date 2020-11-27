@@ -2,6 +2,8 @@ from enum import Enum
 import argparse
 import json
 import os
+from marketbasket.features_set import FeaturesSet
+from marketbasket.jsonutils import read_setting
 
 class ModelType(Enum):
     """ Available model types """
@@ -39,40 +41,40 @@ class Settings:
         self.config_file_path = cmd_line_options.configfile
 
         # Max number of items to handle
-        self.n_max_items = self._read_setting( settings_json, 'n_max_items' , int , 100 )
+        self.n_max_items = read_setting( settings_json, 'n_max_items' , int , 100 )
 
         # Max number customers to handle. If zero, customer code will not be trained
-        self.n_max_customers = self._read_setting( settings_json, 'n_max_customers' , int , 100 )
+        self.n_max_customers = read_setting( settings_json, 'n_max_customers' , int , 100 )
 
         # Ratio (1 = 100%) of samples to use for evaluation
-        self.evaluation_ratio = self._read_setting( settings_json, 'evaluation_ratio' , float , 0.15 )
+        self.evaluation_ratio = read_setting( settings_json, 'evaluation_ratio' , float , 0.15 )
 
         # Batch size
-        self.batch_size = self._read_setting( settings_json, 'batch_size' , int , 64 )
+        self.batch_size = read_setting( settings_json, 'batch_size' , int , 64 )
 
         # Epochs to train
-        self.n_epochs = self._read_setting( settings_json, 'n_epochs' , int , 15 )
+        self.n_epochs = read_setting( settings_json, 'n_epochs' , int , 15 )
         
         # Use class weights to correct labels imbalance?
-        self.class_weight = self._read_setting( settings_json, 'class_weight' , bool , False )
+        self.class_weight = read_setting( settings_json, 'class_weight' , bool , False )
 
         # Model type
-        self.model_type = self._read_setting( settings_json, 'model_type' , ModelType , ModelType.CONVOLUTIONAL )
+        self.model_type = read_setting( settings_json, 'model_type' , ModelType , ModelType.CONVOLUTIONAL )
 
         # Sequence length?
-        self.sequence_length = self._read_setting( settings_json, 'sequence_length' , int , 16 )
+        self.sequence_length = read_setting( settings_json, 'sequence_length' , int , 16 )
 
         # Sequence - Items embeding dimension
-        self.items_embedding_dim = self._read_setting( settings_json, 'items_embedding_dim' , int , 128 )
+        self.items_embedding_dim = read_setting( settings_json, 'items_embedding_dim' , int , 128 )
 
         # Sequence - Customers embeding dimension
-        self.customers_embedding_dim = self._read_setting( settings_json, 'customers_embedding_dim' , int , 64 )
+        self.customers_embedding_dim = read_setting( settings_json, 'customers_embedding_dim' , int , 64 )
 
         # Transactions file path
-        self.transactions_file = self._read_setting( settings_json, 'transactions_file' , str , 'data/transactions.txt' )
+        self.transactions_file = read_setting( settings_json, 'transactions_file' , str , 'data/transactions.txt' )
 
         # Model generation directory
-        self.model_dir = self._read_setting( settings_json, 'model_dir' , str , 'model' )
+        self.model_dir = read_setting( settings_json, 'model_dir' , str , 'model' )
 
         # Train verbose log level
         self.train_log_level = cmd_line_options.trainlog
@@ -80,17 +82,15 @@ class Settings:
         # Log level for TF core (C++). This MUST to be executed before import tf
         # See https://stackoverflow.com/questions/35869137/avoid-tensorflow-print-on-standard-error
         # See https://github.com/tensorflow/tensorflow/issues/31870
-        self.tf_log_level = self._read_setting( settings_json, 'tf_log_level' , str , 'WARNING' )
+        self.tf_log_level = read_setting( settings_json, 'tf_log_level' , str , 'WARNING' )
         if self.tf_log_level == 'WARNING':
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
         elif self.tf_log_level == 'ERROR':
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-        
 
-    def _read_setting(self, settings_json: dict, key: str, value_type: type, default_value: object) -> object:
-        if key in settings_json:
-            return value_type( settings_json[key] )
-        return default_value
+        # Read features configuration
+        self.features = FeaturesSet(settings_json['features'])
+        print(self.features)
 
 
     def _parse_cmd_line(self) -> object:
@@ -116,7 +116,9 @@ class Settings:
         print("Settings:")
         print("-----------------------------------------")
         for key in self.__dict__:
-            print(key + ': ' + str(self.__dict__[key]))
+            if key != 'features':
+                print(key + ': ' + str(self.__dict__[key]))
+        print(self.features)
         print("-----------------------------------------")
 
 
