@@ -1,13 +1,13 @@
 from typing import List, Dict
 from operator import itemgetter
 import heapq
-from marketbasket.labels import Labels
 from marketbasket.settings import settings
 from marketbasket.transaction import Transaction
 from collections import Counter
 from datetime import datetime
 from marketbasket.transactions_file import TransactionsFile
 from marketbasket.feature import Feature
+from marketbasket.labels import Labels
 
 """
     Preprocess data:
@@ -52,14 +52,24 @@ print("# original transactions:", n_transactions)
 print("# original item sells:", n_items_sells)
 for feature in labels_occurrences:
     print("# original " + feature.name + " labels: " + str(len(labels_occurrences[feature])) )
-exit()
 
-# Save top item/customer labels
 def get_top_labels(occurrences: Counter, n_max: int) -> List[str]:
+    """ Return labels most common in a Counter """
     return [pair[0] for pair in occurrences.most_common(n_max)]
 
-item_labels = Labels( get_top_labels(items_occurrences, settings.n_max_items) )
-customer_labels = Labels( get_top_labels(customers_occurrences, settings.n_max_customers) )
+# Now we have referenced labels. Store them as Labels instances in settings.features (FeaturesSet instance)
+for feature in labels_occurrences:
+    feature_labels_counter:Counter = labels_occurrences[feature]
+
+    if feature.max_labels > 0:
+        # Feature has limited it's number of labels. Get top labels:
+        label_values = get_top_labels(feature_labels_counter, feature.max_labels)
+    else:
+        label_values = feature_labels_counter.keys()
+
+    feature.labels = Labels( label_values )
+exit()
+
 
 # Filter transactions
 n_transactions = 0

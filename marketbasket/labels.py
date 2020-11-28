@@ -1,4 +1,4 @@
-from .settings import settings
+import marketbasket.settings
 from typing import List, Dict
 import numpy as np
 
@@ -57,9 +57,9 @@ class Labels:
     @staticmethod
     def item_labels_path() -> str:
         """ Returns item labels path """
-        return settings.get_data_path('itemlabels.txt')
+        return settings.settings.get_data_path('itemlabels.txt')
     
     @staticmethod
     def customer_labels_path() -> str:
         """ Returns item labels path """
-        return settings.get_data_path('customerlabels.txt')
+        return settings.settings.get_data_path('customerlabels.txt')

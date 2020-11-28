@@ -1,4 +1,5 @@
 from marketbasket.jsonutils import read_setting
+from marketbasket.labels import Labels
 
 class Feature:
     """ A model input/output feature configuration.
@@ -23,6 +24,9 @@ class Feature:
 
         # Belongs to items sequence?
         self.sequence = sequence
+
+        # Label values
+        self.labels: Labels = None
 
     def __repr__(self):
         txt = self.name + ": label"

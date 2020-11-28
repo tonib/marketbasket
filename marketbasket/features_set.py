@@ -1,5 +1,5 @@
 from typing import List, Dict, KeysView
-from .feature import Feature
+from marketbasket.feature import Feature
 from marketbasket.jsonutils import read_setting
 
 class FeaturesSet:
