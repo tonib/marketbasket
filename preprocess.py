@@ -6,40 +6,58 @@ from marketbasket.settings import settings
 from marketbasket.transaction import Transaction
 from collections import Counter
 from datetime import datetime
+from marketbasket.transactions_file import TransactionsFile
+from marketbasket.feature import Feature
+
+"""
+    Preprocess data:
+        * If some feature has a maximum number of labels, remove other labels
+        * Remove transactions with a single item
+        * Create label files
+        * Print statistics about features
+"""
 
 print(datetime.now(), "Process start: Preprocess")
 settings.print_summary()
 
-# Number of item/customer ocurrences in transactions (key = item key, value = n. ocurrences)
-items_occurrences = Counter()
-customers_occurrences = Counter()
+# Number of label occurrences in transactions for each feature (key=Feature, value=counter with label n. of occurrences)
+labels_occurrences:Dict[Feature, Counter] = {}
+for feature in settings.features:
+    # Counter (key = label, value = n. label occurrences)
+    labels_occurrences[feature] = Counter()
 
+# Count features label occurrences and total number of transactions
+n_transactions = 0
+n_items_sells = 0
+# Read transactions
+with TransactionsFile(settings.transactions_file, 'r') as trn_file:
+    for transaction in trn_file:
+        n_transactions += 1
+
+        # Count label occurrences for each transaction feature
+        for feature in labels_occurrences:
+            counter:Counter = labels_occurrences[feature]
+            if feature.sequence:
+                # Feature is sequence, count each label in sequence
+                for label in transaction[feature.name]:
+                    counter[label] += 1
+            else:
+                # Feature is unique for the entire transaction
+                counter[ transaction[feature.name] ] += 1
+
+        # Count number of item sells:
+        n_items_sells += len(transaction.item_labels)
+
+print("# original transactions:", n_transactions)
+print("# original item sells:", n_items_sells)
+for feature in labels_occurrences:
+    print("# original " + feature.name + " labels: " + str(len(labels_occurrences[feature])) )
+exit()
+
+# Save top item/customer labels
 def get_top_labels(occurrences: Counter, n_max: int) -> List[str]:
     return [pair[0] for pair in occurrences.most_common(n_max)]
 
-n_transactions = 0
-n_total_item_sells = 0
-with open(settings.transactions_file) as trn_file:
-    for line in trn_file:
-        transaction = Transaction(line)
-
-        # Remove duplicated items
-        transaction.remove_duplicated_items()
-
-        # Ignore single item transactions (not useful to search relations...)
-        if len(transaction.item_labels) > 1:
-            n_transactions += 1
-            for item in transaction.item_labels:
-                items_occurrences[item] += 1
-                n_total_item_sells += 1
-            customers_occurrences[transaction.customer_label] += 1
-
-print("# transactions with more than one item:", n_transactions )
-print("# item sells (trn. with more than one item):", n_total_item_sells )
-print("# total items:", len(items_occurrences))
-print("# total customers:", len(customers_occurrences))
-
-# Save top item/customer labels
 item_labels = Labels( get_top_labels(items_occurrences, settings.n_max_items) )
 customer_labels = Labels( get_top_labels(customers_occurrences, settings.n_max_customers) )
 
@@ -53,9 +71,6 @@ with open(settings.transactions_file) as trn_file:
     with open(Transaction.top_items_path(), 'w') as trn_top_file:
         for line in trn_file:
             transaction = Transaction(line)
-
-            # Remove duplicated items
-            transaction.remove_duplicated_items()
 
             # Keep top items only
             top_items_transaction: List[str] = []

@@ -1,33 +1,57 @@
 from .settings import settings
 from typing import List, Tuple
 from .labels import Labels
+from .feature import Feature
 
 class Transaction:
     
-    def __init__(self, text_line: str = None):
+    def __init__(self, feature_values: dict = None):
 
-        if not text_line:
+        if not feature_values:
+            self._features = {}
             return
 
-        words: List[str] = text_line.split()
+        # Features values (key=feature name, value=feature value)
+        self._features = feature_values
 
-        # First word is the customer code
-        self.customer_label: str = words[0]
-        del words[0]
+        # Split sequence features
+        for feature in settings.features:
+            if feature.sequence:
+                self._features[feature.name] = self._features[feature.name].split(' ')
+        
+        # # First word is the customer code
+        # self.customer_label: str = columns[0]
+        # del columns[0]
 
-        # Others are item labels
-        self.item_labels: List[str] = words
+        # # Others are item labels
+        # self.item_labels: List[str] = columns
 
+    def __getitem__(self, feature_name: str) -> object:
+        """ Returns value for a feature name """
+        return self._features[feature_name]
+
+    @property
+    def customer_label(self) -> str:
+        """ Customer label (TODO: Remove this, it's just to keep compatibly with previous system) """
+        return self._features['CliCod']
+
+    @customer_label.setter
+    def customer_label(self, value: str):
+        """ Customer label (TODO: Remove this, it's just to keep compatibly with previous system) """
+        self._features['CliCod'] = value
+
+    @property
+    def item_labels(self) -> List[str]:
+        """ Item labels for this transaction """
+        return self._features[settings.features.item_label_feature]
+
+    @item_labels.setter
+    def item_labels(self, value: List[str]):
+        """ Item labels (TODO: Remove this, it's just to keep compatibly with previous system) """
+        self._features['ArtCod'] = value
 
     def __repr__(self):
         return self.customer_label + ' ' + ' '.join(self.item_labels)
-
-    def remove_duplicated_items(self):
-        # As Python 3.7+, dict indices keep insertion order...
-        self.item_labels = list(dict.fromkeys( self.item_labels ))
-
-    def assert_no_duplicates(self):
-        assert len(set(self.item_labels)) == len(self.item_labels), "Transaction with duplicated items (" + str(self) + "), Transaction.remove_duplicated_items() failed"
 
     def to_net_inputs(self, item_labels: Labels, customer_labels: Labels) -> Tuple[ List[int], int ]:
 

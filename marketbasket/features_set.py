@@ -39,10 +39,10 @@ class FeaturesSet:
                 self._features[feature.name] = feature
         return features_set
 
-    # @property
-    # def features_names(self) -> KeysView[str]:
-    #     """ Get features names """
-    #     return self._features.keys
+    @property
+    def features_names(self) -> KeysView[str]:
+        """ Get features names """
+        return self._features.keys
 
     def __getitem__(self, feature_name: str) -> Feature:
         """ Returns feature with a given name """
