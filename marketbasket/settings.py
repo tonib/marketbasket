@@ -71,7 +71,7 @@ class Settings:
         self.customers_embedding_dim = read_setting( settings_json, 'customers_embedding_dim' , int , 64 )
 
         # Transactions file path
-        self.transactions_file = read_setting( settings_json, 'transactions_file' , str , 'data/transactions.txt' )
+        self.transactions_file = read_setting( settings_json, 'transactions_file' , str , 'data/transactions.csv' )
 
         # Model generation directory
         self.model_dir = read_setting( settings_json, 'model_dir' , str , 'model' )

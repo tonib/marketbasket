@@ -64,9 +64,9 @@ class Transaction:
     @staticmethod
     def top_items_path() -> str:
         """ Returns top items transactions file path """
-        return settings.get_data_path('transactions_top_items.txt')
+        return settings.get_data_path('transactions_top_items.csv')
 
     @staticmethod
     def eval_dataset_path() -> str:
         """ Returns raw eval transactions file path """
-        return settings.get_data_path('eval_transactions.txt')
+        return settings.get_data_path('eval_transactions.csv')

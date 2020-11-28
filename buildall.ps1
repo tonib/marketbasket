@@ -7,8 +7,8 @@ Stop-Website -Name MarketBasketTensorflow
 
 # Generate transactions file
 $CurrentDir = Get-Location
-Set-Location -Path "O:\Programacion\Oscar\Desarrollo\Aplicaciones\Construccion\GXalmacSQL_vX3.Bongrup.1236\DATA002\bin"
-$TargetFile = "$CurrentDir\Data\transactions.txt"
+Set-Location -Path "O:\XXX\bin"
+$TargetFile = "$CurrentDir\Data\transactions.csv"
 & ".\aprastenexptrn.exe" $TargetFile
 
 # Go back to python dir.
