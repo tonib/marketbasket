@@ -31,7 +31,7 @@ train_writer = tf.io.TFRecordWriter( DataSet.train_dataset_file_path() )
 # File to store eval samples
 eval_writer = tf.io.TFRecordWriter( DataSet.eval_dataset_file_path() )
 # File to store eval transactions, to use in real_eval.py
-eval_trn_file = TransactionsFile(Transaction.eval_dataset_path(), 'w')
+eval_trn_file = TransactionsFile(TransactionsFile.eval_dataset_path(), 'w')
 # File to store train transactions, for debug
 train_trn_file = TransactionsFile(TransactionsFile.train_dataset_path(), 'w')
 
@@ -135,7 +135,7 @@ def process_transaction(transaction: Transaction):
 
 
 # Get transactions
-with TransactionsFile(Transaction.top_items_path(), 'r') as trn_file:
+with TransactionsFile(TransactionsFile.top_items_path(), 'r') as trn_file:
     for trn in trn_file:
         process_transaction( trn )
     

@@ -65,6 +65,16 @@ class TransactionsFile:
             yield self._read(txt_line)
 
     @staticmethod
+    def top_items_path() -> str:
+        """ Returns top items transactions file path """
+        return settings.get_data_path('transactions_top_items.csv')
+
+    @staticmethod
+    def eval_dataset_path() -> str:
+        """ Returns raw eval transactions file path """
+        return settings.get_data_path('eval_transactions.csv')
+
+    @staticmethod
     def train_dataset_path() -> str:
         """ Returns raw train transactions file path """
         return settings.get_data_path('train_transactions.csv')

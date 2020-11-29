@@ -1,6 +1,7 @@
 from marketbasket.labels import Labels
 from marketbasket.predict import Prediction
 from marketbasket.transaction import Transaction
+from marketbasket.transactions_file import TransactionsFile
 from typing import List, Tuple, Iterable
 import cProfile
 import re
@@ -12,7 +13,7 @@ import numpy as np
 TEST_BATCH_SIZE = 256
 
 def transactions_with_expected_item() -> Iterable[Tuple[Transaction, str]]:
-    with open(Transaction.eval_dataset_path()) as eval_trn_file:
+    with open(TransactionsFile.eval_dataset_path()) as eval_trn_file:
         for line in eval_trn_file:
             transaction = Transaction(line)
             #print("\n\ntransaction:", transaction)

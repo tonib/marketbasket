@@ -87,7 +87,7 @@ n_final_transactions = 0
 n_final_item_sells = 0
 sequences_lengths = Counter()
 with TransactionsFile(settings.transactions_file, 'r') as trn_file:
-    with TransactionsFile(Transaction.top_items_path(), 'w') as trn_top_file:
+    with TransactionsFile(TransactionsFile.top_items_path(), 'w') as trn_top_file:
         for transaction in trn_file:
 
             # Remove features out of top labels

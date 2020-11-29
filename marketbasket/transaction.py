@@ -121,15 +121,3 @@ class Transaction:
         transaction.item_labels = item_labels
         transaction.customer_label = customer_label
         return transaction
-
-    # TODO: Move this to transactions_file
-    @staticmethod
-    def top_items_path() -> str:
-        """ Returns top items transactions file path """
-        return settings.get_data_path('transactions_top_items.csv')
-
-    # TODO: Move this to transactions_file
-    @staticmethod
-    def eval_dataset_path() -> str:
-        """ Returns raw eval transactions file path """
-        return settings.get_data_path('eval_transactions.csv')
