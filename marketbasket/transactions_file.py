@@ -63,3 +63,8 @@ class TransactionsFile:
     def __iter__(self) -> Transaction:
         for txt_line in self._file:
             yield self._read(txt_line)
+
+    @staticmethod
+    def train_dataset_path() -> str:
+        """ Returns raw train transactions file path """
+        return settings.get_data_path('train_transactions.csv')

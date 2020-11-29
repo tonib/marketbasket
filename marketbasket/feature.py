@@ -10,9 +10,10 @@ class Feature:
 
     def __init__(self, config: dict, sequence: bool):
         """ Parse a feature from config file
+
             Args:
-                config  Parsed JSON for this feature
-                sequence    True if is a item sequence feature. False if is a transaction feature
+                config: Parsed JSON for this feature
+                sequence: True if is a item sequence feature. False if is a transaction feature
         """
 
         # Feature name
@@ -31,11 +32,15 @@ class Feature:
         self.labels: Labels = None
 
     def __repr__(self):
-        txt = self.name + ": label"
+        txt = self.name + ": label "
+        txt += "(items sequence feature)" if self.sequence else "(transaction feature)"
+
         if self.embedding_dim > 0:
             txt += " / embedding_dim: " + str(self.embedding_dim)
         if self.max_labels > 0:
             txt += " / max_labels: " + str(self.max_labels)
+        if self.labels:
+            txt += " / # labels: " + str(self.labels.length())
         return txt
         
     def filter_wrong_labels(self, feature_value: Union[str,List[str]]) -> Union[str,List[str]]:

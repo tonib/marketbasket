@@ -1,11 +1,12 @@
 from .settings import settings
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from .labels import Labels
 from .feature import Feature
+import tensorflow as tf
 
 class Transaction:
     
-    def __init__(self, feature_values: dict = None):
+    def __init__(self, feature_values: Dict[str, str] = None):
 
         if not feature_values:
             self._features = {}
@@ -18,14 +19,7 @@ class Transaction:
         for feature in settings.features:
             if feature.sequence:
                 self._features[feature.name] = self._features[feature.name].split(' ')
-        
-        # # First word is the customer code
-        # self.customer_label: str = columns[0]
-        # del columns[0]
-
-        # # Others are item labels
-        # self.item_labels: List[str] = columns
-
+    
     def __getitem__(self, feature_name: str) -> object:
         """ Returns value for a feature name """
         return self._features[feature_name]
@@ -45,18 +39,57 @@ class Transaction:
         self._features['CliCod'] = value
 
     @property
-    def item_labels(self) -> List[str]:
-        """ Item labels for this transaction """
+    def item_labels(self) -> List:
+        """ Item labels/indices for this transaction """
         return self._features[settings.features.item_label_feature]
 
     @item_labels.setter
-    def item_labels(self, value: List[str]):
-        """ Item labels (TODO: Remove this, it's just to keep compatibly with previous system) """
-        self._features['ArtCod'] = value
+    def item_labels(self, value: List):
+        """ Item labels/indices for this transaction """
+        self._features[settings.features.item_label_feature] = value
+
+    def sequence_length(self) -> int:
+        """ Returns the items sequence length in this transaction """
+        return len(self.item_labels)
+
+    def get_slice(self, start_idx: int, end_idx: int) -> 'Transaction':
+        """ Returns transaction with an slice of the items sequence in this transaction"""
+        result = Transaction()
+        for feature_name in self._features:
+            if settings.features[feature_name].sequence:
+                result[feature_name] = self._features[feature_name][start_idx:end_idx]
+            else:
+                # Keep non sequence features as they are
+                result[feature_name] = self._features[feature_name]
+        return result
 
     def __repr__(self):
-        return self.customer_label + ' ' + ' '.join(self.item_labels)
+        return str(self._features)
 
+    def replace_labels_by_indices(self) -> 'Transaction':
+        """ Returns a dict with labels replaced by its indices """
+        result = Transaction()
+        for feature in settings.features:
+            feature_value = self._features[feature.name]
+            if feature.sequence:
+                feature_value = [ feature.labels.label_index(v) for v in feature_value]
+            else:
+                feature_value = feature.labels.label_index(feature_value)
+            result[feature.name] = feature_value
+        return result
+
+    def to_example_features(self) -> Dict[str, tf.train.Feature]:
+        """ Return transaction features as tf.train.Feature """
+        example_features = {}
+        for feature in settings.features:
+            feature_value = self._features[feature.name]
+            if not feature.sequence:
+                # tf.train.*List requires an iterable
+                feature_value = [feature_value]
+            example_features[feature.name] = tf.train.Feature( int64_list=tf.train.Int64List( value=feature_value ) )
+        return example_features
+
+    # TODO: Remove this
     def to_net_inputs(self, item_labels: Labels, customer_labels: Labels) -> Tuple[ List[int], int ]:
 
         # Get item indices
@@ -89,11 +122,13 @@ class Transaction:
         transaction.customer_label = customer_label
         return transaction
 
+    # TODO: Move this to transactions_file
     @staticmethod
     def top_items_path() -> str:
         """ Returns top items transactions file path """
         return settings.get_data_path('transactions_top_items.csv')
 
+    # TODO: Move this to transactions_file
     @staticmethod
     def eval_dataset_path() -> str:
         """ Returns raw eval transactions file path """

@@ -90,7 +90,6 @@ class Settings:
 
         # Read features configuration
         self.features = FeaturesSet(settings_json['features'])
-        print(self.features)
 
 
     def _parse_cmd_line(self) -> object:

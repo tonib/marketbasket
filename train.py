@@ -3,7 +3,7 @@ import tensorflow as tf
 from marketbasket.labels import Labels
 from datetime import datetime
 from tensorflow.python.framework.ops import disable_eager_execution
-from marketbasket.model import create_model
+from marketbasket.model import create_model, ModelType
 from marketbasket.dataset import DataSet
 from real_eval import run_real_eval
 from marketbasket.predict import Prediction
@@ -64,7 +64,7 @@ class RealEvaluationCallback(tf.keras.callbacks.Callback):
 # with None it throws exception
 
 # Add this for class weights (currently works worse)
-if settings.class_weight:
+if settings.class_weight and settings.model_type != ModelType.GPT:
     class_weights = ClassWeights.load( ClassWeights.class_weights_path() )
     class_weight = class_weights.keras_class_weights()
 else:

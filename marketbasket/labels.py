@@ -1,6 +1,7 @@
 import marketbasket.settings
 from typing import List, Dict
 import numpy as np
+import marketbasket.settings as settings
 
 class Labels:
 

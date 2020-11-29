@@ -91,6 +91,7 @@ with TransactionsFile(settings.transactions_file, 'r') as trn_file:
         for transaction in trn_file:
 
             # Remove features out of top labels
+            # TODO: Move this to a Transaction member (will be reused)
             for feature in settings.features:
                 if feature.max_labels > 0:
                     transaction[feature.name] = feature.filter_wrong_labels(transaction[feature.name])
