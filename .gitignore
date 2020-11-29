@@ -8,8 +8,8 @@ data
 logs
 
 # Model stuff (tensorboard logs, checkpoints, saved models)
-model
-model_current
+/model
+/model_current
 
 # VS / VS Code stuff
 .vscode

@@ -9,6 +9,7 @@ import numpy as np
 from marketbasket.class_weights import ClassWeights
 from datetime import datetime
 from marketbasket.transactions_file import TransactionsFile
+import marketbasket.dataset as dataset
 
 """
     Generates the train and eval. datasets
@@ -27,9 +28,9 @@ settings.features.load_label_files()
 settings.print_summary()
 
 # File to store train samples
-train_writer = tf.io.TFRecordWriter( DataSet.train_dataset_file_path() )
+train_writer = tf.io.TFRecordWriter( dataset.train_dataset_file_path() )
 # File to store eval samples
-eval_writer = tf.io.TFRecordWriter( DataSet.eval_dataset_file_path() )
+eval_writer = tf.io.TFRecordWriter( dataset.eval_dataset_file_path() )
 # File to store eval transactions, to use in real_eval.py
 eval_trn_file = TransactionsFile(TransactionsFile.eval_dataset_path(), 'w')
 # File to store train transactions, for debug
@@ -67,7 +68,7 @@ def write_gpt_sample(eval_transaction: bool, input_trn: Transaction, output_item
 
     # Create the Example, and append expected output 
     example_features = input_trn.to_example_features()
-    example_features['output_items_idx'] = tf.train.Feature( int64_list=tf.train.Int64List( value=output_items_idx ) )
+    example_features[dataset.OUTPUT_FEATURE_NAME] = tf.train.Feature( int64_list=tf.train.Int64List( value=output_items_idx ) )
 
     write_transaction_to_example(example_features, eval_transaction)
 
@@ -103,7 +104,7 @@ def process_trn_single_item_output(eval_transaction: bool, trn_values: Transacti
 
         # Create the Example, and append expected output 
         example_features = input_trn.to_example_features()
-        example_features['output_item_idx'] = tf.train.Feature( int64_list=tf.train.Int64List( value=[output_item_idx] ) )
+        example_features[dataset.OUTPUT_FEATURE_NAME] = tf.train.Feature( int64_list=tf.train.Int64List( value=[output_item_idx] ) )
 
         write_transaction_to_example(example_features, eval_transaction)
 

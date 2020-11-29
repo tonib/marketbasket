@@ -3,8 +3,8 @@ import tensorflow as tf
 from marketbasket.labels import Labels
 from datetime import datetime
 from tensorflow.python.framework.ops import disable_eager_execution
-from marketbasket.model import create_model, ModelType
-from marketbasket.dataset import DataSet
+from marketbasket.model.model import create_model, ModelType
+import marketbasket.dataset as dataset
 from real_eval import run_real_eval
 from marketbasket.predict import Prediction
 from focal_loss import SparseCategoricalFocalLoss
@@ -15,24 +15,20 @@ import argparse
 # To test with GPU disabled set environment variable CUDA_VISIBLE_DEVICES=-1
 
 print(datetime.now(), "Process start: Train")
+settings.features.load_label_files()
 settings.print_summary()
+
+# Define train dataset
+train_dataset = dataset.get_dataset(True)
+
+# Define evaluation dataset
+eval_dataset = dataset.get_dataset(False)
 
 # We need the batches number in evaluation dataset, so here is:
 # (This will be executed in eager mode)
-n_eval_batches = DataSet.n_eval_batches()
+n_eval_batches = dataset.n_batches_in_dataset(eval_dataset)
 
-# Load labels
-item_labels = Labels.load(Labels.item_labels_path())
-customer_labels = Labels.load(Labels.customer_labels_path())
-
-# Setup data set global variables
-DataSet.setup_feature_keys(item_labels, customer_labels)
-
-# Define train dataset
-train_dataset = DataSet.load_train_dataset()
-
-# Define evaluation dataset
-eval_dataset = DataSet.load_eval_dataset()
+exit()
 
 # Create model
 model = create_model(item_labels, customer_labels)

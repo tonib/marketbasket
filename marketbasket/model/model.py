@@ -1,6 +1,6 @@
 import tensorflow as tf
-from .labels import Labels
-from .settings import settings, ModelType
+from marketbasket.labels import Labels
+from marketbasket.settings import settings, ModelType
 from .gpt import *
 
 def create_model(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
