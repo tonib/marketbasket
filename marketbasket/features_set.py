@@ -1,6 +1,7 @@
-from typing import List, Dict, KeysView
+from typing import List, Dict, Iterable
 from marketbasket.feature import Feature
 from marketbasket.jsonutils import read_setting
+import marketbasket.settings as settings
 
 class FeaturesSet:
     """ Dataset features """
@@ -40,16 +41,23 @@ class FeaturesSet:
         return features_set
 
     @property
-    def features_names(self) -> KeysView[str]:
+    def features_names(self) -> Iterable[str]:
         """ Get features names """
-        return self._features.keys
+        return list(self._features.keys())
 
     def __getitem__(self, feature_name: str) -> Feature:
         """ Returns feature with a given name """
         return self._features[feature_name]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[Feature]:
         return iter(self._features.values())
         
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Features:\n\t" + "\n\t".join([str(f) for f in self])
+
+    def save_label_files(self):
+        """ Saves features label files in data directory """
+        for feature in self:
+            file_name = "labels_" + feature.name + ".txt"
+            feature.labels.save( settings.settings.get_data_path(file_name) )
+    

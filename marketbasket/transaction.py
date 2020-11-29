@@ -30,6 +30,10 @@ class Transaction:
         """ Returns value for a feature name """
         return self._features[feature_name]
 
+    def __setitem__(self, feature_name, value):
+        """ Assign a feature value """
+        self._features[feature_name] = value
+
     @property
     def customer_label(self) -> str:
         """ Customer label (TODO: Remove this, it's just to keep compatibly with previous system) """

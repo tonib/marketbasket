@@ -26,7 +26,10 @@ class TransactionsFile:
         """ Writes transaction to file """
         feature_values = []
         for feature_name in self.feature_names:
-            feature_values.append( transaction.features[feature_name] )
+            feature_value = transaction[feature_name]
+            if isinstance(feature_value, list):
+                feature_value = " ".join(feature_value)
+            feature_values.append( feature_value )
 
         txt_features = ";".join( [str(feature_value) for feature_value in feature_values] )
         self._file.write( txt_features + "\n" )
