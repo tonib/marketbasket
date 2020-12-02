@@ -28,10 +28,8 @@ eval_dataset = dataset.get_dataset(False)
 # (This will be executed in eager mode)
 n_eval_batches = dataset.n_batches_in_dataset(eval_dataset)
 
-exit()
-
 # Create model
-model = create_model(item_labels, customer_labels)
+model = create_model()
 
 model.compile(
               optimizer=tf.keras.optimizers.Adam(learning_rate=0.0015),
@@ -51,10 +49,10 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_file_format
                                                  verbose=1)
 
 # Do real evaluation callback:
-predictor = Prediction(model)
-class RealEvaluationCallback(tf.keras.callbacks.Callback):
-    def on_epoch_end(self, batch, logs=None):
-        run_real_eval(predictor)
+# predictor = Prediction(model)
+# class RealEvaluationCallback(tf.keras.callbacks.Callback):
+#     def on_epoch_end(self, batch, logs=None):
+#         run_real_eval(predictor)
 
 # TF 2.3: Requires validation_steps. It seems a bug, as documentation says it can be None for TF datasets, but
 # with None it throws exception
@@ -68,7 +66,8 @@ else:
 
 model.fit(train_dataset, 
         epochs=settings.n_epochs,
-        callbacks=[tensorboard_callback, cp_callback, RealEvaluationCallback()], 
+        #callbacks=[tensorboard_callback, cp_callback, RealEvaluationCallback()], 
+        callbacks=[tensorboard_callback, cp_callback], 
         validation_data=eval_dataset,
         validation_steps=n_eval_batches,
         class_weight=class_weight,

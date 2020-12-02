@@ -16,9 +16,9 @@ class FeaturesSet:
         # All features
         self._features: Dict[str, Feature] = {}
         # Features related to transaction
-        self._transaction_features = self._create_features(False, config['transaction_features'])
+        self._transaction_features: Dict[str, Feature] = self._create_features(False, config['transaction_features'])
         # Features related to items sequence
-        self._items_sequence_features = self._create_features(True, config['items_features'] )
+        self._items_sequence_features: Dict[str, Feature] = self._create_features(True, config['items_features'] )
         
         # Store the item labels feature name
         self.item_label_feature:str = read_setting(config, 'item_label_feature', str, None)
@@ -55,8 +55,14 @@ class FeaturesSet:
         return self._features[feature_name]
 
     def __iter__(self) -> Iterable[Feature]:
+        """ Return all features """
         return iter(self._features.values())
         
+    def transaction_features(self) -> Iterable[Feature]:
+        """ Return transaction features (non sequence) """
+        for feature in self._transaction_features.values():
+            yield feature
+
     def __repr__(self) -> str:
         return "Features:\n\t" + "\n\t".join([str(f) for f in self])
 
