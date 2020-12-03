@@ -12,7 +12,7 @@ def create_model() -> tf.keras.Model:
     if settings.model_type == ModelType.DENSE:
         return create_dense_model(inputs)
     else:
-        raise Exception("Unknown model type" + settings.model_type)
+        raise Exception("Unknown model type " + settings.model_type)
 
     # if settings.model_type == ModelType.RNN:
     #     return create_model_rnn(item_labels, customer_labels)

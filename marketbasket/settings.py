@@ -4,6 +4,7 @@ import json
 import os
 from marketbasket.features_set import FeaturesSet
 from marketbasket.jsonutils import read_setting
+from typing  import Dict
 
 class ModelType(Enum):
     """ Available model types """
@@ -59,7 +60,7 @@ class Settings:
         self.class_weight = read_setting( settings_json, 'class_weight' , bool , False )
 
         # Model type
-        self.model_type = read_setting( settings_json, 'model_type' , ModelType , ModelType.CONVOLUTIONAL )
+        self.model_type = read_setting( settings_json, 'model_type' , ModelType , "convolutional" )
 
         # Sequence length?
         self.sequence_length = read_setting( settings_json, 'sequence_length' , int , 16 )
@@ -91,6 +92,8 @@ class Settings:
         # Read features configuration
         self.features = FeaturesSet(settings_json['features'])
 
+        # Model configuration
+        self.model_config:Dict = read_setting( settings_json, 'model_config' , dict , {} )
 
     def _parse_cmd_line(self) -> object:
         """ Parse command line and return options """

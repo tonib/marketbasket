@@ -2,6 +2,7 @@ import tensorflow as tf
 from .model_inputs import ModelInputs
 from marketbasket.settings import settings
 from marketbasket.feature import Feature
+from marketbasket.jsonutils import read_setting
 
 @tf.function
 def raged_lists_batch_to_multihot(ragged_lists_batch: tf.RaggedTensor, multihot_dim: int) -> tf.Tensor:
@@ -12,7 +13,7 @@ def raged_lists_batch_to_multihot(ragged_lists_batch: tf.RaggedTensor, multihot_
     return t
 
 def input_to_one_hot_layer(input, feature: Feature) -> tf.keras.layers.Lambda:
-    # START HERE: replace this lambda by a keras standard layer
+    # TODO: replace this lambda by a keras standard layer
     return tf.keras.layers.Lambda(lambda input: tf.one_hot(input, feature.labels.length()), name='one_hot_' + feature.name)
 
 def create_dense_model(inputs: ModelInputs) -> tf.keras.Model:
@@ -38,9 +39,16 @@ def create_dense_model(inputs: ModelInputs) -> tf.keras.Model:
 
     input_layer = tf.keras.layers.Concatenate(axis=1)( encoded_inputs )
     
-    x = tf.keras.layers.Dense(1024, activation='relu')(input_layer)
-    x = tf.keras.layers.Dense(1024, activation='relu')(x)
+    x = input_layer
+    
+    # Define DNN
+    n_layers = read_setting( settings.model_config, 'n_layers' , int , 2 )
+    layer_size = read_setting( settings.model_config, 'layer_size' , int , 128 )
+    activation = read_setting( settings.model_config, 'activation' , str , 'relu' )
+    for i in range(n_layers):
+        x = tf.keras.layers.Dense(layer_size, name="dnn_" + str(i), activation=activation)(input_layer)
+    
     # Classification (logits)
-    x = tf.keras.layers.Dense(n_items, activation=None)(x)
+    x = tf.keras.layers.Dense(n_items, name="classification", activation=None)(x)
 
     return tf.keras.Model(inputs=inputs.inputs, outputs=x)
