@@ -4,7 +4,6 @@ import random
 from marketbasket.settings import settings, ModelType
 from marketbasket.transaction import Transaction
 from marketbasket.labels import Labels
-from marketbasket.dataset import DataSet
 import numpy as np
 from marketbasket.class_weights import ClassWeights
 from datetime import datetime

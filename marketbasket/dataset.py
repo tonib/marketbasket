@@ -46,7 +46,7 @@ def _example_parse_function(proto_batch) -> Tuple:
     parsed_features = tf.io.parse_example(proto_batch, _features_to_types)
 
     # Keras inputs are mapped by input POSITION, not by input name (ick, WHY?), so order here is important
-    # We should do this. Probably it will not work
+    # TODO: We should do this. Probably it will not work
     output_value = parsed_features[OUTPUT_FEATURE_NAME]
     del parsed_features[OUTPUT_FEATURE_NAME]
     # Return (net inputs, expected output):

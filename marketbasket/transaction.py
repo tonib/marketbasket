@@ -66,20 +66,45 @@ class Transaction:
     def __repr__(self):
         return str(self._features)
 
-    def replace_labels_by_indices(self) -> 'Transaction':
-        """ Returns a dict with labels replaced by its indices """
+    def replace_labels_by_indices(self, remove_unknow_items = False) -> 'Transaction':
+        """ Returns a copy of this transaction with labels replaced by its indices """
         result = Transaction()
+        feature: Feature
         for feature in settings.features:
             feature_value = self._features[feature.name]
             if feature.sequence:
-                feature_value = [ feature.labels.label_index(v) for v in feature_value]
+                feature_value = feature.labels.labels_indices(feature_value)
             else:
                 feature_value = feature.labels.label_index(feature_value)
             result[feature.name] = feature_value
         return result
 
+    def remove_unknown_item_indices(self) -> 'Transaction':
+        # Get unknown item indices
+        unknown_item_indices = []
+        for idx, item_idx in enumerate(self.item_labels):
+            if item_idx < 0:
+                unknown_item_indices.append(idx)
+
+        if len(unknown_item_indices) == 0:
+            # No unknown items
+            return self
+
+        # Remove unknown item positions from all sequence features
+        unknown_item_indices = reversed(unknown_item_indices)
+        result = Transaction()
+        feature: Feature
+        for feature in settings.features:
+            feature_value = self[feature.name]
+            if feature.sequence:
+                feature_value = list(feature_value) # Clone
+                for idx in unknown_item_indices:
+                    del feature_value[idx]
+            result[feature.name] = feature_value
+        return result
+
     def to_example_features(self) -> Dict[str, tf.train.Feature]:
-        """ Return transaction features as tf.train.Feature """
+        """ Returns transaction features as tf.train.Feature """
         example_features = {}
         for feature in settings.features:
             feature_value = self._features[feature.name]
@@ -106,6 +131,7 @@ class Transaction:
         
         return ( item_indices , customer_labels.label_index(customer_label) )
 
+    # TODO: Remove this
     @staticmethod
     def to_net_inputs_batch(transactions: List['Transaction']):
         batch_item_labels = []
@@ -115,6 +141,7 @@ class Transaction:
             batch_customer_labels.append( transaction.customer_label )
         return ( batch_item_labels , batch_customer_labels )
 
+    # TODO: Remove this
     @staticmethod
     def from_labels(item_labels: List[str], customer_label: str):
         transaction = Transaction()

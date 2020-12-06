@@ -4,6 +4,8 @@ Tested version: Python 3.8.2
 
 
 TODO:
+See dataset.py > _example_parse_function, features should be sorted by name in FeaturesSet...
+See this https://www.tensorflow.org/guide/intro_to_graphs . Model is eager by default ???
 Support for features definitions (context and sequence)
 Windows: Test flask server in IIS with configuration
 ERROR: If sequence length is too small, conv1d declaration throws exception

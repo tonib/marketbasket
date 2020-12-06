@@ -1,4 +1,4 @@
-from marketbasket.labels import Labels
+import marketbasket.settings as settings
 from marketbasket.predict import Prediction
 from marketbasket.transaction import Transaction
 from marketbasket.transactions_file import TransactionsFile
@@ -10,66 +10,71 @@ import time
 import tensorflow as tf
 import numpy as np
 
+# Batch size to run predictions in evaluation
 TEST_BATCH_SIZE = 256
 
-def transactions_with_expected_item() -> Iterable[Tuple[Transaction, str]]:
-    with open(TransactionsFile.eval_dataset_path()) as eval_trn_file:
-        for line in eval_trn_file:
-            transaction = Transaction(line)
-            #print("\n\ntransaction:", transaction)
+settings.settings.features.load_label_files()
 
-            for idx in range(1, len(transaction.item_labels)):
-                input_items_labels = transaction.item_labels[0:idx]
-                expected_item_label = transaction.item_labels[idx]
-                input_transaction = Transaction.from_labels(input_items_labels, transaction.customer_label)
-                #print("yield trn")
-                yield ( input_transaction , expected_item_label )
+def transactions_with_expected_item() -> Iterable[Tuple[Transaction, int]]:
+    
+    with TransactionsFile(TransactionsFile.eval_dataset_path(), 'r') as eval_trn_file:
+        transaction: Transaction
+        for transaction in eval_trn_file:
+            transaction = transaction.replace_labels_by_indices()
 
-def transactions_with_expected_item_batches() -> Iterable[ List[Tuple[Transaction, str]] ]:
-    batch = []
-    for trn in transactions_with_expected_item():
-        #print("got trn")
-        batch.append( trn )
-        if len( batch ) >= TEST_BATCH_SIZE:
-            #print("yield batch")
-            yield batch
-            batch = []
+            for idx in range(1, transaction.sequence_length()):
+                input_trn = transaction.get_slice(0, idx)
+                expected_item_idx = transaction.item_labels[idx]
+                yield ( input_trn , expected_item_idx )
+
+def transactions_with_expected_item_batches() -> Iterable[ Tuple[ List[Transaction], List[int] ] ]:
+    input_batch = []
+    expected_item_indices = []
+    for input_trn, expected_item_idx in transactions_with_expected_item():
+        input_batch.append( input_trn )
+        expected_item_indices.append( expected_item_idx )
+
+        if len( input_batch ) >= TEST_BATCH_SIZE:
+            yield input_batch, expected_item_indices
+            input_batch = []
+            expected_item_indices = []
+
     # Last batch
-    if len(batch) > 0:
-        yield batch
+    if len(input_batch) > 0:
+        yield input_batch, expected_item_indices
 
 def run_real_eval(predictor):
     score = 0
     probs_sum = 0.0
     n_predictions = 0
-    for batch in transactions_with_expected_item_batches():
+    n_items_result = 8 # Get only top most probable "n_items_result" predicted items
 
-        input_batch = [ trn_with_expected[0] for trn_with_expected in batch ]
-        #print("input_batch:", input_batch)
+    # Get input batches with expected items indices
+    input_batch: List[Transaction]
+    expected_item_indices: List[int]
+    for input_batch, expected_item_indices in transactions_with_expected_item_batches():
 
-        results = predictor.predict_batch(input_batch, 8)
-        #print("results:", results)
+        # Run prediction over the batch
+        top_item_indices, top_probabilities = predictor.predict_raw_batch(input_batch, n_items_result)
 
-        for idx, transaction_with_expected_result in enumerate(batch):
+        batch_size = len(input_batch) # This may not be TEST_BATCH_SIZE for last batch
+        n_predictions += batch_size
+
+        # Check each prediction in batch
+        for idx in range(batch_size):
 
             # Get predicted items
-            #print(">>>", results)
-            predicted_item_labels = results[0][idx]
+            predicted_item_indices = top_item_indices[idx]
+            # Ground truth item            
+            expected_item = expected_item_indices[idx]
 
-            n_predictions += 1
-            
-            expected_item = transaction_with_expected_result[1]
-            #print("expected_item", expected_item)
-
-            expected_item_idx = np.where( predicted_item_labels == expected_item.encode() )[0]
+            # Get index in result where the expected item has been placed
+            expected_item_idx = np.where( predicted_item_indices == expected_item )[0]
             if expected_item_idx.shape[0] > 0:
-                prob = results[1][idx][ expected_item_idx[0] ]
-                if prob >= 0.01:
-                    #print( ">> in" )
-                    score += +1
-                    probs_sum += results[1][idx][ expected_item_idx[0] ]
+                score += +1
+                probs_sum += top_probabilities[idx][ expected_item_idx[0] ]
 
-    txt_result = "* N. times next item in top eight predictions, with prob. >= 1%: " + str(score) + " of " + str(n_predictions)
+    txt_result = "* N. times next item in top eight predictions: " + str(score) + " of " + str(n_predictions)
     if n_predictions > 0:
         txt_result += " / Ratio:" + str(score / n_predictions)
     print(txt_result)
@@ -91,4 +96,4 @@ if __name__ == "__main__":
     print("Total time:", total_time)
     print("N. predictions:", n_predictions)
     if n_predictions > 0:
-        print("Miliseconds / prediction", (total_time / n_predictions) * 1000.0 )
+        print("Milliseconds / prediction", (total_time / n_predictions) * 1000.0 )

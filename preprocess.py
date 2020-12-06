@@ -73,14 +73,14 @@ for feature in labels_occurrences:
         # Feature has limited it's number of labels. Get top labels:
         label_values = get_top_labels(feature_labels_counter, feature.max_labels)
     else:
-        label_values = original_labels
-
-    feature.labels = Labels(label_values)
+        label_values = list(original_labels)
 
     if len(label_values) < len(original_labels) and feature.name != settings.features.item_label_feature:
         # There will be unknown labels. They will be replace by a "[UNKNOWN]" label
         # For item labels there is an exception: They will be ignored
-        feature.labels.append(Labels.UNKNOWN_LABEL)
+        label_values.append(Labels.UNKNOWN_LABEL)
+
+    feature.labels = Labels(label_values)
 
 # Filter transactions: Remove non top labels, remove transactions with a single item
 n_final_transactions = 0

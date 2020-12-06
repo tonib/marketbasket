@@ -1,16 +1,13 @@
 from marketbasket.settings import settings # Setup. Must to be first
-from marketbasket.model import create_model
+from marketbasket.model.model import create_model
 import tensorflow as tf
 from marketbasket.labels import Labels
 from datetime import datetime
 
 print(datetime.now(), "Process start: Export")
 
-# Load product labels
-item_labels = Labels.load(Labels.item_labels_path())
-customer_labels = Labels.load(Labels.customer_labels_path())
-
-model = create_model(item_labels, customer_labels)
+settings.features.load_label_files()
+model = create_model()
 
 # Load weights from last train checkpoint
 latest_cp = tf.train.latest_checkpoint( settings.get_model_path('checkpoints') )

@@ -2,7 +2,7 @@ from enum import Enum
 import argparse
 import json
 import os
-from marketbasket.features_set import FeaturesSet
+import marketbasket.features_set as features_set
 from marketbasket.jsonutils import read_setting
 from typing  import Dict
 
@@ -90,7 +90,7 @@ class Settings:
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
         # Read features configuration
-        self.features = FeaturesSet(settings_json['features'])
+        self.features = features_set.FeaturesSet(settings_json['features'])
 
         # Model configuration
         self.model_config:Dict = read_setting( settings_json, 'model_config' , dict , {} )

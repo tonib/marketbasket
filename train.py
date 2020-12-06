@@ -49,10 +49,11 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_file_format
                                                  verbose=1)
 
 # Do real evaluation callback:
-# predictor = Prediction(model)
-# class RealEvaluationCallback(tf.keras.callbacks.Callback):
-#     def on_epoch_end(self, batch, logs=None):
-#         run_real_eval(predictor)
+# TODO: Performance of this could be improved A LOT
+predictor = Prediction(model)
+class RealEvaluationCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, batch, logs=None):
+        run_real_eval(predictor)
 
 # TF 2.3: Requires validation_steps. It seems a bug, as documentation says it can be None for TF datasets, but
 # with None it throws exception
@@ -66,8 +67,7 @@ else:
 
 model.fit(train_dataset, 
         epochs=settings.n_epochs,
-        #callbacks=[tensorboard_callback, cp_callback, RealEvaluationCallback()], 
-        callbacks=[tensorboard_callback, cp_callback], 
+        callbacks=[tensorboard_callback, cp_callback, RealEvaluationCallback()], 
         validation_data=eval_dataset,
         validation_steps=n_eval_batches,
         class_weight=class_weight,

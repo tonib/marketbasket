@@ -1,11 +1,11 @@
 import marketbasket.settings
-from typing import List, Dict
+from typing import List, Dict, Iterable
 import numpy as np
 import marketbasket.settings as settings
 
 class Labels:
 
-    # Label for unknown customers
+    # Label for unknown labels
     UNKNOWN_LABEL = "[UNKNOWN]"
     
     def __init__(self, labels: List[str]):
@@ -18,9 +18,10 @@ class Labels:
 
         # Label to index access
         self.indices: Dict[str, int] = {}
-        #print(self.labels)
         for i in range( len(self.labels) ):
             self.indices[self.labels[i]] = i
+
+        assert len(set(self.labels)) == len(self.labels), "Labels are not unique"
 
     def save(self, path: str):
         with open(path, 'w') as labels_file:
@@ -30,20 +31,23 @@ class Labels:
     def contains(self, label: str) -> bool:
         return label in self.indices
 
-    def append(self, label: str):
-        self.indices[label] = len(self.labels)
-        self.labels = np.append(self.labels, label)
-        assert len(set(self.labels)) == len(self.labels), "Labels are not unique"
-
     def index_label(self, index: int) -> str:
         return self.labels[index]
 
+    def indices_to_labels(self, indices: Iterable[int]) -> List[str]:
+        return [ self.labels[index] for index in indices ]
+
     def label_index(self, label: str) -> int:
-        return self.indices[label]
+        if label in self.indices:
+            return self.indices[label]
+        elif Labels.UNKNOWN_LABEL in self.indices:
+            return self.indices[Labels.UNKNOWN_LABEL]
+        else:
+            return -1
 
-    def labels_indices(self, labels: List[str]) -> List[int]:
-        return [self.indices[label] for label in labels]
-
+    def labels_indices(self, labels: Iterable[str]) -> List[int]:
+        return [ self.label_index(label) for label in labels ]
+        
     def length(self) -> int:
         return len(self.labels)
 

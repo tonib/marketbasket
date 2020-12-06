@@ -13,7 +13,7 @@ class FeaturesSet:
                 config: Parsed JSON from configuration file
         """
         # TODO: Add default values?
-        # All features
+        # All features. Order here is important
         self._features: Dict[str, Feature] = {}
         # Features related to transaction
         self._transaction_features: Dict[str, Feature] = self._create_features(False, config['transaction_features'])
@@ -24,6 +24,12 @@ class FeaturesSet:
         self.item_label_feature:str = read_setting(config, 'item_label_feature', str, None)
         if not self.item_label_feature in self._items_sequence_features:
             raise Exception(not self.item_label_feature + " feature not found in 'items_features'")
+
+        # Store items sequence feature index
+        for index, feature in enumerate(self):
+            if feature.name == self.item_label_feature:
+                self.item_label_index = index
+                break
 
     def _create_features(self, sequence: bool, features_config: List) -> Dict[str, Feature]:
         """ Read block of features from config.
@@ -47,7 +53,7 @@ class FeaturesSet:
         
     @property
     def features_names(self) -> Iterable[str]:
-        """ Get features names """
+        """ Get features names, ordered by declaration """
         return list(self._features.keys())
 
     def __getitem__(self, feature_name: str) -> Feature:
@@ -59,9 +65,12 @@ class FeaturesSet:
         return iter(self._features.values())
         
     def transaction_features(self) -> Iterable[Feature]:
-        """ Return transaction features (non sequence) """
-        for feature in self._transaction_features.values():
-            yield feature
+        """ Return transaction features (non sequence), unordered """
+        return self._transaction_features.values()
+
+    def sequence_features(self) -> Iterable[Feature]:
+        """ Return sequence features (features related to items), unordered """
+        return self._items_sequence_features.values()
 
     def __repr__(self) -> str:
         return "Features:\n\t" + "\n\t".join([str(f) for f in self])

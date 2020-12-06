@@ -1,15 +1,15 @@
 from marketbasket.settings import settings, ModelType
 import tensorflow as tf
 from marketbasket.labels import Labels
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from marketbasket.transaction import Transaction
 from marketbasket.model.model import pad_sequence_left, pad_sequence_right # Required to load the model...
+import numpy as np
 
 class Prediction(tf.Module):
+    """ Run and process model predictions """
 
-    NOT_FOUND_INDEX = -1
-
-    def __init__(self, model = None):
+    def __init__(self, model:tf.keras.Model = None):
 
         self.item_labels_path = Labels.item_labels_path()
         self.customer_labels_path = Labels.customer_labels_path()
@@ -18,51 +18,33 @@ class Prediction(tf.Module):
             self.model: tf.keras.Model = model
         else:
             self.model: tf.keras.Model = tf.keras.models.load_model( settings.get_model_path('exported_model') )
-            #print(">>>", self.model)
-            self.model.summary()
-
-        # Lookup table: Customer label -> Customer index
-        self.customer_labels_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
-                self.customer_labels_path, tf.string, tf.lookup.TextFileIndex.WHOLE_LINE,
-                tf.int64, tf.lookup.TextFileIndex.LINE_NUMBER, delimiter=" "), Prediction.NOT_FOUND_INDEX)
-
-        # Lookup table: Item label -> Item index
-        self.item_labels_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
-                self.item_labels_path, tf.string, tf.lookup.TextFileIndex.WHOLE_LINE,
-                tf.int64, tf.lookup.TextFileIndex.LINE_NUMBER, delimiter=" "), Prediction.NOT_FOUND_INDEX)
-
-        # Reverse lookup tables (item index -> item string label)
-        self.item_indices_lookup = tf.lookup.StaticHashTable(tf.lookup.TextFileInitializer(
-            self.item_labels_path, tf.int64, tf.lookup.TextFileIndex.LINE_NUMBER,
-            tf.string, tf.lookup.TextFileIndex.WHOLE_LINE, delimiter=" "), "")
-
-    @tf.function(input_signature=[tf.TensorSpec(shape=[None, None], dtype=tf.int32)])
-    def post_process_items(self, batch_items_indices: tf.Tensor) -> tf.Tensor:
-
-        # Do lookup
-        return self.item_indices_lookup.lookup( tf.cast(batch_items_indices, tf.int64) )
+            #self.model.summary()
 
 
     @tf.function( input_signature=[tf.TensorSpec(shape=[None, None], dtype=tf.float32),
                                    tf.TensorSpec(shape=[], dtype=tf.int64)] )
-    def _top_predictions_tensor(self, results, n_results):
-
+    def _top_predictions_tensor(self, results, n_results) -> Tuple[tf.Tensor, tf.Tensor]:
+        """ Returns a tuple (items indices, items probabilities) with most probable items, up to "n_results" """
         # Get most probable item indices
         sorted_indices = tf.argsort(results, direction='DESCENDING')
         top_indices = sorted_indices[:,0:n_results]
         top_probabilities = tf.gather(results, top_indices, batch_dims=1)
-
-        # Convert item indices to item labels
-        #print("top_indices", top_indices)
-        top_item_labels = self.post_process_items(top_indices)
-
-        return top_item_labels, top_probabilities
+        return top_indices, top_probabilities
 
 
     @staticmethod
     @tf.function( input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.int64), 
                                    tf.TensorSpec(shape=[None, None], dtype=tf.float32)] )
     def _remove_input_items_from_prediction(batch_item_indices, result):
+        """ Remove input items from predictions, as we don't want to predict them. It is done setting their
+            probabilities to -1
+
+            Args:
+                batch_item_indices: Batch input item indices 
+                result: Batch predicted probabilities
+            Returns: 
+                Batch predicted probabilities with input items probs. set to -1
+        """
         # batch_item_indices is a ragged with input indices for each batch row. Ex [ [0] , [1, 2] ]
         batch_item_indices = batch_item_indices.to_tensor(-1) # -> [ [0,-1] , [1, 2] ]
         #print(batch_item_indices, batch_item_indices.shape[0])
@@ -87,76 +69,16 @@ class Prediction(tf.Module):
         return tf.tensor_scatter_nd_update( result, batch_item_indices, updates)
 
 
-    @staticmethod
-    @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.int64), tf.TensorSpec(shape=(), dtype=tf.int64)])
-    def count_non_equal(batch: tf.RaggedTensor, value: tf.Tensor) -> tf.Tensor:
-        """ Returns the count of elements in 'batch'' distincts to 'value' on each batch row """
-        elements_equal_to_value = tf.not_equal(batch, value)
-        as_ints = tf.cast(elements_equal_to_value, tf.int64)
-        count = tf.reduce_sum(as_ints, axis=1)
-        return count
-
-
-    @staticmethod
-    @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.int64), tf.TensorSpec(shape=(), dtype=tf.int64)])
-    def remove_not_found_index(batch_item_indices: tf.RaggedTensor, not_found_index: tf.Tensor) -> tf.RaggedTensor:
-        # Count non -1's on each row
-        found_counts_per_row = Prediction.count_non_equal(batch_item_indices, not_found_index)
-        #print("found_counts_per_row", found_counts_per_row)
-
-        # Get non -1 values batch_item_indices from flat values
-        flat_values = batch_item_indices.flat_values
-        mask = tf.not_equal( flat_values , not_found_index )
-        #print("mask", mask )
-        flat_found_indices = tf.boolean_mask( flat_values , mask )
-        #print("flat_found_indices", flat_found_indices )
-        return tf.RaggedTensor.from_row_lengths( flat_found_indices , found_counts_per_row )
-
-
-    @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.string)])
-    def preprocess_items(self, batch_item_labels: tf.RaggedTensor):
-        #print("batch_item_labels ->", batch_item_labels)
-
-        # Do lookups item label -> index, -1 if not found
-        batch_item_indices = tf.ragged.map_flat_values(self.item_labels_lookup.lookup, batch_item_labels)
-        #print( "batch_item_indices", batch_item_indices )
-
-        # Remove -1's:
-        batch_item_indices = Prediction.remove_not_found_index(batch_item_indices, Prediction.NOT_FOUND_INDEX)
-        #print( "batch_item_indices >>>", batch_item_indices )
-
-        # Remove duplicated items
-        # TODO: UNIMPLEMENTED. tf.unique works only with 1D dimensions...
-        # batch_item_indices = tf.map_fn(lambda x: tf.unique(x), batch_item_indices.to_tensor(-1) )
-        # print("unique", tf.unique(batch_item_indices))
-
-        return batch_item_indices
-
-
     @tf.function
-    def prepreprocess_customers(self, batch_customer_labels: tf.Tensor):
-
-        # Get customer label
-        batch_customer_indices = self.customer_labels_lookup.lookup(batch_customer_labels)
-
-        # Get the "UNKNOWN" customer index
-        unknown_customer_index = self.customer_labels_lookup.lookup( tf.constant(Labels.UNKNOWN_LABEL, dtype=tf.string) )
-
-        # Replace -1 by "UNKNOWN" index
-        update_indices = tf.where( tf.math.equal(batch_customer_indices, Prediction.NOT_FOUND_INDEX) )
-        batch_customer_indices = tf.tensor_scatter_nd_update( batch_customer_indices, update_indices, 
-            tf.repeat( unknown_customer_index , tf.size( update_indices ) ) )
-        return batch_customer_indices
-
-
-    @tf.function
-    def _run_model_and_postprocess(self, batch_item_indices , batch_customer_indices, n_results):
+    def _run_model_and_postprocess(self, inputs_batch, item_indices_idx, n_results):
 
         # Run the model
-        batch = ( batch_item_indices , batch_customer_indices )
-        result = self.model(batch, training=False)
+        result = self.model(inputs_batch, training=False)
         # Convert logits to probabilities
         result = tf.nn.softmax(result)
+
+        # Label indices feature values
+        batch_item_indices = inputs_batch[item_indices_idx]
 
         if settings.model_type == ModelType.GPT:
             
@@ -178,96 +100,87 @@ class Prediction(tf.Module):
         return self._top_predictions_tensor(result, n_results)
 
 
-    @tf.function
-    def _run_model_filter_empty_sequences(self, batch_item_indices: tf.RaggedTensor, batch_customer_indices, n_results):
+    def _preprocess_transactions(self, transactions: List[Transaction]) -> Tuple[List[Transaction], List[int]]:
+        """ Remove unknown items and empty transactions.
 
-        # Check if there are empty sequences    
-        sequences_lenghts = batch_item_indices.row_lengths()
-        non_empty_seq_count = tf.math.count_nonzero(sequences_lenghts)
-        n_sequences = tf.shape( sequences_lenghts, tf.int64 )[0]
+            Returns: Non empty transactions, with labels replaced by indices, and indices of empty transactions in
+                     the original transactions list
+        """
+        result = [], empty_sequences_idxs = []
+        for idx, trn in enumerate(transactions):
+            trn = trn.replace_labels_by_indices()
+            # Now, trn item sequence contains -1 for unknown items. Remove sequence feature for these items
+            trn = trn.remove_unknown_item_indices()
+            if trn.sequence_length() == 0:
+                # Empty sequence. If we feed it to the model, it can fail (rnn layers)
+                empty_sequences_idxs.append(idx)
+            else:
+                result.append(trn)
 
-        #print(">>>", non_empty_seq_count, n_results)
-        if non_empty_seq_count == 0:
-            # All sequences are empty
-            label_predictions = tf.zeros( [n_sequences, n_results] , dtype=tf.string )
-            probs_predictions = tf.zeros( [n_sequences, n_results] , dtype=tf.float32 )
-            return (label_predictions, probs_predictions)
+        return result, empty_sequences_idxs
 
-        elif non_empty_seq_count >= n_sequences:
-            # There are no empty sequences. Run the model with the full batch
-            return self._run_model_and_postprocess(batch_item_indices , batch_customer_indices, n_results)
+    def _transactions_to_model_inputs(self, transactions: List[Transaction]) -> List[tf.Tensor]:
+
+        # Prepare dictionary with features names
+        inputs_dict = { feature.name : [] for feature in settings.features }
+
+        # Concatenate transaction values for each feature
+        for trn in transactions:
+            # Use labels indices instead raw values
+            for feature in settings.features:
+                inputs_dict[feature.name].append( trn[feature.name] )
+        
+        # To tensor values
+        for feature in settings.features:
+            if feature.sequence:
+                inputs_dict[feature.name] = tf.ragged.constant(inputs_dict[feature.name], dtype=tf.int64)
+            else:
+                inputs_dict[feature.name] = tf.constant(inputs_dict[feature.name], dtype=tf.int64)
+
+        # Keras inputs are mapped by position, so return result as a list
+        return [ inputs_dict[feature.name] for feature in settings.features ]
+
+    def predict_raw_batch(self, transactions: List[Transaction], n_items_result: int) -> Tuple[np.ndarray, np.ndarray]:
+        # Transactions to keras inputs
+        batch = self._transactions_to_model_inputs(transactions)
+
+        # Run prediction
+        if len(batch) > 0:
+            top_item_indices, top_probabilities = self._run_model_and_postprocess(batch, settings.features.item_label_index, n_items_result)
+            top_item_indices = top_item_indices.numpy()
+            top_probabilities = top_probabilities.numpy()
         else:
-            # There are some empty sequences
-            # Model will fail if a sequence is empty, and it seems it's the expected behaviour: Do not feed empty sequences
-            # Get non empty sequences mask
-            non_empty_mask = tf.math.greater( sequences_lenghts , 0 )
+            top_item_indices = np.array([], dtype=int)
+            top_probabilities = np.array([], dtype=float)
 
-            # Get non empty sequences
-            non_empty_sequences: tf.RaggedTensor = tf.ragged.boolean_mask( batch_item_indices , non_empty_mask )
-            non_empty_customers = tf.boolean_mask( batch_customer_indices , non_empty_mask )
-            
-            # Run model
-            label_predictions, probs_predictions = self._run_model_and_postprocess(non_empty_sequences , non_empty_customers, n_results)
-
-            # Merge real predictions with empty predictions for empty sequences:
-            indices = tf.where(non_empty_mask)
-            final_shape = [n_sequences, n_results]
-            label_predictions = tf.scatter_nd( indices , label_predictions , final_shape )
-            #print(label_predictions)
-            probs_predictions = tf.scatter_nd( indices , probs_predictions , final_shape )
-            #print(probs_predictions)
-            return (label_predictions, probs_predictions)
-        
-
-    @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None, None], dtype=tf.string), 
-                                  tf.TensorSpec(shape=[None], dtype=tf.string),
-                                  tf.TensorSpec(shape=[], dtype=tf.int64)])
-    def run_model_prediction(self, batch_item_labels, batch_customer_labels, n_results):
-
-        # Convert labels to indices
-        #print(">>> batch_item_labels", batch_item_labels)
-        batch_item_indices = self.preprocess_items(batch_item_labels)
-        #print(">>> batch_item_indices", batch_item_indices)
-        #print(">>> batch_customer_labels", batch_customer_labels)
-        batch_customer_indices = self.prepreprocess_customers(batch_customer_labels)
-        #print(">>> batch_customer_indices", batch_customer_indices)
-        
-        # Run the model
-        return self._run_model_filter_empty_sequences(batch_item_indices, batch_customer_indices, n_results)
+        return top_item_indices, top_probabilities
 
 
-    @tf.function(input_signature=[tf.TensorSpec(shape=[None], dtype=tf.string), 
-                                  tf.TensorSpec(shape=[], dtype=tf.string),
-                                  tf.TensorSpec(shape=[], dtype=tf.int64)])
-    def run_model_single(self, item_labels, customer_label, n_results):
-        # Convert single example to batch
-        batch_item_labels = tf.expand_dims(item_labels, axis=0)
-        ragged_batch_item_labels = tf.RaggedTensor.from_tensor(batch_item_labels)
-        batch_customer_labels = tf.expand_dims(customer_label, axis=0)
+    def predict_batch(self, transactions: List[Transaction], n_items_result: int, preprocess = True) -> Tuple[np.ndarray, np.ndarray]:
 
-        predicted_item_labels, predicted_item_probs = self.run_model_prediction(ragged_batch_item_labels, batch_customer_labels, n_results)
-        
-        # Remove batch dimension
-        predicted_item_labels = tf.squeeze( predicted_item_labels, 0 )
-        predicted_item_probs = tf.squeeze( predicted_item_probs, 0 )
-        return ( predicted_item_labels, predicted_item_probs )
+        if preprocess:
+            # Convert labels to indices. Remove unknown items and empty sequences
+            transactions, empty_sequences_idxs = self._preprocess_transactions(transactions)
+        else:
+            empty_sequences_idxs = []
 
-    def predict_batch(self, transactions: List[Transaction], n_items_result: int) -> List:
+        top_item_indices, top_probabilities = self.predict_raw_batch(transactions, n_items_result)
 
-        # Setup batch
-        batch = Transaction.to_net_inputs_batch(transactions)
+        # Convert item indices to labels
+        top_item_labels = settings.features.items_sequence_feature().labels.indices_to_labels(top_item_indices)
 
-        #print("*** batch", batch)
-        batch = ( tf.ragged.constant(batch[0], dtype=tf.string) , tf.constant(batch[1]) )
-        #print("*** batch", batch)
+        # Insert fake results for empty sequences
+        if len(empty_sequences_idxs) > 0:
+            empty_labels = np.zeros([n_items_result], dtype=str)
+            empty_probs = np.zeros([n_items_result], dtype=float)
+            # Inserts cannot be done all at same time, np.insert expects indices to the array before insert, and we don't have them
+            for idx in empty_sequences_idxs:
+                top_item_labels = np.insert(top_item_labels, idx, empty_labels, axis=0)
+                top_probabilities = np.insert(top_probabilities, idx, empty_probs, axis=0)
 
-        results = self.run_model_prediction( batch[0] , batch[1], n_items_result )
-        #print("raw", results)
-
-        results = ( results[0].numpy() , results[1].numpy() )
-        return results
+        return top_item_labels, top_probabilities
 
 
-    def predict_single(self, transaction: Transaction, n_items_result: int) -> List[ Tuple[str, float] ]:
-        results = self.predict_batch( [ transaction ] , n_items_result )
-        return ( results[0][0] , results[1][0] )
+    def predict_single(self, transaction: Transaction, n_items_result: int, preprocess = True):
+        top_item_labels, top_probabilities = self.predict_batch( [ transaction ] , n_items_result , preprocess )
+        return top_item_labels[0] , top_probabilities[0]

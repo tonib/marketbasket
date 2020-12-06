@@ -4,6 +4,10 @@ from marketbasket.settings import settings
 from marketbasket.feature import Feature
 from marketbasket.jsonutils import read_setting
 
+"""
+    DNN model definition
+"""
+
 @tf.function
 def raged_lists_batch_to_multihot(ragged_lists_batch: tf.RaggedTensor, multihot_dim: int) -> tf.Tensor:
     """ Maps a batch of label indices to a batch of multi-hot ones """
@@ -12,9 +16,12 @@ def raged_lists_batch_to_multihot(ragged_lists_batch: tf.RaggedTensor, multihot_
     t = tf.reduce_max( t , axis=1 )
     return t
 
-def input_to_one_hot_layer(input, feature: Feature) -> tf.keras.layers.Lambda:
-    # TODO: replace this lambda by a keras standard layer
-    return tf.keras.layers.Lambda(lambda input: tf.one_hot(input, feature.labels.length()), name='one_hot_' + feature.name)
+def input_to_one_hot_layer(input, feature: Feature) -> tf.keras.layers.Layer:
+    """ Returns a layer to encode a feature to a one-hot encoding"""
+    # Lambda seems much more fast...
+    n_labels = feature.labels.length()
+    #return tf.keras.layers.experimental.preprocessing.CategoryEncoding(max_tokens=feature.labels.length(), name='one_hot_' + feature.name)
+    return tf.keras.layers.Lambda(lambda input: tf.one_hot(input, n_labels), name='one_hot_' + feature.name)
 
 def create_dense_model(inputs: ModelInputs) -> tf.keras.Model:
     """ Create a DNN for classification """
@@ -39,12 +46,13 @@ def create_dense_model(inputs: ModelInputs) -> tf.keras.Model:
 
     input_layer = tf.keras.layers.Concatenate(axis=1)( encoded_inputs )
     
-    x = input_layer
-    
-    # Define DNN
+    # Model settings
     n_layers = read_setting( settings.model_config, 'n_layers' , int , 2 )
     layer_size = read_setting( settings.model_config, 'layer_size' , int , 128 )
     activation = read_setting( settings.model_config, 'activation' , str , 'relu' )
+    
+    # Define DNN
+    x = input_layer
     for i in range(n_layers):
         x = tf.keras.layers.Dense(layer_size, name="dnn_" + str(i), activation=activation)(input_layer)
     
