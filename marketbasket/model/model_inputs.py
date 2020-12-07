@@ -1,6 +1,6 @@
 import marketbasket.settings as settings
 from marketbasket.feature import Feature
-from typing import List, Dict
+from typing import List, Dict, Iterable
 import tensorflow as tf
 
 class ModelInputs:
@@ -27,4 +27,10 @@ class ModelInputs:
         """ Get the items sequence input """
         return self.by_feature[settings.settings.features.items_sequence_feature()]
 
-    
+    def encode_inputs_set(self, features: Iterable[Feature]) -> List:
+        """ Encode a set of features """
+        encoded_inputs = []
+        for feature in features:
+            feature_input = self.by_feature[feature]
+            encoded_inputs.append( feature.encode_input(feature_input) )
+        return encoded_inputs
