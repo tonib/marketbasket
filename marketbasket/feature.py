@@ -42,27 +42,3 @@ class Feature:
         if self.labels:
             txt += " / # labels: " + str(self.labels.length())
         return txt
-        
-    def filter_wrong_labels(self, feature_value: Union[str,List[str]]) -> Union[str,List[str]]:
-        """ Remove/replace wrong labels from feature value. If feature
-            is the items labels feature, the wrong values will be removed.
-            Otherwise, wrong values will be replaced by Labels.UNKNOWN_LABEL
-            Args:
-                feature_value: Feature value to check. If this feature is a sequence, this should be
-                    an array
-            Returns: Feature values without wrong labels
-        """
-        values = feature_value if self.sequence else [feature_value]
-        result = []
-        is_items_labels = (self.name == settings.settings.features.item_label_feature)
-        for value in values:
-            if not self.labels.contains(value):
-                if not is_items_labels:
-                    result.append(Labels.UNKNOWN_LABEL)
-            else:
-                result.append(value)
-        if self.sequence:
-            return result
-        if len(result) == 0:
-            return None
-        return result[0]

@@ -66,7 +66,7 @@ class Transaction:
     def __repr__(self):
         return str(self._features)
 
-    def replace_labels_by_indices(self, remove_unknow_items = False) -> 'Transaction':
+    def replace_labels_by_indices(self) -> 'Transaction':
         """ Returns a copy of this transaction with labels replaced by its indices """
         result = Transaction()
         feature: Feature
@@ -76,6 +76,19 @@ class Transaction:
                 feature_value = feature.labels.labels_indices(feature_value)
             else:
                 feature_value = feature.labels.label_index(feature_value)
+            result[feature.name] = feature_value
+        return result
+
+    def replace_indices_by_labels(self) -> 'Transaction':
+        """ Returns a copy of this transaction with indices replaced by its labels """
+        result = Transaction()
+        feature: Feature
+        for feature in settings.features:
+            feature_value = self._features[feature.name]
+            if feature.sequence:
+                feature_value = feature.labels.indices_to_labels(feature_value)
+            else:
+                feature_value = feature.labels.index_label(feature_value)
             result[feature.name] = feature_value
         return result
 

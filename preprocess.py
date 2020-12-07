@@ -88,13 +88,13 @@ n_final_item_sells = 0
 sequences_lengths = Counter()
 with TransactionsFile(settings.transactions_file, 'r') as trn_file:
     with TransactionsFile(TransactionsFile.top_items_path(), 'w') as trn_top_file:
+        transaction: Transaction
         for transaction in trn_file:
 
             # Remove features out of top labels
-            # TODO: Move this to a Transaction member (will be reused)
-            for feature in settings.features:
-                if feature.max_labels > 0:
-                    transaction[feature.name] = feature.filter_wrong_labels(transaction[feature.name])
+            transaction = transaction.replace_labels_by_indices()
+            transaction = transaction.remove_unknown_item_indices()
+            transaction = transaction.replace_indices_by_labels()
 
             # Ignore empty and single item transactions 
             n_items = len(transaction.item_labels)
@@ -102,7 +102,6 @@ with TransactionsFile(settings.transactions_file, 'r') as trn_file:
                 n_final_transactions += 1
                 n_final_item_sells += n_items
                 sequences_lengths[n_items] += 1
-
                 trn_top_file.write(transaction)
 
 settings.features.save_label_files()
