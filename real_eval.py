@@ -76,7 +76,7 @@ def run_real_eval(predictor):
 
     txt_result = "* N. times next item in top eight predictions: " + str(score) + " of " + str(n_predictions)
     if n_predictions > 0:
-        txt_result += " / Ratio:" + str(score / n_predictions)
+        txt_result += " / Ratio: " + str(score / n_predictions)
     print(txt_result)
 
     txt_result = "* Next item probabilites sum: " + str(probs_sum)

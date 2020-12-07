@@ -3,7 +3,7 @@ import tensorflow as tf
 from marketbasket.labels import Labels
 from typing import List, Tuple, Dict
 from marketbasket.transaction import Transaction
-from marketbasket.model.rnn_model import pad_sequence_left, pad_sequence_right # Required to load the model...
+from marketbasket.feature import pad_sequence_left, pad_sequence_right # Required to load the model...
 import numpy as np
 
 class Prediction(tf.Module):

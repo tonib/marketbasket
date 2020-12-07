@@ -23,7 +23,12 @@ class FeaturesSet:
         # Store the item labels feature name
         self.item_label_feature:str = read_setting(config, 'item_label_feature', str, None)
         if not self.item_label_feature in self._items_sequence_features:
-            raise Exception(not self.item_label_feature + " feature not found in 'items_features'")
+            raise Exception(self.item_label_feature + " feature not found in 'items_features'")
+        
+        # Item labels feature must to be embedded: This restriction is done to be sure sequences will be masked
+        # See Feature.encode_input()
+        if self.items_sequence_feature().embedding_dim <= 0:
+            raise Exception("Items labels MUST to have embedding_dim > 0");
 
         # Store items sequence feature index
         for index, feature in enumerate(self):
