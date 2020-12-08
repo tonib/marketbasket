@@ -3,19 +3,12 @@ import tensorflow as tf
 from .model_inputs import ModelInputs
 from marketbasket.jsonutils import read_setting
 
-# Same as create_model_convolutional, with two stacked conv1d
-def create_model_convolutional(inputs: ModelInputs) -> tf.keras.Model:
-
-    # Get encoded sequence inputs
-    encoded_inputs = inputs.get_all_as_sequence()
-
-    # Not really a convolutional. It's a RNN + Convolutional ensemble
-
+def create_conv(encoded_inputs):
     # Model settings
-    n_layers = read_setting( settings.model_config, 'n_layers' , int , 2 )
-    layer_size = read_setting( settings.model_config, 'layer_size' , int , 128 )
-    kernel_size = read_setting( settings.model_config, 'kernel_size' , int , 4 )
-    strides = read_setting( settings.model_config, 'strides' , int , 1 )
+    n_layers = read_setting( settings.model_config, 'conv_n_layers' , int , 2 )
+    layer_size = read_setting( settings.model_config, 'conv_layer_size' , int , 128 )
+    kernel_size = read_setting( settings.model_config, 'conv_kernel_size' , int , 4 )
+    strides = read_setting( settings.model_config, 'conv_strides' , int , 1 )
 
     # Convolution
     x = encoded_inputs
@@ -25,6 +18,17 @@ def create_model_convolutional(inputs: ModelInputs) -> tf.keras.Model:
 
     # Flatten convolution outputs
     x = tf.keras.layers.Flatten()(x)
+
+    return x
+
+# Same as create_model_convolutional, with two stacked conv1d
+def create_model_convolutional(inputs: ModelInputs) -> tf.keras.Model:
+
+    # Get encoded sequence inputs
+    encoded_inputs = inputs.get_all_as_sequence()
+
+    # Apply model
+    x = create_conv(encoded_inputs)
 
     # Do the classification (logits)
     n_items = settings.features.items_sequence_feature().labels.length()

@@ -11,6 +11,7 @@ class ModelType(Enum):
     DENSE = "dense"
     RNN = "rnn"
     CONVOLUTIONAL = "convolutional"
+    ENSEMBLE = "ensemble"
     GPT = "gpt"
 
 
