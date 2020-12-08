@@ -1,7 +1,7 @@
+import marketbasket.settings as settings
 from marketbasket.jsonutils import read_setting
 from marketbasket.labels import Labels
 from typing import List, Union
-import marketbasket.settings as settings
 import tensorflow as tf
 
 class Feature:

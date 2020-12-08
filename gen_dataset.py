@@ -1,7 +1,7 @@
+from marketbasket.settings import settings, ModelType
 from typing import List, Tuple, Dict
 import tensorflow as tf
 import random
-from marketbasket.settings import settings, ModelType
 from marketbasket.transaction import Transaction
 from marketbasket.labels import Labels
 import numpy as np

@@ -80,6 +80,7 @@ def get_dataset(train: bool, debug: bool = False) -> tf.data.Dataset:
     else:
         dataset = dataset.batch(1)
     dataset = dataset.map(_example_parse_function , num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #dataset = dataset.map(_example_parse_function , num_parallel_calls=8)
     return dataset
 
 def n_batches_in_dataset(dataset: tf.data.Dataset) -> int:

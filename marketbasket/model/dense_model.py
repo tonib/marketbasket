@@ -1,6 +1,6 @@
+from marketbasket.settings import settings
 import tensorflow as tf
 from .model_inputs import ModelInputs
-from marketbasket.settings import settings
 from marketbasket.feature import Feature
 from marketbasket.jsonutils import read_setting
 

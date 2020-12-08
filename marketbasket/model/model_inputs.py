@@ -47,6 +47,17 @@ class ModelInputs:
 
         return encoded_inputs
 
+    def get_all_as_sequence(self) -> object:
+        # Get encoded sequence inputs
+        sequence_inputs = self.encode_inputs_set( settings.settings.features.sequence_features() )
+
+        # Get encoded transaction inputs, concatenated, and reapeat for each timestep
+        transaction_inputs = self.encode_inputs_set( settings.settings.features.transaction_features(), concatenate=True, 
+            n_repeats=settings.settings.sequence_length )
+        
+        # Concatenate sequence and transactions features on each timestep
+        return ModelInputs.merge_inputs_set( sequence_inputs + transaction_inputs )
+        
     @staticmethod
     def merge_inputs_set(inputs: List) -> object:
         l = len(inputs)

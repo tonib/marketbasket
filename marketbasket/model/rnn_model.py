@@ -6,14 +6,7 @@ from marketbasket.jsonutils import read_setting
 def create_model_rnn(inputs: ModelInputs) -> tf.keras.Model:
 
     # Get encoded sequence inputs
-    sequence_inputs = inputs.encode_inputs_set( settings.features.sequence_features() )
-
-    # Get encoded transaction inputs, concatenated, and reapeat for each timestep
-    transaction_inputs = inputs.encode_inputs_set( settings.features.transaction_features(), concatenate=True, 
-        n_repeats=settings.sequence_length )
-    
-    # Concatenate sequence and transactions features on each timestep
-    encoded_inputs = ModelInputs.merge_inputs_set( sequence_inputs + transaction_inputs )
+    encoded_inputs = inputs.get_all_as_sequence()
 
     # Model settings
     layer_size = read_setting( settings.model_config, 'layer_size' , int , 128 )

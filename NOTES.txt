@@ -4,6 +4,7 @@ Tested version: Python 3.8.2
 
 
 TODO:
+set TF_CPP_MIN_LOG_LEVEL is not working
 See dataset.py > _example_parse_function, features should be sorted by name in FeaturesSet...
 See this https://www.tensorflow.org/guide/intro_to_graphs . Model is eager by default ???
 Support for features definitions (context and sequence)

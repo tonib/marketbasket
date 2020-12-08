@@ -80,6 +80,7 @@ class Settings:
         # Train verbose log level
         self.train_log_level = cmd_line_options.trainlog
 
+        # TODO: Is not working...
         # Log level for TF core (C++). This MUST to be executed before import tf
         # See https://stackoverflow.com/questions/35869137/avoid-tensorflow-print-on-standard-error
         # See https://github.com/tensorflow/tensorflow/issues/31870

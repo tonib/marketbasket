@@ -1,10 +1,11 @@
+from marketbasket.settings import settings, ModelType
 import tensorflow as tf
 from marketbasket.labels import Labels
-from marketbasket.settings import settings, ModelType
 from .gpt import *
 from .model_inputs import ModelInputs
 from .dense_model import create_dense_model
 from .rnn_model import create_model_rnn
+from .conv_model import create_model_convolutional
 
 def create_model() -> tf.keras.Model:
     """ Returns the model """
@@ -14,6 +15,8 @@ def create_model() -> tf.keras.Model:
         return create_dense_model(inputs)
     elif settings.model_type == ModelType.RNN:
         return create_model_rnn(inputs)
+    elif settings.model_type == ModelType.CONVOLUTIONAL:
+        return create_model_convolutional(inputs)
     else:
         raise Exception("Unknown model type " + settings.model_type)
 
@@ -30,14 +33,10 @@ def create_model() -> tf.keras.Model:
     #     raise Exception("Unknown model type" + settings.model_type)
     
 ##########################################################################################
-# RNN
-##########################################################################################
-
-##########################################################################################
 # CONVOLUTIONAL (NOT REALLY)
 ##########################################################################################
 
-def create_model_convolutional(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
+def create_ensemble(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
 
     # Not really a convolutional. It's a RNN + Convolutional ensemble
 
@@ -90,7 +89,7 @@ def create_model_convolutional(item_labels: Labels, customer_labels: Labels) -> 
 
 
 # Same as create_model_convolutional, with two stacked conv1d
-def create_model_convolutional_v2(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
+def create_ensemble_v2(item_labels: Labels, customer_labels: Labels) -> tf.keras.Model:
 
     # Not really a convolutional. It's a RNN + Convolutional ensemble
 

@@ -1,5 +1,4 @@
 from marketbasket.settings import settings # Setup. Must to be first
-import tensorflow as tf
 from marketbasket.labels import Labels
 from datetime import datetime
 from tensorflow.python.framework.ops import disable_eager_execution
@@ -11,6 +10,7 @@ from focal_loss import SparseCategoricalFocalLoss
 from marketbasket.class_weights import ClassWeights
 from datetime import datetime
 import argparse
+import tensorflow as tf
 
 # To test with GPU disabled set environment variable CUDA_VISIBLE_DEVICES=-1
 

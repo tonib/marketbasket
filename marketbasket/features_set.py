@@ -1,7 +1,7 @@
+import marketbasket.settings as settings
 from typing import List, Dict, Iterable
 from marketbasket.feature import Feature
 from marketbasket.jsonutils import read_setting
-import marketbasket.settings as settings
 from marketbasket.labels import Labels
 
 class FeaturesSet:
