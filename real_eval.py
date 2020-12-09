@@ -9,9 +9,14 @@ from pstats import SortKey
 import time
 import tensorflow as tf
 import numpy as np
+from collections import Counter
 
 # Batch size to run predictions in evaluation
 TEST_BATCH_SIZE = 256
+
+# Number of top predicted items to count
+N_TOP_PREDICTIONS = 128
+OUT_OF_RANKINGS = N_TOP_PREDICTIONS + 1
 
 settings.settings.features.load_label_files()
 
@@ -43,11 +48,35 @@ def transactions_with_expected_item_batches() -> Iterable[ Tuple[ List[Transacti
     if len(input_batch) > 0:
         yield input_batch, expected_item_indices
 
+def rank_prediction(predicted_item_indices: np.ndarray, predicted_probabilities:np.ndarray, expected_item:int, 
+    prediction_rankings: Counter) -> float:
+    # Get index in result where the expected item has been placed
+    expected_item_idx = np.where( predicted_item_indices == expected_item )[0]
+    if expected_item_idx.shape[0] > 0:
+        expected_item_idx = expected_item_idx[0]
+        probability = predicted_probabilities[expected_item_idx]
+        ranking = expected_item_idx + 1
+    else:
+        probability = 0.0
+        ranking = OUT_OF_RANKINGS
+    prediction_rankings[ranking] += 1
+    return probability
+
+def print_rankings(prediction_rankings: Counter, n_predictions: int, ranking_top: int):
+     # Print results rank
+    sum = 0
+    for i in range(1, ranking_top + 1):
+        if i in prediction_rankings:
+            sum += prediction_rankings[i]
+    txt_result = "* N. times next item in top " + str(ranking_top) + " predictions: " + str(sum) + " of " + str(n_predictions)
+    if n_predictions > 0:
+        txt_result += " / Ratio: " + str(sum / n_predictions)
+    print(txt_result)
+
 def run_real_eval(predictor):
-    score = 0
     probs_sum = 0.0
     n_predictions = 0
-    n_items_result = 8 # Get only top most probable "n_items_result" predicted items
+    prediction_rankings = Counter()
 
     # Get input batches with expected items indices
     input_batch: List[Transaction]
@@ -55,7 +84,7 @@ def run_real_eval(predictor):
     for input_batch, expected_item_indices in transactions_with_expected_item_batches():
 
         # Run prediction over the batch
-        top_item_indices, top_probabilities = predictor.predict_raw_batch(input_batch, n_items_result)
+        top_item_indices, top_probabilities = predictor.predict_raw_batch(input_batch, N_TOP_PREDICTIONS)
 
         batch_size = len(input_batch) # This may not be TEST_BATCH_SIZE for last batch
         n_predictions += batch_size
@@ -63,26 +92,29 @@ def run_real_eval(predictor):
         # Check each prediction in batch
         for idx in range(batch_size):
 
-            # Get predicted items
+            # Get predicted items and probabilityes
             predicted_item_indices = top_item_indices[idx]
+            predicted_probabilities = top_probabilities[idx]
+
             # Ground truth item            
             expected_item = expected_item_indices[idx]
 
-            # Get index in result where the expected item has been placed
-            expected_item_idx = np.where( predicted_item_indices == expected_item )[0]
-            if expected_item_idx.shape[0] > 0:
-                score += +1
-                probs_sum += top_probabilities[idx][ expected_item_idx[0] ]
-
-    txt_result = "* N. times next item in top eight predictions: " + str(score) + " of " + str(n_predictions)
+            # Rank prediction and get item index in prediction
+            probability = rank_prediction(predicted_item_indices, predicted_probabilities, expected_item, prediction_rankings)
+            probs_sum += probability
+            
+    # Print rankings
     if n_predictions > 0:
-        txt_result += " / Ratio: " + str(score / n_predictions)
-    print(txt_result)
+        mean_ranking = sum(ranking * count for ranking, count in prediction_rankings.items()) / n_predictions
+        print("Mean ranking:", mean_ranking)
+    for rank in [1, 8, 16, 32, 64, 128]:
+        print_rankings(prediction_rankings, n_predictions, rank)
+    if OUT_OF_RANKINGS in prediction_rankings:
+        n_out_of_rank = prediction_rankings[OUT_OF_RANKINGS]
+        print("Predictions out of rank: " + str(n_out_of_rank) + " / Ratio: " + str(n_out_of_rank / n_predictions))
 
-    txt_result = "* Next item probabilites sum: " + str(probs_sum)
     if n_predictions > 0:
-        txt_result += " / Mean: " + str(probs_sum / n_predictions)
-    print(txt_result)
+        print("Mean probability: " + str(probs_sum / n_predictions))
     return n_predictions
 
 if __name__ == "__main__":
