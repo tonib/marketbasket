@@ -4,11 +4,15 @@ import tensorflow as tf
 from .labels import Labels
 import os
 from marketbasket.feature import Feature
+from marketbasket.predict import Prediction
 
 """ TFRecord dataset setup """
 
-# Constant for output feature name
+# Constant for output feature name for candidates generation model
 OUTPUT_FEATURE_NAME = 'output_item_idx'
+
+# Constant for output feature name for rating model
+OUTPUT_RATING_FEATURE_NAME = 'output_rating'
 
 # Global variable to define what TF type should have read features
 _features_to_types:Dict = None
@@ -53,13 +57,13 @@ def _example_parse_function(proto_batch) -> Tuple:
     return (parsed_features, output_value)
 
 
-def train_dataset_file_path() -> str:
+def train_dataset_file_path(rating_model: bool) -> str:
     """ Returns train dataset file path """
-    return settings.get_data_path( 'dataset_train.tfrecord' )
+    return settings.get_data_path( 'dataset_train_candidates.tfrecord' if not rating_model else 'dataset_train_rating.tfrecord' )
 
-def eval_dataset_file_path() -> str:
+def eval_dataset_file_path(rating_model: bool) -> str:
     """ Returns evaluation dataset file path """
-    return settings.get_data_path( 'dataset_eval.tfrecord' )
+    return settings.get_data_path( 'dataset_eval_candidates.tfrecord' if not rating_model else 'dataset_eval_rating.tfrecord' )
 
 def get_dataset(train: bool, debug: bool = False) -> tf.data.Dataset:
     """ Get the train/eval dataset
@@ -71,7 +75,7 @@ def get_dataset(train: bool, debug: bool = False) -> tf.data.Dataset:
     # Map features mappings, if needed
     _setup_feature_keys()
 
-    file_path = train_dataset_file_path() if train else eval_dataset_file_path()
+    file_path = train_dataset_file_path(False) if train else eval_dataset_file_path(False)
 
     dataset = tf.data.TFRecordDataset( [ file_path ] )
     dataset = dataset.prefetch(10000)
@@ -88,3 +92,10 @@ def n_batches_in_dataset(dataset: tf.data.Dataset) -> int:
     for n_eval_batches, _ in enumerate(dataset):
         pass
     return n_eval_batches
+
+def write_transaction_to_example(features: dict, writer: tf.io.TFRecordWriter):
+    """ Writes an Example in a tfrecord file """
+    # Write output with TFRecord format (https://www.tensorflow.org/tutorials/load_data/tfrecord?hl=en#creating_a_tftrainexample_message)
+    example = tf.train.Example(features=tf.train.Features(feature=features))
+    txt_example: str = example.SerializeToString()
+    writer.write( txt_example )

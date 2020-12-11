@@ -63,20 +63,31 @@ class Settings:
         # Model type
         self.model_type = read_setting( settings_json, 'model_type' , ModelType , "convolutional" )
 
-        # Sequence length?
+        # Sequence length
         self.sequence_length = read_setting( settings_json, 'sequence_length' , int , 16 )
 
         # Sequence - Items embeding dimension
+        # TODO: Remove this
         self.items_embedding_dim = read_setting( settings_json, 'items_embedding_dim' , int , 128 )
 
         # Sequence - Customers embeding dimension
+        # TODO: Remove this
         self.customers_embedding_dim = read_setting( settings_json, 'customers_embedding_dim' , int , 64 )
 
         # Transactions file path
         self.transactions_file = read_setting( settings_json, 'transactions_file' , str , 'data/transactions.csv' )
 
-        # Model generation directory
-        self.model_dir = read_setting( settings_json, 'model_dir' , str , 'model' )
+        # Candidates model generation directory
+        self.model_dir = read_setting( settings_json, 'candidates_model_dir' , str , 'models/candidates_model' )
+
+        # Rating model generation directory
+        self.rating_model_dir = read_setting( settings_json, 'rating_model_dir' , str , 'models/rating_model' )
+
+        # Number of candidates to rate for rating model
+        self.n_candidates = read_setting( settings_json, 'n_candidates' , int , 32 )
+
+        # Sequence - Customers embeding dimension
+        self.customers_embedding_dim = read_setting( settings_json, 'customers_embedding_dim' , int , 64 )
 
         # Train verbose log level
         self.train_log_level = cmd_line_options.trainlog

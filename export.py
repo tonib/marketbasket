@@ -1,8 +1,9 @@
 from marketbasket.settings import settings # Setup. Must to be first
 from marketbasket.model.model import create_model
-import tensorflow as tf
 from marketbasket.labels import Labels
 from datetime import datetime
+from marketbasket.predict import Prediction
+import tensorflow as tf
 
 print(datetime.now(), "Process start: Export")
 
@@ -16,6 +17,6 @@ model.load_weights(latest_cp)
 model.summary()
 
 # Save full model
-model.save( settings.get_model_path('exported_model'), include_optimizer=False )
+model.save( settings.get_model_path( Prediction.CANDIDATES_EXPORTED_MODEL_DIR ), include_optimizer=False )
 
 print(datetime.now(), "Process end: Export")

@@ -1,5 +1,6 @@
 from .settings import settings
 from .transaction import Transaction
+from typing import Tuple, Iterable, List
 
 class TransactionsFile:
     """ Interface to read/write transactions from csv file """
@@ -63,6 +64,32 @@ class TransactionsFile:
     def __iter__(self) -> Transaction:
         for txt_line in self._file:
             yield self._read(txt_line)
+
+    def _transactions_with_expected_item(self) -> Iterable[Tuple[Transaction, int]]:
+        transaction: Transaction
+        for transaction in self:
+            transaction = transaction.replace_labels_by_indices()
+
+            for idx in range(1, transaction.sequence_length()):
+                input_trn = transaction.get_slice(0, idx)
+                expected_item_idx = transaction.item_labels[idx]
+                yield ( input_trn , expected_item_idx )
+
+    def transactions_with_expected_item_batches(self, batch_size: int) -> Iterable[ Tuple[ List[Transaction], List[int] ] ]:
+        input_batch = []
+        expected_item_indices = []
+        for input_trn, expected_item_idx in self._transactions_with_expected_item():
+            input_batch.append( input_trn )
+            expected_item_indices.append( expected_item_idx )
+
+            if len( input_batch ) >= batch_size:
+                yield input_batch, expected_item_indices
+                input_batch = []
+                expected_item_indices = []
+
+        # Last batch
+        if len(input_batch) > 0:
+            yield input_batch, expected_item_indices
 
     @staticmethod
     def top_items_path() -> str:

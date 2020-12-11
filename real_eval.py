@@ -20,34 +20,6 @@ OUT_OF_RANKINGS = N_TOP_PREDICTIONS + 1
 
 settings.settings.features.load_label_files()
 
-def transactions_with_expected_item() -> Iterable[Tuple[Transaction, int]]:
-    
-    with TransactionsFile(TransactionsFile.eval_dataset_path(), 'r') as eval_trn_file:
-        transaction: Transaction
-        for transaction in eval_trn_file:
-            transaction = transaction.replace_labels_by_indices()
-
-            for idx in range(1, transaction.sequence_length()):
-                input_trn = transaction.get_slice(0, idx)
-                expected_item_idx = transaction.item_labels[idx]
-                yield ( input_trn , expected_item_idx )
-
-def transactions_with_expected_item_batches() -> Iterable[ Tuple[ List[Transaction], List[int] ] ]:
-    input_batch = []
-    expected_item_indices = []
-    for input_trn, expected_item_idx in transactions_with_expected_item():
-        input_batch.append( input_trn )
-        expected_item_indices.append( expected_item_idx )
-
-        if len( input_batch ) >= TEST_BATCH_SIZE:
-            yield input_batch, expected_item_indices
-            input_batch = []
-            expected_item_indices = []
-
-    # Last batch
-    if len(input_batch) > 0:
-        yield input_batch, expected_item_indices
-
 def rank_prediction(predicted_item_indices: np.ndarray, predicted_probabilities:np.ndarray, expected_item:int, 
     prediction_rankings: Counter) -> float:
     # Get index in result where the expected item has been placed
@@ -81,27 +53,28 @@ def run_real_eval(predictor):
     # Get input batches with expected items indices
     input_batch: List[Transaction]
     expected_item_indices: List[int]
-    for input_batch, expected_item_indices in transactions_with_expected_item_batches():
+    with TransactionsFile( TransactionsFile.eval_dataset_path() , 'r' ) as eval_trn_file:
+        for input_batch, expected_item_indices in eval_trn_file.transactions_with_expected_item_batches(TEST_BATCH_SIZE):
 
-        # Run prediction over the batch
-        top_item_indices, top_probabilities = predictor.predict_raw_batch(input_batch, N_TOP_PREDICTIONS)
+            # Run prediction over the batch
+            top_item_indices, top_probabilities = predictor.predict_raw_batch(input_batch, N_TOP_PREDICTIONS)
 
-        batch_size = len(input_batch) # This may not be TEST_BATCH_SIZE for last batch
-        n_predictions += batch_size
+            batch_size = len(input_batch) # This may not be TEST_BATCH_SIZE for last batch
+            n_predictions += batch_size
 
-        # Check each prediction in batch
-        for idx in range(batch_size):
+            # Check each prediction in batch
+            for idx in range(batch_size):
 
-            # Get predicted items and probabilityes
-            predicted_item_indices = top_item_indices[idx]
-            predicted_probabilities = top_probabilities[idx]
+                # Get predicted items and probabilityes
+                predicted_item_indices = top_item_indices[idx]
+                predicted_probabilities = top_probabilities[idx]
 
-            # Ground truth item            
-            expected_item = expected_item_indices[idx]
+                # Ground truth item            
+                expected_item = expected_item_indices[idx]
 
-            # Rank prediction and get item index in prediction
-            probability = rank_prediction(predicted_item_indices, predicted_probabilities, expected_item, prediction_rankings)
-            probs_sum += probability
+                # Rank prediction and get item index in prediction
+                probability = rank_prediction(predicted_item_indices, predicted_probabilities, expected_item, prediction_rankings)
+                probs_sum += probability
             
     # Print rankings
     if n_predictions > 0:

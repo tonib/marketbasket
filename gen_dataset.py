@@ -1,6 +1,5 @@
 from marketbasket.settings import settings, ModelType
 from typing import List, Tuple, Dict
-import tensorflow as tf
 import random
 from marketbasket.transaction import Transaction
 from marketbasket.labels import Labels
@@ -9,12 +8,13 @@ from marketbasket.class_weights import ClassWeights
 from datetime import datetime
 from marketbasket.transactions_file import TransactionsFile
 import marketbasket.dataset as dataset
+import tensorflow as tf
 
 """
-    Generates the train and eval. datasets
+    Generates the train and eval. datasets for cantidades generation model
 """
 
-print(datetime.now(), "Process start: Generate datasets")
+print(datetime.now(), "Process start: Generate candidates model datasets")
 
 # Fix seed to  get reproducible datasets
 random.seed(1)
@@ -27,12 +27,12 @@ settings.features.load_label_files()
 settings.print_summary()
 
 # File to store train samples
-train_writer = tf.io.TFRecordWriter( dataset.train_dataset_file_path() )
+train_writer = tf.io.TFRecordWriter( dataset.train_dataset_file_path(False) )
 # File to store eval samples
-eval_writer = tf.io.TFRecordWriter( dataset.eval_dataset_file_path() )
-# File to store eval transactions, to use in real_eval.py
+eval_writer = tf.io.TFRecordWriter( dataset.eval_dataset_file_path(False) )
+# File to store eval transactions
 eval_trn_file = TransactionsFile(TransactionsFile.eval_dataset_path(), 'w')
-# File to store train transactions, for debug
+# File to store train transactions
 train_trn_file = TransactionsFile(TransactionsFile.train_dataset_path(), 'w')
 
 # Number of times each item is used as output (used to weight loss of few used items)
@@ -48,12 +48,9 @@ def write_transaction_to_example(features: dict, eval_transaction: bool):
         writer = train_writer
         n_train_samples += 1
 
-    # Write output with TFRecord format (https://www.tensorflow.org/tutorials/load_data/tfrecord?hl=en#creating_a_tftrainexample_message)
-    example = tf.train.Example(features=tf.train.Features(feature=features))
-    txt_example: str = example.SerializeToString()
-    writer.write( txt_example )
+    dataset.write_transaction_to_example(features, writer)
 
-
+# TODO: Not supported yet
 def write_gpt_sample(eval_transaction: bool, input_trn: Transaction, output_items_idx: List[int]):
 
     # TODO: Explain why
@@ -71,7 +68,7 @@ def write_gpt_sample(eval_transaction: bool, input_trn: Transaction, output_item
 
     write_transaction_to_example(example_features, eval_transaction)
 
-
+# TODO: Not supported yet
 def process_trn_gpt_output(eval_transaction: bool, trn_values: Transaction):
     """ Generate train/eval sequences from transaction, for GPT model """
     for item_idx in range(1, trn_values.sequence_length()):

@@ -9,6 +9,8 @@ import numpy as np
 class Prediction(tf.Module):
     """ Run and process model predictions """
 
+    CANDIDATES_EXPORTED_MODEL_DIR = 'candidates_exported_model'
+
     def __init__(self, model:tf.keras.Model = None):
 
         self.item_labels_path = Labels.item_labels_path()
@@ -17,7 +19,7 @@ class Prediction(tf.Module):
         if model:
             self.model: tf.keras.Model = model
         else:
-            self.model: tf.keras.Model = tf.keras.models.load_model( settings.get_model_path('exported_model') )
+            self.model: tf.keras.Model = tf.keras.models.load_model( settings.get_model_path( Prediction.CANDIDATES_EXPORTED_MODEL_DIR ) )
             #self.model.summary()
 
 
