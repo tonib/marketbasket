@@ -93,10 +93,7 @@ def process_trn_single_item_output(eval_transaction: bool, trn_values: Transacti
     for item_idx in range(1, trn_values.sequence_length()):
 
         # Get the input sequence (items before item to predict, up to "settings.sequence_length" n. items )
-        start_idx = item_idx - settings.sequence_length
-        if start_idx < 0:
-            start_idx = 0
-        input_trn = trn_values.get_slice(start_idx, item_idx)
+        input_trn = trn_values.get_slice(0, item_idx)
 
         # Output index to predict
         output_item_idx: int = trn_values.item_labels[item_idx]

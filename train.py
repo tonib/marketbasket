@@ -32,7 +32,7 @@ n_eval_batches = dataset.n_batches_in_dataset(eval_dataset)
 model = create_model()
 
 model.compile(
-              optimizer=tf.keras.optimizers.Adam(learning_rate=0.0015),
+              optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
               #loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               loss=SparseCategoricalFocalLoss(gamma=3, from_logits=True),
               metrics=['accuracy'])
