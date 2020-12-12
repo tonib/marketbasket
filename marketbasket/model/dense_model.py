@@ -1,6 +1,6 @@
 from marketbasket.settings import settings
 import tensorflow as tf
-from .model_inputs import ModelInputs
+from marketbasket.model.model_inputs import ModelInputs
 from marketbasket.feature import Feature
 from marketbasket.jsonutils import read_setting
 
@@ -26,7 +26,15 @@ def items_as_multihot(inputs: ModelInputs):
     items_feature = settings.features.items_sequence_feature()
     return items_feature.encode_input(items_input, as_multihot=True)
 
-def create_dense_model(inputs: ModelInputs) -> tf.keras.Model:
+def create_output_layer(x, rating_model: bool):
+    items_feature = settings.features.items_sequence_feature()
+    if rating_model:
+        layer = tf.keras.layers.Dense(1, name="rating", activation=None)
+    else:
+        layer = tf.keras.layers.Dense(items_feature.labels.length(), name="classification", activation=None)
+    return layer(x)
+
+def create_dense_model(inputs: ModelInputs, rating_model: bool) -> tf.keras.Model:
     """ Create a DNN for classification """
 
     # This model only supports a single sequence feature input (items labels). It will be a multihot array
@@ -42,8 +50,7 @@ def create_dense_model(inputs: ModelInputs) -> tf.keras.Model:
     # Create model
     x = create_dense(encoded_inputs)
     
-    # Classification (logits)
-    items_feature = settings.features.items_sequence_feature()
-    x = tf.keras.layers.Dense(items_feature.labels.length(), name="classification", activation=None)(x)
+    # Output layer
+    x = create_output_layer(x, rating_model)
 
     return tf.keras.Model(inputs=inputs.inputs, outputs=x)

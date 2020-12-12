@@ -2,6 +2,7 @@ from marketbasket.settings import settings
 import tensorflow as tf
 from marketbasket.model.model_inputs import ModelInputs
 from marketbasket.jsonutils import read_setting
+from marketbasket.model.dense_model import create_output_layer
 
 def create_rnn(encoded_inputs):
     # Model settings
@@ -16,7 +17,7 @@ def create_rnn(encoded_inputs):
 
     return x
 
-def create_model_rnn(inputs: ModelInputs) -> tf.keras.Model:
+def create_model_rnn(inputs: ModelInputs, rating_model: bool) -> tf.keras.Model:
 
     # Get encoded sequence inputs
     encoded_inputs = inputs.get_all_as_sequence()
@@ -24,8 +25,7 @@ def create_model_rnn(inputs: ModelInputs) -> tf.keras.Model:
     # Apply model
     x = create_rnn(encoded_inputs)
 
-    # Do the classification (Logits)
-    n_items = settings.features.items_sequence_feature().labels.length()
-    x = tf.keras.layers.Dense(n_items, activation=None)(x)
+    # Output layer
+    x = create_output_layer(x, rating_model)
 
     return tf.keras.Model(inputs=inputs.inputs, outputs=x)

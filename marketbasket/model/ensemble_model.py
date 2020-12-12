@@ -6,7 +6,7 @@ from .conv_model import create_conv
 from .rnn_model import create_rnn
 import marketbasket.model.dense_model as dense_model
 
-def create_ensemble_model(inputs: ModelInputs) -> tf.keras.Model:
+def create_ensemble_model(inputs: ModelInputs, rating_model: bool) -> tf.keras.Model:
 
     # Get encoded sequence inputs
     encoded_inputs = inputs.get_all_as_sequence()
@@ -29,8 +29,7 @@ def create_ensemble_model(inputs: ModelInputs) -> tf.keras.Model:
     if ensemble_layer_size > 0:
         x = tf.keras.layers.Dense(ensemble_layer_size, activation='relu')(x)
 
-    # Do the classification (logits)
-    n_items = settings.features.items_sequence_feature().labels.length()
-    x = tf.keras.layers.Dense(n_items, activation=None)(x)
+    # Output layer
+    x = dense_model.create_output_layer(x, rating_model)
 
     return tf.keras.Model(inputs=inputs.inputs, outputs=x)

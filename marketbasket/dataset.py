@@ -9,15 +9,14 @@ from marketbasket.predict import Prediction
 """ TFRecord dataset setup """
 
 # Constant for output feature name for candidates generation model
-OUTPUT_FEATURE_NAME = 'output_item_idx'
+OUTPUT_FEATURE_NAME = 'output'
 
-# Constant for output feature name for rating model
-OUTPUT_RATING_FEATURE_NAME = 'output_rating'
+ITEM_TO_RATE = 'item_to_rate'
 
 # Global variable to define what TF type should have read features
 _features_to_types:Dict = None
 
-def _setup_feature_keys():
+def _setup_feature_keys(rating_model: bool):
     """ Setup features mapping """
     
     global _features_to_types
@@ -37,7 +36,9 @@ def _setup_feature_keys():
         _features_to_types[feature.name] = feature_mapped_type
 
     # Declare output feature
-    if settings.model_type == ModelType.GPT:
+    if rating_model:
+        _features_to_types[OUTPUT_FEATURE_NAME] = tf.io.FixedLenFeature([], tf.float32)
+    elif settings.model_type == ModelType.GPT:
         _features_to_types[OUTPUT_FEATURE_NAME] = tf.io.FixedLenFeature([settings.sequence_length], tf.int64)
     else:
         _features_to_types[OUTPUT_FEATURE_NAME] = tf.io.FixedLenFeature([], tf.int64)
@@ -65,7 +66,7 @@ def eval_dataset_file_path(rating_model: bool) -> str:
     """ Returns evaluation dataset file path """
     return settings.get_data_path( 'dataset_eval_candidates.tfrecord' if not rating_model else 'dataset_eval_rating.tfrecord' )
 
-def get_dataset(train: bool, debug: bool = False) -> tf.data.Dataset:
+def get_dataset(rating_model: bool, train: bool, debug: bool = False) -> tf.data.Dataset:
     """ Get the train/eval dataset
 
         Args:
@@ -73,9 +74,9 @@ def get_dataset(train: bool, debug: bool = False) -> tf.data.Dataset:
             debug: True to configure the dataset for debugging (batch size = 1, etc)
     """
     # Map features mappings, if needed
-    _setup_feature_keys()
+    _setup_feature_keys(rating_model)
 
-    file_path = train_dataset_file_path(False) if train else eval_dataset_file_path(False)
+    file_path = train_dataset_file_path(rating_model) if train else eval_dataset_file_path(rating_model)
 
     dataset = tf.data.TFRecordDataset( [ file_path ] )
     dataset = dataset.prefetch(10000)

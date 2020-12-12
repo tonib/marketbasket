@@ -3,23 +3,23 @@ import tensorflow as tf
 from marketbasket.labels import Labels
 from .gpt import *
 from .model_inputs import ModelInputs
-from .dense_model import create_dense_model
-from .rnn_model import create_model_rnn
-from .conv_model import create_model_convolutional
-from .ensemble_model import create_ensemble_model
+from marketbasket.model.dense_model import create_dense_model
+from marketbasket.model.rnn_model import create_model_rnn
+from marketbasket.model.conv_model import create_model_convolutional
+from marketbasket.model.ensemble_model import create_ensemble_model
 
-def create_model() -> tf.keras.Model:
+def create_model(rating_model: bool) -> tf.keras.Model:
     """ Returns the model """
     inputs = ModelInputs()
 
     if settings.model_type == ModelType.DENSE:
-        return create_dense_model(inputs)
+        return create_dense_model(inputs, rating_model)
     elif settings.model_type == ModelType.RNN:
-        return create_model_rnn(inputs)
+        return create_model_rnn(inputs, rating_model)
     elif settings.model_type == ModelType.CONVOLUTIONAL:
-        return create_model_convolutional(inputs)
+        return create_model_convolutional(inputs, rating_model)
     elif settings.model_type == ModelType.ENSEMBLE:
-        return create_ensemble_model(inputs)
+        return create_ensemble_model(inputs, rating_model)
     else:
         raise Exception("Unknown model type " + settings.model_type)
 

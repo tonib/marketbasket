@@ -43,13 +43,27 @@ def process_batch(input_batch: List[Transaction], expected_item_indices: List[in
 
         # TODO: If real item is not within predicted items, should we add it as example? I don't know...
         # By now, add it
+        expected_found = False
         for candidate_item_index in predicted_item_indices[transaction_index]:
             # Rating ground truth
-            rating = 1.0 if candidate_item_index == expected_item_index else 0.0
-            example_features[dataset.OUTPUT_RATING_FEATURE_NAME] = tf.train.Feature( float_list=tf.train.FloatList( value=[rating] ) )
+            if candidate_item_index == expected_item_index:
+                expected_found = True
+                rating = 1.0
+            else:
+                rating = 0.0
+
+            example_features[dataset.ITEM_TO_RATE] = tf.train.Feature( int64_list=tf.train.Int64List( value=[candidate_item_index] ) )
+            example_features[dataset.OUTPUT_FEATURE_NAME] = tf.train.Feature( float_list=tf.train.FloatList( value=[rating] ) )
             dataset.write_transaction_to_example(example_features, writer)
             n_samples += 1
     
+        if not expected_found:
+            # Add the expected item
+            example_features[dataset.ITEM_TO_RATE] = tf.train.Feature( int64_list=tf.train.Int64List( value=[candidate_item_index] ) )
+            example_features[dataset.OUTPUT_FEATURE_NAME] = tf.train.Feature( float_list=tf.train.FloatList( value=[1.0] ) )
+            dataset.write_transaction_to_example(example_features, writer)
+            n_samples += 1
+
     return n_samples
 
 if settings.model_type == ModelType.GPT:

@@ -6,7 +6,7 @@ import tensorflow as tf
 class ModelInputs:
     """ TF model inputs """
 
-    def __init__(self):
+    def __init__(self, rating_model: bool):
 
         # Model inputs. ORDER IS IMPORTANT, as Keras determines inputs by position, and not by name...
         self.inputs: List[tf.keras.Input] = []
