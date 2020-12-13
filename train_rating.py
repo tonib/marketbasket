@@ -5,7 +5,7 @@ from tensorflow.python.framework.ops import disable_eager_execution
 from marketbasket.model.model import create_model, ModelType
 import marketbasket.dataset as dataset
 from real_eval import run_real_eval
-from marketbasket.predict import Prediction
+from marketbasket.predict_rating import RatingPrediction
 from focal_loss import SparseCategoricalFocalLoss
 from marketbasket.class_weights import ClassWeights
 from datetime import datetime
@@ -45,6 +45,7 @@ model.summary()
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=settings.get_model_path('logs'))
 
 # Save checkpoints
+# TODO: This is generating checkpoints in wrong directory !
 checkpoint_file_format = settings.get_model_path() + '/rating_model_checkpoints/cp-{epoch:04d}.ckpt'
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_file_format,
                                                  save_weights_only=True,
@@ -52,7 +53,10 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_file_format
 
 # Do real evaluation callback:
 # TODO: Performance of this could be improved A LOT
-predictor = Prediction(model)
+predictor = RatingPrediction(model)
+# run_real_eval(predictor)
+# exit()
+
 class RealEvaluationCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, batch, logs=None):
         run_real_eval(predictor)

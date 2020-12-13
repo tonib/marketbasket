@@ -58,13 +58,3 @@ class Labels:
             for label in labels_file:
                 labels.append(label.strip())
         return Labels(labels)
-
-    @staticmethod
-    def item_labels_path() -> str:
-        """ Returns item labels path """
-        return settings.settings.get_data_path('itemlabels.txt')
-    
-    @staticmethod
-    def customer_labels_path() -> str:
-        """ Returns item labels path """
-        return settings.settings.get_data_path('customerlabels.txt')

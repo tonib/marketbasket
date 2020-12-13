@@ -8,7 +8,7 @@ import tensorflow as tf
 print(datetime.now(), "Process start: Export")
 
 settings.features.load_label_files()
-model = create_model()
+model = create_model(False)
 
 # Load weights from last train checkpoint
 latest_cp = tf.train.latest_checkpoint( settings.get_model_path('checkpoints') )

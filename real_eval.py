@@ -15,7 +15,7 @@ from collections import Counter
 TEST_BATCH_SIZE = 256
 
 # Number of top predicted items to count
-N_TOP_PREDICTIONS = 128
+N_TOP_PREDICTIONS = 32
 OUT_OF_RANKINGS = N_TOP_PREDICTIONS + 1
 
 settings.settings.features.load_label_files()
@@ -57,7 +57,7 @@ def run_real_eval(predictor):
         for input_batch, expected_item_indices in eval_trn_file.transactions_with_expected_item_batches(TEST_BATCH_SIZE):
 
             # Run prediction over the batch
-            top_item_indices, top_probabilities = predictor.predict_raw_batch(input_batch, N_TOP_PREDICTIONS)
+            top_item_indices, top_probabilities, _ = predictor.predict_raw_batch(input_batch, N_TOP_PREDICTIONS)
 
             batch_size = len(input_batch) # This may not be TEST_BATCH_SIZE for last batch
             n_predictions += batch_size
@@ -80,7 +80,7 @@ def run_real_eval(predictor):
     if n_predictions > 0:
         mean_ranking = sum(ranking * count for ranking, count in prediction_rankings.items()) / n_predictions
         print("Mean ranking:", mean_ranking)
-    for rank in [1, 8, 16, 32, 64, 128]:
+    for rank in [1, 8, 16, 32]:
         print_rankings(prediction_rankings, n_predictions, rank)
     if OUT_OF_RANKINGS in prediction_rankings:
         n_out_of_rank = prediction_rankings[OUT_OF_RANKINGS]

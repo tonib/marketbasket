@@ -90,6 +90,7 @@ class Feature:
 @tf.function
 def raged_lists_batch_to_multihot(ragged_lists_batch: tf.RaggedTensor, multihot_dim: int) -> tf.Tensor:
     """ Maps a batch of label indices to a batch of multi-hot ones """
+    # TODO: Seems tf.one_hot supports ragged tensors, so try to remove to_tensor call
     t = ragged_lists_batch.to_tensor(-1) # Default value = -1 -> one_hot will not assign any one
     t = tf.one_hot( t , multihot_dim )
     t = tf.reduce_max( t , axis=1 )
@@ -112,7 +113,7 @@ def pad_sequence_right( sequences_batch: tf.RaggedTensor, mask: bool) -> tf.Tens
 
 
 @tf.function(input_signature=[tf.RaggedTensorSpec(shape=[None,None], dtype=tf.int64), tf.TensorSpec(shape=(), dtype=tf.bool)])
-def pad_sequence_left(sequences_batch: tf.RaggedTensor):
+def pad_sequence_left(sequences_batch: tf.RaggedTensor, mask: bool):
     """ Pad sequences with zeros on left side """
 
     # Truncate rows to have at most `settings.SEQUENCE_LENGTH` items

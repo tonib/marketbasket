@@ -7,14 +7,12 @@ from marketbasket.feature import pad_sequence_left, pad_sequence_right # Require
 import numpy as np
 
 class Prediction(tf.Module):
-    """ Run and process model predictions """
+    """ Run and process candidates generation model predictions """
 
+    # Directory in "data" dir where to export the model
     CANDIDATES_EXPORTED_MODEL_DIR = 'candidates_exported_model'
 
     def __init__(self, model:tf.keras.Model = None):
-
-        self.item_labels_path = Labels.item_labels_path()
-        self.customer_labels_path = Labels.customer_labels_path()
 
         if model:
             self.model: tf.keras.Model = model
@@ -134,15 +132,16 @@ class Prediction(tf.Module):
         
         # To tensor values
         for feature in settings.settings.features:
+            name = "input_val_" + feature.name
             if feature.sequence:
-                inputs_dict[feature.name] = tf.ragged.constant(inputs_dict[feature.name], dtype=tf.int64)
+                inputs_dict[feature.name] = tf.ragged.constant(inputs_dict[feature.name], dtype=tf.int64, name=name)
             else:
-                inputs_dict[feature.name] = tf.constant(inputs_dict[feature.name], dtype=tf.int64)
+                inputs_dict[feature.name] = tf.constant(inputs_dict[feature.name], dtype=tf.int64, name=name)
 
         # Keras inputs are mapped by position, so return result as a list
         return [ inputs_dict[feature.name] for feature in settings.settings.features ]
 
-    def predict_raw_batch(self, transactions: List[Transaction], n_items_result: int) -> Tuple[np.ndarray, np.ndarray]:
+    def predict_raw_batch(self, transactions: List[Transaction], n_items_result: int) -> Tuple[np.ndarray, np.ndarray, List[tf.Tensor]]:
         # Transactions to keras inputs
         batch = self._transactions_to_model_inputs(transactions)
 
@@ -155,7 +154,7 @@ class Prediction(tf.Module):
             top_item_indices = np.array([], dtype=int)
             top_probabilities = np.array([], dtype=float)
 
-        return top_item_indices, top_probabilities
+        return top_item_indices, top_probabilities, batch
 
 
     def predict_batch(self, transactions: List[Transaction], n_items_result: int, preprocess = True) -> Tuple[np.ndarray, np.ndarray]:
