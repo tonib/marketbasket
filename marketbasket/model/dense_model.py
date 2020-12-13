@@ -23,11 +23,11 @@ def create_dense(encoded_inputs):
 
 def items_as_multihot(inputs: ModelInputs):
     items_input = inputs.item_labels_input()
-    items_feature = settings.features.items_sequence_feature()
+    items_feature = inputs.features.items_sequence_feature()
     return items_feature.encode_input(items_input, as_multihot=True)
 
-def create_output_layer(x, rating_model: bool):
-    items_feature = settings.features.items_sequence_feature()
+def create_output_layer(inputs: ModelInputs, x, rating_model: bool):
+    items_feature = inputs.features.items_sequence_feature()
     if rating_model:
         layer = tf.keras.layers.Dense(1, name="rating", activation=None)
     else:
@@ -41,7 +41,7 @@ def create_dense_model(inputs: ModelInputs, rating_model: bool) -> tf.keras.Mode
     encoded_items_output = items_as_multihot(inputs)
 
     # Get transactions level features
-    encoded_trn_inputs = inputs.encode_inputs_set( settings.features.transaction_features() )
+    encoded_trn_inputs = inputs.encode_inputs_set( inputs.features.transaction_features() )
 
     # Merge item labels and transaction features
     encoded_inputs = [ encoded_items_output ] + encoded_trn_inputs
@@ -51,6 +51,6 @@ def create_dense_model(inputs: ModelInputs, rating_model: bool) -> tf.keras.Mode
     x = create_dense(encoded_inputs)
     
     # Output layer
-    x = create_output_layer(x, rating_model)
+    x = create_output_layer(inputs, x, rating_model)
 
     return tf.keras.Model(inputs=inputs.inputs, outputs=x)

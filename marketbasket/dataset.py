@@ -1,5 +1,5 @@
 from typing import Dict, Tuple
-from .settings import settings, ModelType
+import marketbasket.settings as settings
 import tensorflow as tf
 from .labels import Labels
 import os
@@ -28,7 +28,7 @@ def _setup_feature_keys(rating_model: bool):
 
     # Declare input features
     feature: Feature
-    for feature in settings.features:
+    for feature in settings.settings.features:
         if feature.sequence:
             feature_mapped_type = tf.io.RaggedFeature(tf.int64, feature.name, row_splits_dtype=tf.int64)
         else:
@@ -38,8 +38,9 @@ def _setup_feature_keys(rating_model: bool):
     # Declare output feature
     if rating_model:
         _features_to_types[OUTPUT_FEATURE_NAME] = tf.io.FixedLenFeature([], tf.float32)
-    elif settings.model_type == ModelType.GPT:
-        _features_to_types[OUTPUT_FEATURE_NAME] = tf.io.FixedLenFeature([settings.sequence_length], tf.int64)
+        _features_to_types[ITEM_TO_RATE] = tf.io.FixedLenFeature([], tf.int64)
+    elif settings.settings.model_type == settings.ModelType.GPT:
+        _features_to_types[OUTPUT_FEATURE_NAME] = tf.io.FixedLenFeature([settings.settings.sequence_length], tf.int64)
     else:
         _features_to_types[OUTPUT_FEATURE_NAME] = tf.io.FixedLenFeature([], tf.int64)
 
@@ -60,11 +61,11 @@ def _example_parse_function(proto_batch) -> Tuple:
 
 def train_dataset_file_path(rating_model: bool) -> str:
     """ Returns train dataset file path """
-    return settings.get_data_path( 'dataset_train_candidates.tfrecord' if not rating_model else 'dataset_train_rating.tfrecord' )
+    return settings.settings.get_data_path( 'dataset_train_candidates.tfrecord' if not rating_model else 'dataset_train_rating.tfrecord' )
 
 def eval_dataset_file_path(rating_model: bool) -> str:
     """ Returns evaluation dataset file path """
-    return settings.get_data_path( 'dataset_eval_candidates.tfrecord' if not rating_model else 'dataset_eval_rating.tfrecord' )
+    return settings.settings.get_data_path( 'dataset_eval_candidates.tfrecord' if not rating_model else 'dataset_eval_rating.tfrecord' )
 
 def get_dataset(rating_model: bool, train: bool, debug: bool = False) -> tf.data.Dataset:
     """ Get the train/eval dataset
@@ -81,7 +82,7 @@ def get_dataset(rating_model: bool, train: bool, debug: bool = False) -> tf.data
     dataset = tf.data.TFRecordDataset( [ file_path ] )
     dataset = dataset.prefetch(10000)
     if not debug:
-        dataset = dataset.shuffle(10000).batch( settings.batch_size )
+        dataset = dataset.shuffle(10000).batch( settings.settings.batch_size )
     else:
         dataset = dataset.batch(1)
     dataset = dataset.map(_example_parse_function , num_parallel_calls=tf.data.experimental.AUTOTUNE)

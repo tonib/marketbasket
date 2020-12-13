@@ -1,5 +1,6 @@
 import marketbasket.settings as settings
 from marketbasket.feature import Feature
+import marketbasket.dataset as dataset
 from typing import List, Dict, Iterable
 import tensorflow as tf
 
@@ -8,6 +9,11 @@ class ModelInputs:
 
     def __init__(self, rating_model: bool):
 
+        self.features = settings.settings.features
+        if rating_model:
+            # Append item to rate as input transaction feature
+            self.features = self.features.rating_model_features()
+
         # Model inputs. ORDER IS IMPORTANT, as Keras determines inputs by position, and not by name...
         self.inputs: List[tf.keras.Input] = []
 
@@ -15,7 +21,7 @@ class ModelInputs:
         self.by_feature: Dict[Feature, tf.keras.Input] = {}
 
         feature: Feature
-        for feature in settings.settings.features:
+        for feature in self.features:
             if feature.sequence:
                 input = tf.keras.layers.Input(shape=[None], name=feature.name, dtype=tf.int64, ragged=True)
             else:
@@ -25,7 +31,7 @@ class ModelInputs:
 
     def item_labels_input(self) -> tf.keras.Input:
         """ Get the items sequence input """
-        return self.by_feature[settings.settings.features.items_sequence_feature()]
+        return self.by_feature[self.features.items_sequence_feature()]
 
     def encode_inputs_set(self, features: Iterable[Feature], concatenate=False, n_repeats=0) -> List:
         """ Encode a set of features """
@@ -49,10 +55,10 @@ class ModelInputs:
 
     def get_all_as_sequence(self) -> object:
         # Get encoded sequence inputs
-        sequence_inputs = self.encode_inputs_set( settings.settings.features.sequence_features() )
+        sequence_inputs = self.encode_inputs_set( self.features.sequence_features() )
 
         # Get encoded transaction inputs, concatenated, and reapeat for each timestep
-        transaction_inputs = self.encode_inputs_set( settings.settings.features.transaction_features(), concatenate=True, 
+        transaction_inputs = self.encode_inputs_set( self.features.transaction_features(), concatenate=True, 
             n_repeats=settings.settings.sequence_length )
         
         # Concatenate sequence and transactions features on each timestep

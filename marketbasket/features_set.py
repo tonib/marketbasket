@@ -3,6 +3,8 @@ from typing import List, Dict, Iterable
 from marketbasket.feature import Feature
 from marketbasket.jsonutils import read_setting
 from marketbasket.labels import Labels
+import marketbasket.dataset as dataset
+import copy
 
 class FeaturesSet:
     """ Dataset features """
@@ -12,7 +14,10 @@ class FeaturesSet:
             Args:
                 config: Parsed JSON from configuration file
         """
-        # TODO: Add default values?
+        
+        if config == None:
+            return
+
         # All features. Order here is important
         self._features: Dict[str, Feature] = {}
         # Features related to transaction
@@ -28,13 +33,29 @@ class FeaturesSet:
         # Item labels feature must to be embedded: This restriction is done to be sure sequences will be masked
         # See Feature.encode_input()
         if self.items_sequence_feature().embedding_dim <= 0:
-            raise Exception("Items labels MUST to have embedding_dim > 0");
+            raise Exception("Items labels MUST to have embedding_dim > 0")
 
         # Store items sequence feature index
         for index, feature in enumerate(self):
             if feature.name == self.item_label_feature:
                 self.item_label_index = index
                 break
+
+    def rating_model_features(self) -> 'FeaturesSet':
+        # Do a shallow copy
+        rating_features = copy.copy(self)
+        rating_features._features = copy.copy(rating_features._features)
+        rating_features._transaction_features = copy.copy(rating_features._transaction_features)
+
+        # Add a new transaction feature for item to rate
+        item_to_rate_feature = copy.copy(rating_features.items_sequence_feature())
+        item_to_rate_feature.name = dataset.ITEM_TO_RATE
+        item_to_rate_feature.sequence = False
+        
+        rating_features._features[item_to_rate_feature.name] = item_to_rate_feature
+        rating_features._transaction_features[item_to_rate_feature.name] = item_to_rate_feature
+
+        return rating_features
 
     def _create_features(self, sequence: bool, features_config: List) -> Dict[str, Feature]:
         """ Read block of features from config.

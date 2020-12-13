@@ -31,12 +31,13 @@ n_eval_batches = dataset.n_batches_in_dataset(eval_dataset)
 # Create model
 model = create_model(True)
 
+# TODO: tf.keras.metrics.BinaryAccuracy do not supports from_logits parameter... So?
 model.compile(
               optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
               #loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               #loss=SparseCategoricalFocalLoss(gamma=3, from_logits=True),
               loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
-              metrics=['accuracy'])
+              metrics=['binary_accuracy'])
 
 model.summary()
 

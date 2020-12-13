@@ -32,6 +32,9 @@ class Feature:
         # Label values
         self.labels: Labels = None
 
+        # Embedding layer for this feature
+        self.embedding_layer: tf.keras.layers.Embedding = None
+
     def __repr__(self):
         txt = self.name + ": label "
         txt += "(items sequence feature)" if self.sequence else "(transaction feature)"
@@ -72,6 +75,7 @@ class Feature:
                 n_labels += 1
                 layer_name = "masked_" + layer_name
             encoding_layer = tf.keras.layers.Embedding(n_labels, self.embedding_dim, mask_zero=mask, name=layer_name)
+            self.embedding_layer = encoding_layer
         else:
             # Lambda seems much more fast...
             #return tf.keras.layers.experimental.preprocessing.CategoryEncoding(max_tokens=feature.labels.length(), name='one_hot_' + feature.name)

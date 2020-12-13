@@ -1,4 +1,4 @@
-from marketbasket.settings import settings, ModelType
+import marketbasket.settings as settings
 import tensorflow as tf
 from marketbasket.labels import Labels
 from typing import List, Tuple, Dict
@@ -19,7 +19,7 @@ class Prediction(tf.Module):
         if model:
             self.model: tf.keras.Model = model
         else:
-            self.model: tf.keras.Model = tf.keras.models.load_model( settings.get_model_path( Prediction.CANDIDATES_EXPORTED_MODEL_DIR ) )
+            self.model: tf.keras.Model = tf.keras.models.load_model( settings.settings.get_model_path( Prediction.CANDIDATES_EXPORTED_MODEL_DIR ) )
             #self.model.summary()
 
 
@@ -82,7 +82,7 @@ class Prediction(tf.Module):
         # Label indices feature values
         batch_item_indices = inputs_batch[item_indices_idx]
 
-        if settings.model_type == ModelType.GPT:
+        if settings.settings.model_type == settings.ModelType.GPT:
             
             # GPT return probabilities for each sequence timestep. 
             # We need the probabilities for the LAST input timested.
@@ -124,23 +124,23 @@ class Prediction(tf.Module):
     def _transactions_to_model_inputs(self, transactions: List[Transaction]) -> List[tf.Tensor]:
 
         # Prepare dictionary with features names
-        inputs_dict = { feature.name : [] for feature in settings.features }
+        inputs_dict = { feature.name : [] for feature in settings.settings.features }
 
         # Concatenate transaction values for each feature
         for trn in transactions:
             # Use labels indices instead raw values
-            for feature in settings.features:
+            for feature in settings.settings.features:
                 inputs_dict[feature.name].append( trn[feature.name] )
         
         # To tensor values
-        for feature in settings.features:
+        for feature in settings.settings.features:
             if feature.sequence:
                 inputs_dict[feature.name] = tf.ragged.constant(inputs_dict[feature.name], dtype=tf.int64)
             else:
                 inputs_dict[feature.name] = tf.constant(inputs_dict[feature.name], dtype=tf.int64)
 
         # Keras inputs are mapped by position, so return result as a list
-        return [ inputs_dict[feature.name] for feature in settings.features ]
+        return [ inputs_dict[feature.name] for feature in settings.settings.features ]
 
     def predict_raw_batch(self, transactions: List[Transaction], n_items_result: int) -> Tuple[np.ndarray, np.ndarray]:
         # Transactions to keras inputs
@@ -148,7 +148,7 @@ class Prediction(tf.Module):
 
         # Run prediction
         if len(batch) > 0:
-            top_item_indices, top_probabilities = self._run_model_and_postprocess(batch, settings.features.item_label_index, n_items_result)
+            top_item_indices, top_probabilities = self._run_model_and_postprocess(batch, settings.settings.features.item_label_index, n_items_result)
             top_item_indices = top_item_indices.numpy()
             top_probabilities = top_probabilities.numpy()
         else:
@@ -169,7 +169,7 @@ class Prediction(tf.Module):
         top_item_indices, top_probabilities = self.predict_raw_batch(transactions, n_items_result)
 
         # Convert item indices to labels
-        top_item_labels = settings.features.items_sequence_feature().labels.indices_to_labels(top_item_indices)
+        top_item_labels = settings.settings.features.items_sequence_feature().labels.indices_to_labels(top_item_indices)
 
         # Insert fake results for empty sequences
         if len(empty_sequences_idxs) > 0:

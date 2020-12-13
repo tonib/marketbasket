@@ -10,7 +10,7 @@ from marketbasket.model.ensemble_model import create_ensemble_model
 
 def create_model(rating_model: bool) -> tf.keras.Model:
     """ Returns the model """
-    inputs = ModelInputs()
+    inputs = ModelInputs(rating_model)
 
     if settings.model_type == ModelType.DENSE:
         return create_dense_model(inputs, rating_model)

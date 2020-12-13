@@ -1,4 +1,4 @@
-from .settings import settings
+import marketbasket.settings as settings
 from typing import List, Tuple, Dict
 from .labels import Labels
 from .feature import Feature
@@ -16,7 +16,7 @@ class Transaction:
         self._features = feature_values
 
         # Split sequence features
-        for feature in settings.features:
+        for feature in settings.settings.features:
             if feature.sequence:
                 self._features[feature.name] = self._features[feature.name].split(' ')
     
@@ -41,12 +41,12 @@ class Transaction:
     @property
     def item_labels(self) -> List:
         """ Item labels/indices for this transaction """
-        return self._features[settings.features.item_label_feature]
+        return self._features[settings.settings.features.item_label_feature]
 
     @item_labels.setter
     def item_labels(self, value: List):
         """ Item labels/indices for this transaction """
-        self._features[settings.features.item_label_feature] = value
+        self._features[settings.settings.features.item_label_feature] = value
 
     def sequence_length(self) -> int:
         """ Returns the items sequence length in this transaction """
@@ -56,7 +56,7 @@ class Transaction:
         """ Returns transaction with an slice of the items sequence in this transaction"""
         result = Transaction()
         for feature_name in self._features:
-            if settings.features[feature_name].sequence:
+            if settings.settings.features[feature_name].sequence:
                 result[feature_name] = self._features[feature_name][start_idx:end_idx]
             else:
                 # Keep non sequence features as they are
@@ -70,7 +70,7 @@ class Transaction:
         """ Returns a copy of this transaction with labels replaced by its indices """
         result = Transaction()
         feature: Feature
-        for feature in settings.features:
+        for feature in settings.settings.features:
             feature_value = self._features[feature.name]
             if feature.sequence:
                 feature_value = feature.labels.labels_indices(feature_value)
@@ -83,7 +83,7 @@ class Transaction:
         """ Returns a copy of this transaction with indices replaced by its labels """
         result = Transaction()
         feature: Feature
-        for feature in settings.features:
+        for feature in settings.settings.features:
             feature_value = self._features[feature.name]
             if feature.sequence:
                 feature_value = feature.labels.indices_to_labels(feature_value)
@@ -107,7 +107,7 @@ class Transaction:
         unknown_item_indices = reversed(unknown_item_indices)
         result = Transaction()
         feature: Feature
-        for feature in settings.features:
+        for feature in settings.settings.features:
             feature_value = self[feature.name]
             if feature.sequence:
                 feature_value = list(feature_value) # Clone
@@ -119,7 +119,7 @@ class Transaction:
     def to_example_features(self) -> Dict[str, tf.train.Feature]:
         """ Returns transaction features as tf.train.Feature """
         example_features = {}
-        for feature in settings.features:
+        for feature in settings.settings.features:
             feature_value = self._features[feature.name]
             if not feature.sequence:
                 # tf.train.*List requires an iterable
