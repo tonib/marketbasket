@@ -40,10 +40,10 @@ model.compile(
 model.summary()
 
 # Tensorboard
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=settings.get_model_path('logs'))
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=settings.get_model_path(False, 'logs'))
 
 # Save checkpoints
-checkpoint_file_format = settings.get_model_path() + '/candidates_model_checkpoints/cp-{epoch:04d}.ckpt'
+checkpoint_file_format = settings.get_model_path(False, Prediction.CHECKPOINTS_DIR) + '/cp-{epoch:04d}.ckpt'
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_file_format,
                                                  save_weights_only=True,
                                                  verbose=1)

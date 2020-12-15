@@ -10,9 +10,6 @@ import tensorflow as tf
 class RatingPrediction(Prediction):
     """ Run and process candidates rating model predictions """
 
-    # Directory in "data" dir where to export the model
-    RATING_EXPORTED_MODEL_DIR = 'candidates_exported_model'
-
     def __init__(self, model:tf.keras.Model = None):
         # Load candidates generation model
         super().__init__()
@@ -21,7 +18,7 @@ class RatingPrediction(Prediction):
             self._rating_model: tf.keras.Model = model
         else:
             self._rating_model: tf.keras.Model = tf.keras.models.load_model( 
-                settings.settings.get_model_path( RatingPrediction.RATING_EXPORTED_MODEL_DIR ) )
+                settings.settings.get_model_path(True, Prediction.EXPORTED_MODEL_DIR) )
 
     @tf.function
     def repeat_batch_inputs(self, input_batch: Dict[str, Union[tf.Tensor, tf.RaggedTensor]], n_items_result: int) -> Dict[str, Union[tf.Tensor, tf.RaggedTensor]]:

@@ -9,15 +9,18 @@ import numpy as np
 class Prediction(tf.Module):
     """ Run and process candidates generation model predictions """
 
-    # Directory in "data" dir where to export the model
-    CANDIDATES_EXPORTED_MODEL_DIR = 'candidates_exported_model'
+    # Directory in "models/[MODEL]/" dir where to export the model
+    CHECKPOINTS_DIR = 'checkpoints'
+
+    # Directory in "models/[MODEL]/" dir where to export the model
+    EXPORTED_MODEL_DIR = 'exported_model'
 
     def __init__(self, model:tf.keras.Model = None):
 
         if model:
             self.model: tf.keras.Model = model
         else:
-            self.model: tf.keras.Model = tf.keras.models.load_model( settings.settings.get_model_path( Prediction.CANDIDATES_EXPORTED_MODEL_DIR ) )
+            self.model: tf.keras.Model = tf.keras.models.load_model( settings.settings.get_model_path(False, Prediction.EXPORTED_MODEL_DIR ) )
             #self.model.summary()
 
 

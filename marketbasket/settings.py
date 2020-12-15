@@ -144,9 +144,9 @@ class Settings:
             path = os.path.join(path, rel_path)
         return path
 
-    def get_model_path(self, rel_path: str = None) -> str:
+    def get_model_path(self, rating_model: bool, rel_path: str = None) -> str:
         """ Returns model generation directory if rel_path is None. Path to a file inside model directory otherwise """
-        path = self.model_dir
+        path = self.rating_model_dir if rating_model else self.model_dir
         if rel_path != None:
             path = os.path.join(path, rel_path)
         return path

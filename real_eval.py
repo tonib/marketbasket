@@ -1,5 +1,6 @@
 import marketbasket.settings as settings
 from marketbasket.predict import Prediction
+from marketbasket.predict_rating import RatingPrediction
 from marketbasket.transaction import Transaction
 from marketbasket.transactions_file import TransactionsFile
 from typing import List, Tuple, Iterable
@@ -91,7 +92,8 @@ def run_real_eval(predictor):
     return n_predictions
 
 if __name__ == "__main__":
-    predictor = Prediction()
+    #predictor = Prediction()
+    predictor = RatingPrediction()
     start = time.time()
     n_predictions = run_real_eval(predictor)
     #cProfile.run('run_real_eval(predictor)', sort=SortKey.CUMULATIVE)

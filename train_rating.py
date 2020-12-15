@@ -42,11 +42,11 @@ model.compile(
 model.summary()
 
 # Tensorboard
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=settings.get_model_path('logs'))
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=settings.get_model_path(True, 'logs'))
 
 # Save checkpoints
 # TODO: This is generating checkpoints in wrong directory !
-checkpoint_file_format = settings.get_model_path() + '/rating_model_checkpoints/cp-{epoch:04d}.ckpt'
+checkpoint_file_format = settings.get_model_path(True, RatingPrediction.CHECKPOINTS_DIR) + '/cp-{epoch:04d}.ckpt'
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_file_format,
                                                  save_weights_only=True,
                                                  verbose=1)
@@ -54,8 +54,6 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_file_format
 # Do real evaluation callback:
 # TODO: Performance of this could be improved A LOT
 predictor = RatingPrediction(model)
-# run_real_eval(predictor)
-# exit()
 
 class RealEvaluationCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, batch, logs=None):
