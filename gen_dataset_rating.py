@@ -32,7 +32,7 @@ def process_batch(input_batch: List[Transaction], expected_item_indices: List[in
     n_samples = 0
     
     # Run prediction over the batch (get item candidates)
-    predicted_item_indices, _ = predictor.predict_raw_batch(input_batch, 4)
+    predicted_item_indices, _, _ = predictor.predict_raw_batch(input_batch, 4)
     
     for transaction_index, transaction in enumerate(input_batch):
         # Ground truth item
@@ -41,8 +41,6 @@ def process_batch(input_batch: List[Transaction], expected_item_indices: List[in
         # Create the Example from the input transaction
         example_features = transaction.to_example_features()
 
-        # TODO: If real item is not within predicted items, should we add it as example? I don't know...
-        # By now, add it
         expected_found = False
         for candidate_item_index in predicted_item_indices[transaction_index]:
             # Rating ground truth
@@ -59,7 +57,7 @@ def process_batch(input_batch: List[Transaction], expected_item_indices: List[in
     
         if not expected_found:
             # Add the expected item
-            example_features[dataset.ITEM_TO_RATE] = tf.train.Feature( int64_list=tf.train.Int64List( value=[candidate_item_index] ) )
+            example_features[dataset.ITEM_TO_RATE] = tf.train.Feature( int64_list=tf.train.Int64List( value=[expected_item_index] ) )
             example_features[dataset.OUTPUT_FEATURE_NAME] = tf.train.Feature( float_list=tf.train.FloatList( value=[1.0] ) )
             dataset.write_transaction_to_example(example_features, writer)
             n_samples += 1

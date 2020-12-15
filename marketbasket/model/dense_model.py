@@ -29,7 +29,7 @@ def items_as_multihot(inputs: ModelInputs):
 def create_output_layer(inputs: ModelInputs, x, rating_model: bool):
     items_feature = inputs.features.items_sequence_feature()
     if rating_model:
-        layer = tf.keras.layers.Dense(1, name="rating", activation=None)
+        layer = tf.keras.layers.Dense(1, name="rating", activation='sigmoid')
     else:
         layer = tf.keras.layers.Dense(items_feature.labels.length(), name="classification", activation=None)
     return layer(x)

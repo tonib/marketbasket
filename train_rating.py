@@ -36,7 +36,7 @@ model.compile(
               optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
               #loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               #loss=SparseCategoricalFocalLoss(gamma=3, from_logits=True),
-              loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+              loss=tf.keras.losses.BinaryCrossentropy(from_logits=False),
               metrics=['binary_accuracy'])
 
 model.summary()

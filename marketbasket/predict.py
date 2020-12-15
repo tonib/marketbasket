@@ -70,7 +70,7 @@ class Prediction(tf.Module):
 
 
     @tf.function
-    def _run_model_and_postprocess(self, inputs_batch, item_indices_idx, n_results):
+    def _run_model_and_postprocess(self, inputs_batch, item_indices_feature_name, n_results):
 
         # Run the model
         result = self.model(inputs_batch, training=False)
@@ -78,7 +78,7 @@ class Prediction(tf.Module):
         result = tf.nn.softmax(result)
 
         # Label indices feature values
-        batch_item_indices = inputs_batch[item_indices_idx]
+        batch_item_indices = inputs_batch[item_indices_feature_name]
 
         if settings.settings.model_type == settings.ModelType.GPT:
             
@@ -119,7 +119,7 @@ class Prediction(tf.Module):
 
         return result, empty_sequences_idxs
 
-    def _transactions_to_model_inputs(self, transactions: List[Transaction]) -> List[tf.Tensor]:
+    def _transactions_to_model_inputs(self, transactions: List[Transaction]) -> Dict[str, tf.Tensor]:
 
         # Prepare dictionary with features names
         inputs_dict = { feature.name : [] for feature in settings.settings.features }
@@ -132,14 +132,14 @@ class Prediction(tf.Module):
         
         # To tensor values
         for feature in settings.settings.features:
-            name = "input_val_" + feature.name
             if feature.sequence:
-                inputs_dict[feature.name] = tf.ragged.constant(inputs_dict[feature.name], dtype=tf.int64, name=name)
+                inputs_dict[feature.name] = tf.ragged.constant(inputs_dict[feature.name], dtype=tf.int64)
             else:
-                inputs_dict[feature.name] = tf.constant(inputs_dict[feature.name], dtype=tf.int64, name=name)
+                inputs_dict[feature.name] = tf.constant(inputs_dict[feature.name], dtype=tf.int64)
 
         # Keras inputs are mapped by position, so return result as a list
-        return [ inputs_dict[feature.name] for feature in settings.settings.features ]
+        #return [ inputs_dict[feature.name] for feature in settings.settings.features ]
+        return inputs_dict
 
     def predict_raw_batch(self, transactions: List[Transaction], n_items_result: int) -> Tuple[np.ndarray, np.ndarray, List[tf.Tensor]]:
         # Transactions to keras inputs
@@ -147,7 +147,8 @@ class Prediction(tf.Module):
 
         # Run prediction
         if len(batch) > 0:
-            top_item_indices, top_probabilities = self._run_model_and_postprocess(batch, settings.settings.features.item_label_index, n_items_result)
+            top_item_indices, top_probabilities = self._run_model_and_postprocess(batch, settings.settings.features.item_label_feature, 
+                n_items_result)
             top_item_indices = top_item_indices.numpy()
             top_probabilities = top_probabilities.numpy()
         else:

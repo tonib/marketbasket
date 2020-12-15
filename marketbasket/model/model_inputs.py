@@ -29,6 +29,10 @@ class ModelInputs:
             self.inputs.append(input)
             self.by_feature[feature] = input
 
+        #self.inputs = list(reversed(self.inputs))
+        print("*** Model inputs:", self.inputs)
+        print("*** Features:", self.features)
+
     def item_labels_input(self) -> tf.keras.Input:
         """ Get the items sequence input """
         return self.by_feature[self.features.items_sequence_feature()]

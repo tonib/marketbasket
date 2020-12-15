@@ -25,6 +25,7 @@ class FeaturesSet:
         # Features related to items sequence
         self._items_sequence_features: Dict[str, Feature] = self._create_features(True, config['items_features'] )
         
+        # TODO: Change name of self.item_label_feature to self.items_feature_name, or something like that
         # Store the item labels feature name
         self.item_label_feature:str = read_setting(config, 'item_label_feature', str, None)
         if not self.item_label_feature in self._items_sequence_features:
@@ -35,6 +36,7 @@ class FeaturesSet:
         if self.items_sequence_feature().embedding_dim <= 0:
             raise Exception("Items labels MUST to have embedding_dim > 0")
 
+        # TODO: Remove self.item_label_index
         # Store items sequence feature index
         for index, feature in enumerate(self):
             if feature.name == self.item_label_feature:
