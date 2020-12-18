@@ -92,9 +92,11 @@ class FeaturesSet:
         """ Return all features """
         return iter(self._features.values())
         
-    def transaction_features(self) -> Iterable[Feature]:
+    def transaction_features(self, except_names=[]) -> Iterable[Feature]:
         """ Return transaction features (non sequence), unordered """
-        return self._transaction_features.values()
+        for feature in self._transaction_features.values():
+            if feature.name not in except_names:
+                yield feature
 
     def sequence_features(self) -> Iterable[Feature]:
         """ Return sequence features (features related to items), unordered """

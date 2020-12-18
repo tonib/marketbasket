@@ -3,6 +3,7 @@ import tensorflow as tf
 from marketbasket.model.model_inputs import ModelInputs
 from marketbasket.feature import Feature
 from marketbasket.jsonutils import read_setting
+import marketbasket.dataset as dataset
 
 """
     DNN model definition
@@ -41,8 +42,13 @@ def create_dense_model(inputs: ModelInputs, rating_model: bool) -> tf.keras.Mode
     encoded_items_output = items_as_multihot(inputs)
 
     # Get transactions level features
-    encoded_trn_inputs = inputs.encode_inputs_set( inputs.features.transaction_features() )
+    encoded_trn_inputs = inputs.encode_inputs_set( inputs.features.transaction_features(except_names=dataset.ITEM_TO_RATE) )
 
+    if rating_model:
+        # Add item to rate as one hot:
+        item_to_rate_feature: Feature = inputs.features[dataset.ITEM_TO_RATE]
+        encoded_trn_inputs = encoded_trn_inputs + [ item_to_rate_feature.encode_input(inputs.by_feature[item_to_rate_feature], as_multihot=True) ]
+        
     # Merge item labels and transaction features
     encoded_inputs = [ encoded_items_output ] + encoded_trn_inputs
     encoded_inputs = ModelInputs.merge_inputs_set( encoded_inputs )

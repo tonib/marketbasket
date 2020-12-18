@@ -52,10 +52,11 @@ class Feature:
 
         if as_multihot:
             # Special case
-            if not self.sequence:
-                raise Exception(self.name + " is scalar, it cannot be multihot encoded")
-            encoding_layer = tf.keras.layers.Lambda(lambda x: raged_lists_batch_to_multihot(x, n_labels), name="multi_hot_" + 
-                self.name)
+            if self.sequence:
+                encoding_layer = tf.keras.layers.Lambda(lambda x: raged_lists_batch_to_multihot(x, n_labels), name="multi_hot_" + 
+                    self.name)
+            else:
+                encoding_layer = tf.keras.layers.Lambda(lambda x: tf.one_hot(x, n_labels), name='one_hot_' + self.name)
             return encoding_layer(input)
 
         # Only embedded sequence features will have mask:
