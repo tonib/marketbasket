@@ -54,6 +54,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_file_format
 # Do real evaluation callback:
 # TODO: Performance of this could be improved A LOT
 predictor = RatingPrediction(model)
+#run_real_eval(predictor)
 
 class RealEvaluationCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, batch, logs=None):

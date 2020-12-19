@@ -42,7 +42,7 @@ def create_dense_model(inputs: ModelInputs, rating_model: bool) -> tf.keras.Mode
     encoded_items_output = items_as_multihot(inputs)
 
     # Get transactions level features
-    encoded_trn_inputs = inputs.encode_inputs_set( inputs.features.transaction_features(except_names=dataset.ITEM_TO_RATE) )
+    encoded_trn_inputs = inputs.encode_inputs_set( inputs.features.transaction_features(except_names=[dataset.ITEM_TO_RATE]) )
 
     if rating_model:
         # Add item to rate as one hot:

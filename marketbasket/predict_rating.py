@@ -43,34 +43,24 @@ class RatingPrediction(Prediction):
     def calculate_ratings(self, input_batch: Dict[str, Union[tf.Tensor, tf.RaggedTensor]], top_item_indices, n_items_result: int):
 
         # Repeat transaction inputs for each predicted top item
-        print("*** input_batch", input_batch)
         input_batch = self.repeat_batch_inputs(input_batch, n_items_result)
 
         # Add items to rate to the inputs batch
-        #print("*** top_item_indices", top_item_indices)
         items_to_rate = tf.reshape(top_item_indices, [-1])
         input_batch[dataset.ITEM_TO_RATE] = items_to_rate
-
-        print("*** input_batch", input_batch)
 
         # Get the rating for this transaction. Apply sigmoid, as model generates logits
         new_ratings = self._rating_model(input_batch)
         #new_ratings = tf.nn.sigmoid(new_ratings)
 
         # Reshape ratings
-        print("***new_ratings", input_batch)
         new_ratings = tf.reshape(new_ratings, [-1, n_items_result])
-        print("***new_ratings", input_batch)
 
         # Reorder items/probabilities. Most probable first
         ordered_probs_indices = tf.argsort(new_ratings, direction='DESCENDING')
-        print("*** new_ratings.shape", new_ratings.shape)
-        print("*** top_item_indices.shape", top_item_indices.shape)
         top_probabilities = tf.gather(new_ratings, ordered_probs_indices, batch_dims=1)
         top_item_indices = tf.gather(top_item_indices, ordered_probs_indices, batch_dims=1)
 
-        print("*** top_item_indices.shape", top_item_indices.shape)
-        print("*** top_probabilities.shape", top_probabilities.shape)
         return top_item_indices, top_probabilities
 
     def predict_raw_batch(self, transactions: List[Transaction], n_items_result: int) -> Tuple[np.ndarray, np.ndarray, List[tf.Tensor]]:

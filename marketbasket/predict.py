@@ -96,7 +96,6 @@ class Prediction(tf.Module):
             #print("probs", probs)
 
         # Set result[ batch_item_indices ] = -1.0:
-        #print("batch_item_indices >>>***", batch_item_indices)
         result = Prediction._remove_input_items_from_prediction( batch_item_indices, result )
 
         # Get most probable n results

@@ -13,7 +13,7 @@ import numpy as np
 from collections import Counter
 
 # Batch size to run predictions in evaluation
-TEST_BATCH_SIZE = 256
+TEST_BATCH_SIZE = 128
 
 # Number of top predicted items to count
 N_TOP_PREDICTIONS = 32

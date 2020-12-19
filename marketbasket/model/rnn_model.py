@@ -26,6 +26,6 @@ def create_model_rnn(inputs: ModelInputs, rating_model: bool) -> tf.keras.Model:
     x = create_rnn(encoded_inputs)
 
     # Output layer
-    x = create_output_layer(x, rating_model)
+    x = create_output_layer(inputs, x, rating_model)
 
     return tf.keras.Model(inputs=inputs.inputs, outputs=x)

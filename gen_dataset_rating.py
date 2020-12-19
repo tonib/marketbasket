@@ -93,6 +93,8 @@ def process_transaction(transaction, writer: tf.io.TFRecordWriter):
         example_features[dataset.OUTPUT_FEATURE_NAME] = tf.train.Feature( float_list=tf.train.FloatList( value=[0.0] ) )
         for _ in range(n_negatives):
             random_item = random.randrange(0, n_items)
+            if random_item == output_item_idx:
+                continue
             example_features[dataset.ITEM_TO_RATE] = tf.train.Feature( int64_list=tf.train.Int64List( value=[random_item] ) )
             dataset.write_transaction_to_example(example_features, writer)
 
