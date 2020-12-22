@@ -1,4 +1,4 @@
-from marketbasket.settings import settings # Setup. Must to be first
+import marketbasket.settings as settings # Setup. Must to be first
 from marketbasket.labels import Labels
 from datetime import datetime
 from tensorflow.python.framework.ops import disable_eager_execution
@@ -15,8 +15,8 @@ import tensorflow as tf
 # To test with GPU disabled set environment variable CUDA_VISIBLE_DEVICES=-1
 
 print(datetime.now(), "Process start: Rating model train")
-settings.features.load_label_files()
-settings.print_summary()
+settings.settings.features.load_label_files()
+settings.settings.print_summary()
 
 # Define train dataset
 train_dataset = dataset.get_dataset(True, True)
@@ -42,11 +42,11 @@ model.compile(
 model.summary()
 
 # Tensorboard
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=settings.get_model_path(True, 'logs'))
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=settings.settings.get_model_path(True, 'logs'))
 
 # Save checkpoints
 # TODO: This is generating checkpoints in wrong directory !
-checkpoint_file_format = settings.get_model_path(True, RatingPrediction.CHECKPOINTS_DIR) + '/cp-{epoch:04d}.ckpt'
+checkpoint_file_format = settings.settings.get_model_path(True, RatingPrediction.CHECKPOINTS_DIR) + '/cp-{epoch:04d}.ckpt'
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_file_format,
                                                  save_weights_only=True,
                                                  verbose=1)
@@ -64,10 +64,10 @@ class RealEvaluationCallback(tf.keras.callbacks.Callback):
 # with None it throws exception
 
 model.fit(train_dataset, 
-        epochs=settings.n_epochs,
+        epochs=settings.settings.n_epochs,
         callbacks=[tensorboard_callback, cp_callback, RealEvaluationCallback()], 
         validation_data=eval_dataset,
         validation_steps=n_eval_batches,
-        verbose=settings.train_log_level)
+        verbose=settings.settings.train_log_level)
 
 print(datetime.now(), "Process end: Train")

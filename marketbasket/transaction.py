@@ -1,7 +1,7 @@
 import marketbasket.settings as settings
 from typing import List, Tuple, Dict
 from .labels import Labels
-from .feature import Feature
+import marketbasket.feature
 import tensorflow as tf
 
 class Transaction:
@@ -69,7 +69,7 @@ class Transaction:
     def replace_labels_by_indices(self) -> 'Transaction':
         """ Returns a copy of this transaction with labels replaced by its indices """
         result = Transaction()
-        feature: Feature
+        feature: marketbasket.feature.Feature
         for feature in settings.settings.features:
             feature_value = self._features[feature.name]
             if feature.sequence:
@@ -82,7 +82,7 @@ class Transaction:
     def replace_indices_by_labels(self) -> 'Transaction':
         """ Returns a copy of this transaction with indices replaced by its labels """
         result = Transaction()
-        feature: Feature
+        feature: marketbasket.feature.Feature
         for feature in settings.settings.features:
             feature_value = self._features[feature.name]
             if feature.sequence:
@@ -106,7 +106,7 @@ class Transaction:
         # Remove unknown item positions from all sequence features
         unknown_item_indices = reversed(unknown_item_indices)
         result = Transaction()
-        feature: Feature
+        feature: marketbasket.feature.Feature
         for feature in settings.settings.features:
             feature_value = self[feature.name]
             if feature.sequence:

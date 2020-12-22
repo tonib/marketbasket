@@ -3,7 +3,7 @@ import marketbasket.settings as settings
 import tensorflow as tf
 from .labels import Labels
 import os
-from marketbasket.feature import Feature
+import marketbasket.feature
 from marketbasket.predict import Prediction
 
 """ TFRecord dataset setup """
@@ -27,7 +27,7 @@ def _setup_feature_keys(rating_model: bool):
     _features_to_types = {}
 
     # Declare input features
-    feature: Feature
+    feature: marketbasket.feature.Feature
     for feature in settings.settings.features:
         if feature.sequence:
             feature_mapped_type = tf.io.RaggedFeature(tf.int64, feature.name, row_splits_dtype=tf.int64)

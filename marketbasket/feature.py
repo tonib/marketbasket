@@ -2,12 +2,16 @@ import marketbasket.settings as settings
 from marketbasket.jsonutils import read_setting
 from marketbasket.labels import Labels
 from typing import List, Union
+import marketbasket.dataset as dataset
 import tensorflow as tf
 
 class Feature:
     """ A model input/output feature configuration.
         Currently are expected to be string labels
     """
+
+    # Embedding layer for items
+    _items_embedding: tf.keras.layers.Embedding = None
 
     def __init__(self, config: dict, sequence: bool):
         """ Parse a feature from config file
@@ -59,7 +63,7 @@ class Feature:
                 encoding_layer = tf.keras.layers.Lambda(lambda x: tf.one_hot(x, n_labels), name='one_hot_' + self.name)
             return encoding_layer(input)
 
-        # Only embedded sequence features will have mask:
+        # Only embedded sequence features will have mask (items sequence will always be embedded):
         mask = ( self.sequence and self.embedding_dim > 0 )
         
         if self.sequence:
@@ -70,19 +74,42 @@ class Feature:
             input = tf.keras.layers.Lambda(lambda x: pad_sequence_right(x, mask), name=layer_name)(input)
 
         if self.embedding_dim > 0:
-            layer_name = "embedding_" + self.name
-            if mask:
-                # Value zero is reserved for padding
-                n_labels += 1
-                layer_name = "masked_" + layer_name
-            encoding_layer = tf.keras.layers.Embedding(n_labels, self.embedding_dim, mask_zero=mask, name=layer_name)
-            self.embedding_layer = encoding_layer
+            encoding_layer = self._get_embedding_layer(mask)
+            # layer_name = "embedding_" + self.name
+            # if mask:
+            #     # Value zero is reserved for padding
+            #     n_labels += 1
+            #     layer_name = "masked_" + layer_name
+            # encoding_layer = tf.keras.layers.Embedding(n_labels, self.embedding_dim, mask_zero=mask, name=layer_name)
+            # self.embedding_layer = encoding_layer
         else:
             # Lambda seems much more fast...
             #return tf.keras.layers.experimental.preprocessing.CategoryEncoding(max_tokens=feature.labels.length(), name='one_hot_' + feature.name)
             encoding_layer = tf.keras.layers.Lambda(lambda x: tf.one_hot(x, n_labels), name='one_hot_' + self.name)
         
         return encoding_layer(input)
+
+    def _get_embedding_layer(self, mask):
+        layer_name = self.name
+
+        is_items_embedding = (self.name == settings.settings.features.item_label_feature or self.name == dataset.ITEM_TO_RATE)
+        if is_items_embedding:
+            if Feature._items_embedding != None:
+                # Both must to share the same embedding
+                return Feature._items_embedding
+            layer_name = settings.settings.features.item_label_feature
+
+        layer_name = "embedding_" + layer_name
+        n_labels = self.labels.length()
+        if mask:
+            # Value zero is reserved for padding
+            n_labels += 1
+            layer_name = "masked_" + layer_name
+        encoding_layer = tf.keras.layers.Embedding(n_labels, self.embedding_dim, mask_zero=mask, name=layer_name)
+
+        if is_items_embedding:
+            Feature._items_embedding = encoding_layer
+        return encoding_layer
 
 ###################################################
 # TF ENCODING HELPER FUNCTIONS

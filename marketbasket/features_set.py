@@ -33,8 +33,8 @@ class FeaturesSet:
         
         # Item labels feature must to be embedded: This restriction is done to be sure sequences will be masked
         # See Feature.encode_input()
-        if self.items_sequence_feature().embedding_dim <= 0:
-            raise Exception("Items labels MUST to have embedding_dim > 0")
+        if self.items_sequence_feature().embedding_dim <= 0 or not self.items_sequence_feature().sequence:
+            raise Exception("Items labels MUST to be sequence and have embedding_dim > 0")
 
         # TODO: Remove self.item_label_index
         # Store items sequence feature index
