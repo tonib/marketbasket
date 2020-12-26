@@ -20,8 +20,9 @@ class RatingPrediction(Prediction):
             self._rating_model: tf.keras.Model = tf.keras.models.load_model( 
                 settings.settings.get_model_path(True, Prediction.EXPORTED_MODEL_DIR) )
 
+    @staticmethod
     @tf.function
-    def repeat_batch_inputs(self, input_batch: Dict[str, Union[tf.Tensor, tf.RaggedTensor]], n_items_result: int) -> Dict[str, Union[tf.Tensor, tf.RaggedTensor]]:
+    def repeat_batch_inputs(input_batch: Dict[str, Union[tf.Tensor, tf.RaggedTensor]], n_items_result: int) -> Dict[str, Union[tf.Tensor, tf.RaggedTensor]]:
         """ Repeat transaction inputs for each predicted top item """
         result = {}
         for feature_name in input_batch:
@@ -43,7 +44,7 @@ class RatingPrediction(Prediction):
     def calculate_ratings(self, input_batch: Dict[str, Union[tf.Tensor, tf.RaggedTensor]], top_item_indices, n_items_result: int):
 
         # Repeat transaction inputs for each predicted top item
-        input_batch = self.repeat_batch_inputs(input_batch, n_items_result)
+        input_batch = RatingPrediction.repeat_batch_inputs(input_batch, n_items_result)
 
         # Add items to rate to the inputs batch
         items_to_rate = tf.reshape(top_item_indices, [-1])

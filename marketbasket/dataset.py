@@ -5,6 +5,7 @@ from .labels import Labels
 import os
 import marketbasket.feature
 from marketbasket.predict import Prediction
+import marketbasket.predict_rating as predict_rating
 
 """ TFRecord dataset setup """
 
@@ -19,6 +20,8 @@ _features_to_types:Dict = None
 def _setup_feature_keys(rating_model: bool):
     """ Setup features mapping """
     
+    rating_model = False
+
     global _features_to_types
     if _features_to_types:
         # Already defined
@@ -51,21 +54,60 @@ def _example_parse_function(proto_batch) -> Tuple:
     # Load one batch of examples (MULTIPLE). Load a single example is damn slow
     parsed_features = tf.io.parse_example(proto_batch, _features_to_types)
 
-    # Keras inputs are mapped by input POSITION, not by input name (ick, WHY?), so order here is important
-    # TODO: We should do this. Probably it will not work
     output_value = parsed_features[OUTPUT_FEATURE_NAME]
     del parsed_features[OUTPUT_FEATURE_NAME]
+
     # Return (net inputs, expected output):
     return (parsed_features, output_value)
 
+def _example_parse_function_rating(proto_batch, n_items) -> Tuple:
+    """ Convert protobuf Examples batch to TF Tensors batch """
+
+    # Load one batch of examples (MULTIPLE). Load a single example is damn slow
+    input_batch = tf.io.parse_example(proto_batch, _features_to_types)
+
+    # This is the expected item to predict
+    items_to_predict = input_batch[OUTPUT_FEATURE_NAME]
+    del input_batch[OUTPUT_FEATURE_NAME]
+
+    # We will do a negative sampling (1 positive + n_negatives negatives). Repeat inputs
+    n_negatives = 10
+    n_repeats = 1 + n_negatives
+    input_batch = predict_rating.RatingPrediction.repeat_batch_inputs(input_batch,n_repeats)
+
+    # Generate random negatives batch for item indices
+    batch_size = tf.shape(items_to_predict)[0]
+    negative_items = tf.random.uniform( [batch_size, n_negatives], maxval=n_items, dtype=tf.int64)
+
+    # Add positive items, at the batch begining
+    items_to_predict = tf.reshape(items_to_predict, [batch_size, 1]) # [1, 2] -> [[1], [2]]
+    items_to_predict = tf.concat( [items_to_predict, negative_items], axis=1) # [[1], [2]], [[10,11] , [20,21]] -> [ [1, 10, 11], [2, 20, 21] ]
+    items_to_predict = tf.reshape(items_to_predict, [-1]) # -> [1, 10, 11, 2, 20, 21]
+    input_batch[ITEM_TO_RATE] = items_to_predict
+
+    # Assign probabilities
+    output = tf.concat( [ [1.0] , tf.zeros([n_negatives]) ], axis=0 ) # -> [ 1.0, 0.0, 0.0 ]
+    output = tf.tile( output , [batch_size] ) # -> [ 1.0, 0.0, 0.0, 1.0, 0.0, 0.0 ]
+
+    # Return (net inputs, expected output):
+    return (input_batch, output)
+
+def _get_parse_function(rating_model: bool):
+    if rating_model:
+        n_items = settings.settings.features.items_sequence_feature().labels.length()
+        return lambda proto_batch: _example_parse_function_rating(proto_batch, n_items)
+    else:
+        return _example_parse_function
 
 def train_dataset_file_path(rating_model: bool) -> str:
     """ Returns train dataset file path """
-    return settings.settings.get_data_path( 'dataset_train_candidates.tfrecord' if not rating_model else 'dataset_train_rating.tfrecord' )
+    #return settings.settings.get_data_path( 'dataset_train_candidates.tfrecord' if not rating_model else 'dataset_train_rating.tfrecord' )
+    return settings.settings.get_data_path( 'dataset_train_candidates.tfrecord' )
 
 def eval_dataset_file_path(rating_model: bool) -> str:
     """ Returns evaluation dataset file path """
-    return settings.settings.get_data_path( 'dataset_eval_candidates.tfrecord' if not rating_model else 'dataset_eval_rating.tfrecord' )
+    #return settings.settings.get_data_path( 'dataset_eval_candidates.tfrecord' if not rating_model else 'dataset_eval_rating.tfrecord' )
+    return settings.settings.get_data_path( 'dataset_eval_candidates.tfrecord' )
 
 def get_dataset(rating_model: bool, train: bool, debug: bool = False) -> tf.data.Dataset:
     """ Get the train/eval dataset
@@ -85,8 +127,8 @@ def get_dataset(rating_model: bool, train: bool, debug: bool = False) -> tf.data
         dataset = dataset.shuffle(10000).batch( settings.settings.batch_size )
     else:
         dataset = dataset.batch(1)
-    dataset = dataset.map(_example_parse_function , num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    #dataset = dataset.map(_example_parse_function , num_parallel_calls=8)
+    dataset = dataset.map( _get_parse_function(rating_model) , num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #dataset = dataset.map( _get_parse_function(rating_model) , num_parallel_calls=8)
     return dataset
 
 def n_batches_in_dataset(dataset: tf.data.Dataset) -> int:

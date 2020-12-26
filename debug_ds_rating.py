@@ -1,8 +1,11 @@
+import marketbasket.settings as settings
 import marketbasket.dataset as dataset
 
 """
     Script to debug rating model dataset
 """
+
+settings.settings.features.load_label_files()
 
 # Define train dataset
 dataset = dataset.get_dataset(True, False, True)
