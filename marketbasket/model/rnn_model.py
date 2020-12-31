@@ -8,10 +8,14 @@ def create_rnn(encoded_inputs):
     # Model settings
     layer_size = read_setting( settings.model_config, 'rnn_layer_size' , int , 128 )
     dropout_ratio = read_setting( settings.model_config, 'rnn_dropout_ratio' , float , 0.2 )
+    bidirectional = read_setting( settings.model_config, 'rnn_bidirectional' , bool , True )
 
     # Define RNN
-    rnn_layer = tf.keras.layers.GRU(layer_size)
-    x = tf.keras.layers.Bidirectional(rnn_layer, name="rnn")(encoded_inputs)
+    rnn_layer = tf.keras.layers.GRU(layer_size, name="rnn")
+    if bidirectional:
+        rnn_layer = tf.keras.layers.Bidirectional(rnn_layer, name="rnn_bidir")
+    x = rnn_layer(encoded_inputs)
+
     if dropout_ratio > 0:
         x = tf.keras.layers.Dropout(dropout_ratio, name="dropout")(x)
 

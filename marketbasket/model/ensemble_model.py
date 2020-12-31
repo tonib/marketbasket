@@ -18,11 +18,12 @@ def create_ensemble_model(inputs: ModelInputs, rating_model: bool) -> tf.keras.M
     conv_x = create_conv(encoded_inputs)
 
     # Apply dense
-    items_as_multihot = dense_model.items_as_multihot(inputs)
-    dense_x = dense_model.create_dense(items_as_multihot)
+    # items_as_multihot = dense_model.items_as_multihot(inputs)
+    # dense_x = dense_model.create_dense(items_as_multihot)
 
     # Merge convolution and RNN result
-    x = tf.keras.layers.Concatenate()( [rnn_x , conv_x, dense_x] )
+    #x = tf.keras.layers.Concatenate()( [rnn_x , conv_x, dense_x] )
+    x = tf.keras.layers.Concatenate()( [rnn_x , conv_x] )
 
     # "Ensemble" results
     ensemble_layer_size = read_setting( settings.model_config, 'ensemble_layer_size' , int , 512 )
@@ -30,6 +31,6 @@ def create_ensemble_model(inputs: ModelInputs, rating_model: bool) -> tf.keras.M
         x = tf.keras.layers.Dense(ensemble_layer_size, activation='relu')(x)
 
     # Output layer
-    x = dense_model.create_output_layer(x, rating_model)
+    x = dense_model.create_output_layer(inputs, x, rating_model)
 
     return tf.keras.Model(inputs=inputs.inputs, outputs=x)

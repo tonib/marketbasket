@@ -1,0 +1,122 @@
+Layer (type)                    Output Shape         Param #     Connected to                     
+==================================================================================================
+CliCod (InputLayer)             [(None,)]            0                                            
+__________________________________________________________________________________________________
+PncFlgPsp (InputLayer)          [(None,)]            0                                            
+__________________________________________________________________________________________________
+CevCod (InputLayer)             [(None,)]            0                                            
+__________________________________________________________________________________________________
+DocFecMonth (InputLayer)        [(None,)]            0                                            
+__________________________________________________________________________________________________
+ArtCod (InputLayer)             [(None, None)]       0                                            
+__________________________________________________________________________________________________
+embedding_CliCod (Embedding)    (None, 64)           64064       CliCod[0][0]                     
+__________________________________________________________________________________________________
+one_hot_PncFlgPsp (Lambda)      (None, 2)            0           PncFlgPsp[0][0]                  
+__________________________________________________________________________________________________
+one_hot_CevCod (Lambda)         (None, 15)           0           CevCod[0][0]                     
+__________________________________________________________________________________________________
+one_hot_DocFecMonth (Lambda)    (None, 12)           0           DocFecMonth[0][0]                
+__________________________________________________________________________________________________
+add_one_pad_zeros_ArtCod (Lambd (None, 16)           0           ArtCod[0][0]                     
+__________________________________________________________________________________________________
+concatenate (Concatenate)       (None, 93)           0           embedding_CliCod[0][0]           
+                                                                 one_hot_PncFlgPsp[0][0]          
+                                                                 one_hot_CevCod[0][0]             
+                                                                 one_hot_DocFecMonth[0][0]        
+__________________________________________________________________________________________________
+masked_embedding_ArtCod (Embedd (None, 16, 128)      384128      add_one_pad_zeros_ArtCod[0][0]   
+__________________________________________________________________________________________________
+repeat_vector (RepeatVector)    (None, 16, 93)       0           concatenate[0][0]                
+__________________________________________________________________________________________________
+concatenate_1 (Concatenate)     (None, 16, 221)      0           masked_embedding_ArtCod[0][0]    
+                                                                 repeat_vector[0][0]              
+__________________________________________________________________________________________________
+conv_0 (Conv1D)                 (None, 13, 128)      113280      concatenate_1[0][0]              
+__________________________________________________________________________________________________
+rnn (Bidirectional)             (None, 256)          269568      concatenate_1[0][0]              
+__________________________________________________________________________________________________
+conv_1 (Conv1D)                 (None, 10, 128)      65664       conv_0[0][0]                     
+__________________________________________________________________________________________________
+dropout (Dropout)               (None, 256)          0           rnn[0][0]                        
+__________________________________________________________________________________________________
+flatten (Flatten)               (None, 1280)         0           conv_1[0][0]                     
+__________________________________________________________________________________________________
+concatenate_2 (Concatenate)     (None, 1536)         0           dropout[0][0]                    
+                                                                 flatten[0][0]                    
+__________________________________________________________________________________________________
+dense (Dense)                   (None, 512)          786944      concatenate_2[0][0]              
+__________________________________________________________________________________________________
+dense_1 (Dense)                 (None, 3000)         1539000     dense[0][0]                      
+==================================================================================================
+Total params: 3,222,648
+Trainable params: 3,222,648
+Non-trainable params: 0
+
+
+21537/21537 [==============================] - 150s 7ms/step - loss: 4.4806 - accuracy: 0.1787 - val_loss: 4.6630 - val_accuracy: 0.1767
+Epoch 7/15
+21531/21537 [============================>.] - ETA: 0s - loss: 4.4612 - accuracy: 0.1798  
+Epoch 00007: saving model to /home/toni/proyectos/tensorflow/marketBasket/model/checkpoints/cp-0007.ckpt
+Mean ranking: 46.24190708826737
+* N. times next item in top 1 predictions: 45082 of 244813 / Ratio: 0.1841487175926115
+* N. times next item in top 8 predictions: 107954 of 244813 / Ratio: 0.44096514482482546
+* N. times next item in top 16 predictions: 128694 of 244813 / Ratio: 0.5256828681483418
+* N. times next item in top 32 predictions: 148256 of 244813 / Ratio: 0.6055887554990952
+* N. times next item in top 64 predictions: 166569 of 244813 / Ratio: 0.6803927895985916
+* N. times next item in top 128 predictions: 183846 of 244813 / Ratio: 0.7509650222823134
+Predictions out of rank: 60967 / Ratio: 0.24903497771768657
+Mean probability: 0.06424702654201941
+
+
+dense, candidates test:
+Epoch 00004: saving model to models/candidates_model/candidates_model_checkpoints/cp-0004.ckpt
+Mean ranking: 16.661158123791104
+* N. times next item in top 1 predictions: 27480 of 165440 / Ratio: 0.16610251450676983
+* N. times next item in top 8 predictions: 73606 of 165440 / Ratio: 0.4449105415860735
+* N. times next item in top 16 predictions: 89819 of 165440 / Ratio: 0.5429098162475822
+* N. times next item in top 32 predictions: 105483 of 165440 / Ratio: 0.637590667311412
+Predictions out of rank: 59957 / Ratio: 0.362409332688588
+Mean probability: 0.0731868587226051
+
+dense, ratings test:
+* N. times next item in top 1 predictions: 19917 of 165440 / Ratio: 0.12038805609284332
+* N. times next item in top 8 predictions: 63230 of 165440 / Ratio: 0.3821929400386847
+* N. times next item in top 16 predictions: 83088 of 165440 / Ratio: 0.5022243713733076
+* N. times next item in top 32 predictions: 104743 of 165440 / Ratio: 0.633117746615087
+Predictions out of rank: 60697 / Ratio: 0.366882253384913
+Mean probability: 0.4501582612367862
+88002/88002 [==============================] - 118s 1ms/step - loss: 0.2722 - binary_accuracy: 0.8925 - val_loss: 0.2535 - val_binary_accuracy: 0.9022
+Epoch 2/15
+87998/88002 [============================>.] - ETA: 0s - loss: 0.2382 - binary_accuracy: 0.9073  
+Epoch 00002: saving model to models/rating_model/checkpoints/cp-0002.ckpt
+Mean ranking: 17.548694390715667
+* N. times next item in top 1 predictions: 21068 of 165440 / Ratio: 0.12734526112185687
+* N. times next item in top 8 predictions: 65630 of 165440 / Ratio: 0.39669970986460346
+* N. times next item in top 16 predictions: 85065 of 165440 / Ratio: 0.5141743230174082
+* N. times next item in top 32 predictions: 104743 of 165440 / Ratio: 0.633117746615087
+Predictions out of rank: 60697 / Ratio: 0.366882253384913
+Mean probability: 0.47158710272043003
+
+
+rnn, candidates tests:
+Mean ranking: 15.58165498065764
+* N. times next item in top 1 predictions: 33647 of 165440 / Ratio: 0.20337886847195358
+* N. times next item in top 8 predictions: 80329 of 165440 / Ratio: 0.4855476305609284
+* N. times next item in top 16 predictions: 95344 of 165440 / Ratio: 0.5763056092843327
+* N. times next item in top 32 predictions: 109328 of 165440 / Ratio: 0.6608317214700193
+Predictions out of rank: 56112 / Ratio: 0.33916827852998066
+Mean probability: 0.08161586619520117
+Total time: 6.6334826946258545
+N. predictions: 165440
+Milliseconds / prediction 0.04009600274798026
+
+rnn, rating test (64):
+Mean ranking: 16.63644825918762
+* N. times next item in top 1 predictions: 24276 of 165440 / Ratio: 0.14673597678916828
+* N. times next item in top 8 predictions: 71230 of 165440 / Ratio: 0.43054883945841393
+* N. times next item in top 16 predictions: 89863 of 165440 / Ratio: 0.5431757736943907
+* N. times next item in top 32 predictions: 109328 of 165440 / Ratio: 0.6608317214700193
+Predictions out of rank: 56112 / Ratio: 0.33916827852998066
+Mean probability: 0.41327512884892864
+161191/161191 [==============================] - 734s 5ms/step - loss: 0.1776 - binary_accuracy: 0.9376 - val_loss: 0.1676 - val_binary_accuracy: 0.9414

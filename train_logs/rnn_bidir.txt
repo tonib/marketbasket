@@ -1,0 +1,105 @@
+(venv-tf-2.3) toni@tonib:~/proyectos/tensorflow/marketBasket$ python train.py 
+2020-12-30 18:55:00.199569 Process start: Candidates model train
+Settings:
+-----------------------------------------
+config_file_path: data/config.json
+n_max_items: 100
+n_max_customers: 100
+evaluation_ratio: 0.15
+batch_size: 64
+n_epochs: 15
+class_weight: False
+model_type: ModelType.RNN
+sequence_length: 16
+items_embedding_dim: 128
+customers_embedding_dim: 64
+transactions_file: /home/toni/proyectos/tensorflow/marketBasket/data/transactions.csv
+model_dir: models/candidates_model
+rating_model_dir: models/rating_model
+n_candidates: 32
+train_log_level: 1
+tf_log_level: WARNING
+model_config: {'ensemble_layer_size': 512, 'conv_n_layers': 2, 'conv_layer_size': 128, 'rnn_layer_size': 128, 'dense_n_layers': 1, 'dense_layer_size': 64}
+Features:
+	CliCod: label (transaction feature) / embedding_dim: 64 / max_labels: 1000 / # labels: 1001
+	PncFlgPsp: label (transaction feature) / # labels: 2
+	CevCod: label (transaction feature) / # labels: 15
+	DocFecMonth: label (transaction feature) / # labels: 12
+	ArtCod: label (items sequence feature) / embedding_dim: 128 / max_labels: 3000 / # labels: 3000
+-----------------------------------------
+Model: "functional_1"
+__________________________________________________________________________________________________
+Layer (type)                    Output Shape         Param #     Connected to                     
+==================================================================================================
+CliCod (InputLayer)             [(None,)]            0                                            
+__________________________________________________________________________________________________
+PncFlgPsp (InputLayer)          [(None,)]            0                                            
+__________________________________________________________________________________________________
+CevCod (InputLayer)             [(None,)]            0                                            
+__________________________________________________________________________________________________
+DocFecMonth (InputLayer)        [(None,)]            0                                            
+__________________________________________________________________________________________________
+ArtCod (InputLayer)             [(None, None)]       0                                            
+__________________________________________________________________________________________________
+embedding_CliCod (Embedding)    (None, 64)           64064       CliCod[0][0]                     
+__________________________________________________________________________________________________
+one_hot_PncFlgPsp (Lambda)      (None, 2)            0           PncFlgPsp[0][0]                  
+__________________________________________________________________________________________________
+one_hot_CevCod (Lambda)         (None, 15)           0           CevCod[0][0]                     
+__________________________________________________________________________________________________
+one_hot_DocFecMonth (Lambda)    (None, 12)           0           DocFecMonth[0][0]                
+__________________________________________________________________________________________________
+add_one_pad_zeros_ArtCod (Lambd (None, 16)           0           ArtCod[0][0]                     
+__________________________________________________________________________________________________
+concatenate (Concatenate)       (None, 93)           0           embedding_CliCod[0][0]           
+                                                                 one_hot_PncFlgPsp[0][0]          
+                                                                 one_hot_CevCod[0][0]             
+                                                                 one_hot_DocFecMonth[0][0]        
+__________________________________________________________________________________________________
+masked_embedding_ArtCod (Embedd (None, 16, 128)      384128      add_one_pad_zeros_ArtCod[0][0]   
+__________________________________________________________________________________________________
+repeat_vector (RepeatVector)    (None, 16, 93)       0           concatenate[0][0]                
+__________________________________________________________________________________________________
+concatenate_1 (Concatenate)     (None, 16, 221)      0           masked_embedding_ArtCod[0][0]    
+                                                                 repeat_vector[0][0]              
+__________________________________________________________________________________________________
+rnn (Bidirectional)             (None, 256)          269568      concatenate_1[0][0]              
+__________________________________________________________________________________________________
+dropout (Dropout)               (None, 256)          0           rnn[0][0]                        
+__________________________________________________________________________________________________
+classification (Dense)          (None, 3000)         771000      dropout[0][0]                    
+==================================================================================================
+Total params: 1,488,760
+Trainable params: 1,488,760
+Non-trainable params: 0
+__________________________________________________________________________________________________
+2020-12-30 18:55:02.098524: W tensorflow/stream_executor/platform/default/dso_loader.cc:59] Could not load dynamic library 'libcupti.so.10.1'; dlerror: libcupti.so.10.1: cannot open shared object file: No such file or directory
+2020-12-30 18:55:02.098595: W tensorflow/stream_executor/platform/default/dso_loader.cc:59] Could not load dynamic library 'libcupti.so'; dlerror: libcupti.so: cannot open shared object file: No such file or directory
+2020-12-30 18:55:02.098617: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1441] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI could not be loaded or symbol could not be found.
+Epoch 1/15
+      1/Unknown - 0s 29us/step - loss: 7.9957 - accuracy: 0.0000e+002020-12-30 18:55:06.245436: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1441] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI could not be loaded or symbol could not be found.
+WARNING:tensorflow:From /home/toni/proyectos/tensorflow/venv-tf-2.3/lib/python3.8/site-packages/tensorflow/python/ops/summary_ops_v2.py:1277: stop (from tensorflow.python.eager.profiler) is deprecated and will be removed after 2020-07-01.
+Instructions for updating:
+use `tf.profiler.experimental.stop` instead.
+WARNING:tensorflow:Callbacks method `on_train_batch_end` is slow compared to the batch time (batch time: 0.0084s vs `on_train_batch_end` time: 0.0166s). Check your callbacks.
+  21535/Unknown - 122s 6ms/step - loss: 4.8864 - accuracy: 0.1486   
+Epoch 00001: saving model to models/candidates_model/checkpoints/cp-0001.ckpt
+Mean ranking: 17.103348269903968
+* N. times next item in top 1 predictions: 43985 of 244813 / Ratio: 0.17966774640235608
+* N. times next item in top 8 predictions: 107756 of 244813 / Ratio: 0.4401563642453628
+* N. times next item in top 16 predictions: 128964 of 244813 / Ratio: 0.5267857507567
+* N. times next item in top 32 predictions: 148686 of 244813 / Ratio: 0.6073451981716658
+Predictions out of rank: 96127 / Ratio: 0.3926548018283343
+Mean probability: 0.07109313214426852
+21537/21537 [==============================] - 140s 7ms/step - loss: 4.8863 - accuracy: 0.1486 - val_loss: 4.5789 - val_accuracy: 0.1730
+Epoch 2/15
+21533/21537 [============================>.] - ETA: 0s - loss: 4.4455 - accuracy: 0.1806  
+Epoch 00002: saving model to models/candidates_model/checkpoints/cp-0002.ckpt
+Mean ranking: 16.69941955696797
+* N. times next item in top 1 predictions: 45730 of 244813 / Ratio: 0.18679563585267123
+* N. times next item in top 8 predictions: 110895 of 244813 / Ratio: 0.4529783957551274
+* N. times next item in top 16 predictions: 132171 of 244813 / Ratio: 0.5398855452937549
+* N. times next item in top 32 predictions: 151970 of 244813 / Ratio: 0.6207595184896227
+Predictions out of rank: 92843 / Ratio: 0.3792404815103773
+Mean probability: 0.0788644873888894
+21537/21537 [==============================] - 138s 6ms/step - loss: 4.4454 - accuracy: 0.1806 - val_loss: 4.4727 - val_accuracy: 0.1831

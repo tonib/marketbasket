@@ -1,0 +1,195 @@
+rnn / conv / without dense:
+
+Mean ranking: 18.11065180362154
+* N. times next item in top 1 predictions: 40344 of 244813 / Ratio: 0.16479517019112547
+* N. times next item in top 8 predictions: 100168 of 244813 / Ratio: 0.40916127820009557
+* N. times next item in top 16 predictions: 120723 of 244813 / Ratio: 0.49312332269936643
+* N. times next item in top 32 predictions: 140784 of 244813 / Ratio: 0.5750675005003819
+Predictions out of rank: 104029 / Ratio: 0.4249324994996181
+Mean probability: 0.051017579461754343
+43073/43073 [==============================] - 308s 7ms/step - loss: 5.1947 - accuracy: 0.1275 - val_loss: 4.9440 - val_accuracy: 0.1515
+Epoch 2/15
+43069/43073 [============================>.] - ETA: 0s - loss: 4.7985 - accuracy: 0.1560  
+Epoch 00002: saving model to models/candidates_model/checkpoints/cp-0002.ckpt
+Mean ranking: 17.672484712821625
+* N. times next item in top 1 predictions: 42300 of 244813 / Ratio: 0.17278494197612054
+* N. times next item in top 8 predictions: 103477 of 244813 / Ratio: 0.42267771727808573
+* N. times next item in top 16 predictions: 124171 of 244813 / Ratio: 0.507207542083141
+* N. times next item in top 32 predictions: 144185 of 244813 / Ratio: 0.5889597366152941
+Predictions out of rank: 100628 / Ratio: 0.4110402633847059
+Mean probability: 0.05583100226830589
+43073/43073 [==============================] - 313s 7ms/step - loss: 4.7985 - accuracy: 0.1560 - val_loss: 4.8355 - val_accuracy: 0.1602
+Epoch 3/15
+43066/43073 [============================>.] - ETA: 0s - loss: 4.6989 - accuracy: 0.1637  
+Epoch 00003: saving model to models/candidates_model/checkpoints/cp-0003.ckpt
+Mean ranking: 17.530490619370703
+* N. times next item in top 1 predictions: 43350 of 244813 / Ratio: 0.1770739298975136
+* N. times next item in top 8 predictions: 104843 of 244813 / Ratio: 0.428257486326298
+* N. times next item in top 16 predictions: 125424 of 244813 / Ratio: 0.5123257343360034
+* N. times next item in top 32 predictions: 145019 of 244813 / Ratio: 0.5923664184500006
+Predictions out of rank: 99794 / Ratio: 0.4076335815499994
+Mean probability: 0.054501044173859
+43073/43073 [==============================] - 313s 7ms/step - loss: 4.6988 - accuracy: 0.1637 - val_loss: 4.8034 - val_accuracy: 0.1653
+Epoch 4/15
+43069/43073 [============================>.] - ETA: 0s - loss: 4.6398 - accuracy: 0.1677  
+Epoch 00004: saving model to models/candidates_model/checkpoints/cp-0004.ckpt
+Mean ranking: 17.418396898857495
+* N. times next item in top 1 predictions: 43808 of 244813 / Ratio: 0.17894474558132126
+* N. times next item in top 8 predictions: 105607 of 244813 / Ratio: 0.43137823563291167
+* N. times next item in top 16 predictions: 126260 of 244813 / Ratio: 0.5157405856715126
+* N. times next item in top 32 predictions: 145901 of 244813 / Ratio: 0.5959691683039707
+Predictions out of rank: 98912 / Ratio: 0.4040308316960292
+Mean probability: 0.05717217524030779
+43073/43073 [==============================] - 312s 7ms/step - loss: 4.6397 - accuracy: 0.1677 - val_loss: 4.7702 - val_accuracy: 0.1683
+Epoch 5/15
+43070/43073 [============================>.] - ETA: 0s - loss: 4.6012 - accuracy: 0.1713  
+Epoch 00005: saving model to models/candidates_model/checkpoints/cp-0005.ckpt
+Mean ranking: 17.370911675442073
+* N. times next item in top 1 predictions: 44191 of 244813 / Ratio: 0.1805092049850294
+* N. times next item in top 8 predictions: 106010 of 244813 / Ratio: 0.4330243900446463
+* N. times next item in top 16 predictions: 126761 of 244813 / Ratio: 0.5177870456225773
+* N. times next item in top 32 predictions: 146045 of 244813 / Ratio: 0.5965573723617619
+Predictions out of rank: 98768 / Ratio: 0.4034426276382382
+Mean probability: 0.05812740566752292
+43073/43073 [==============================] - 312s 7ms/step - loss: 4.6012 - accuracy: 0.1713 - val_loss: 4.7532 - val_accuracy: 0.1705
+Epoch 6/15
+43073/43073 [==============================] - ETA: 0s - loss: 4.5704 - accuracy: 0.1731  
+Epoch 00006: saving model to models/candidates_model/checkpoints/cp-0006.ckpt
+Mean ranking: 17.348359768476346
+* N. times next item in top 1 predictions: 44299 of 244813 / Ratio: 0.18095035802837267
+* N. times next item in top 8 predictions: 106242 of 244813 / Ratio: 0.43397205213775414
+* N. times next item in top 16 predictions: 126877 of 244813 / Ratio: 0.5182608766691311
+* N. times next item in top 32 predictions: 146209 of 244813 / Ratio: 0.5972272714275794
+Predictions out of rank: 98604 / Ratio: 0.4027727285724206
+Mean probability: 0.059368116008020236
+43073/43073 [==============================] - 312s 7ms/step - loss: 4.5704 - accuracy: 0.1731 - val_loss: 4.7448 - val_accuracy: 0.1708
+Epoch 7/15
+43066/43073 [============================>.] - ETA: 0s - loss: 4.5489 - accuracy: 0.1746  
+Epoch 00007: saving model to models/candidates_model/checkpoints/cp-0007.ckpt
+Mean ranking: 17.370862658437257
+* N. times next item in top 1 predictions: 44329 of 244813 / Ratio: 0.18107290054041247
+* N. times next item in top 8 predictions: 106101 of 244813 / Ratio: 0.43339610233116704
+* N. times next item in top 16 predictions: 126702 of 244813 / Ratio: 0.5175460453488989
+* N. times next item in top 32 predictions: 145893 of 244813 / Ratio: 0.5959364903007601
+Predictions out of rank: 98920 / Ratio: 0.4040635096992398
+Mean probability: 0.05677440620323498
+43073/43073 [==============================] - 312s 7ms/step - loss: 4.5489 - accuracy: 0.1746 - val_loss: 4.7408 - val_accuracy: 0.1716
+Epoch 8/15
+43073/43073 [==============================] - ETA: 0s - loss: 4.5309 - accuracy: 0.1764  
+Epoch 00008: saving model to models/candidates_model/checkpoints/cp-0008.ckpt
+Mean ranking: 17.278253197338376
+* N. times next item in top 1 predictions: 44740 of 244813 / Ratio: 0.18275173295535777
+* N. times next item in top 8 predictions: 106705 of 244813 / Ratio: 0.4358632915735684
+* N. times next item in top 16 predictions: 127502 of 244813 / Ratio: 0.5208138456699604
+* N. times next item in top 32 predictions: 146652 of 244813 / Ratio: 0.5990368158553672
+Predictions out of rank: 98161 / Ratio: 0.40096318414463283
+Mean probability: 0.06131191719830964
+43073/43073 [==============================] - 312s 7ms/step - loss: 4.5309 - accuracy: 0.1764 - val_loss: 4.7233 - val_accuracy: 0.1733
+Epoch 9/15
+43072/43073 [============================>.] - ETA: 0s - loss: 4.5170 - accuracy: 0.1771  
+Epoch 00009: saving model to models/candidates_model/checkpoints/cp-0009.ckpt
+Mean ranking: 17.335206872184074
+* N. times next item in top 1 predictions: 44537 of 244813 / Ratio: 0.18192252862388844
+* N. times next item in top 8 predictions: 106423 of 244813 / Ratio: 0.43471139196039427
+* N. times next item in top 16 predictions: 126956 of 244813 / Ratio: 0.5185835719508359
+* N. times next item in top 32 predictions: 146045 of 244813 / Ratio: 0.5965573723617619
+Predictions out of rank: 98768 / Ratio: 0.4034426276382382
+Mean probability: 0.05862323164504181
+43073/43073 [==============================] - 311s 7ms/step - loss: 4.5170 - accuracy: 0.1771 - val_loss: 4.7234 - val_accuracy: 0.1731
+Epoch 10/15
+43069/43073 [============================>.] - ETA: 0s - loss: 4.5047 - accuracy: 0.1779  
+Epoch 00010: saving model to models/candidates_model/checkpoints/cp-0010.ckpt
+Mean ranking: 17.30957914816615
+* N. times next item in top 1 predictions: 44530 of 244813 / Ratio: 0.18189393537107915
+* N. times next item in top 8 predictions: 106531 of 244813 / Ratio: 0.43515254500373757
+* N. times next item in top 16 predictions: 127203 of 244813 / Ratio: 0.5195925052999636
+* N. times next item in top 32 predictions: 146387 of 244813 / Ratio: 0.5979543569990156
+Predictions out of rank: 98426 / Ratio: 0.40204564300098444
+
+rnn only:
+
+Epoch 00001: saving model to models/candidates_model/checkpoints/cp-0001.ckpt
+Mean ranking: 17.172245754923146
+* N. times next item in top 1 predictions: 43477 of 244813 / Ratio: 0.17759269319848212
+* N. times next item in top 8 predictions: 107183 of 244813 / Ratio: 0.43781580226540256
+* N. times next item in top 16 predictions: 128443 of 244813 / Ratio: 0.5246575957976087
+* N. times next item in top 32 predictions: 148361 of 244813 / Ratio: 0.6060176542912346
+Predictions out of rank: 96452 / Ratio: 0.39398234570876545
+Mean probability: 0.07129504601327036
+43073/43073 [==============================] - 276s 6ms/step - loss: 4.8636 - accuracy: 0.1523 - val_loss: 4.6083 - val_accuracy: 0.1721
+Epoch 2/15
+43069/43073 [============================>.] - ETA: 0s - loss: 4.4957 - accuracy: 0.1787  
+Epoch 00002: saving model to models/candidates_model/checkpoints/cp-0002.ckpt
+Mean ranking: 16.845600519580252
+* N. times next item in top 1 predictions: 44756 of 244813 / Ratio: 0.18281708896177898
+* N. times next item in top 8 predictions: 109741 of 244813 / Ratio: 0.44826459379199635
+* N. times next item in top 16 predictions: 131015 of 244813 / Ratio: 0.5351635738298212
+* N. times next item in top 32 predictions: 150984 of 244813 / Ratio: 0.6167319545939145
+Predictions out of rank: 93829 / Ratio: 0.38326804540608544
+Mean probability: 0.07837721888905536
+43073/43073 [==============================] - 274s 6ms/step - loss: 4.4957 - accuracy: 0.1787 - val_loss: 4.5189 - val_accuracy: 0.1801
+Epoch 3/15
+43073/43073 [==============================] - ETA: 0s - loss: 4.4084 - accuracy: 0.1851  
+Epoch 00003: saving model to models/candidates_model/checkpoints/cp-0003.ckpt
+Mean ranking: 16.739944365699532
+* N. times next item in top 1 predictions: 45481 of 244813 / Ratio: 0.18577853300274086
+* N. times next item in top 8 predictions: 110710 of 244813 / Ratio: 0.45222271693088195
+* N. times next item in top 16 predictions: 132003 of 244813 / Ratio: 0.5391993072263319
+* N. times next item in top 32 predictions: 151567 of 244813 / Ratio: 0.619113364077888
+Predictions out of rank: 93246 / Ratio: 0.38088663592211197
+Mean probability: 0.08151174338952542
+43073/43073 [==============================] - 276s 6ms/step - loss: 4.4084 - accuracy: 0.1851 - val_loss: 4.4938 - val_accuracy: 0.1838
+Epoch 4/15
+43073/43073 [==============================] - ETA: 0s - loss: 4.3606 - accuracy: 0.1899  
+Epoch 00004: saving model to models/candidates_model/checkpoints/cp-0004.ckpt
+Mean ranking: 16.730737338294944
+* N. times next item in top 1 predictions: 45547 of 244813 / Ratio: 0.18604812652922842
+* N. times next item in top 8 predictions: 110745 of 244813 / Ratio: 0.45236568319492837
+* N. times next item in top 16 predictions: 131915 of 244813 / Ratio: 0.5388398491910151
+* N. times next item in top 32 predictions: 151505 of 244813 / Ratio: 0.6188601095530057
+Predictions out of rank: 93308 / Ratio: 0.38113989044699426
+Mean probability: 0.08297521528387876
+43073/43073 [==============================] - 275s 6ms/step - loss: 4.3606 - accuracy: 0.1899 - val_loss: 4.4879 - val_accuracy: 0.1844
+Epoch 5/15
+43068/43073 [============================>.] - ETA: 0s - loss: 4.3319 - accuracy: 0.1921  
+Epoch 00005: saving model to models/candidates_model/checkpoints/cp-0005.ckpt
+Mean ranking: 16.718519849844576
+* N. times next item in top 1 predictions: 45577 of 244813 / Ratio: 0.18617066904126822
+* N. times next item in top 8 predictions: 110683 of 244813 / Ratio: 0.45211242867004614
+* N. times next item in top 16 predictions: 132184 of 244813 / Ratio: 0.5399386470489721
+* N. times next item in top 32 predictions: 151693 of 244813 / Ratio: 0.6196280426284552
+Predictions out of rank: 93120 / Ratio: 0.38037195737154483
+Mean probability: 0.08399835732642613
+43073/43073 [==============================] - 282s 7ms/step - loss: 4.3318 - accuracy: 0.1921 - val_loss: 4.4867 - val_accuracy: 0.1850
+
+con todo:
+
+Epoch 00001: saving model to models/candidates_model/checkpoints/cp-0001.ckpt
+Mean ranking: 18.11185272023953
+* N. times next item in top 1 predictions: 40135 of 244813 / Ratio: 0.1639414573572482
+* N. times next item in top 8 predictions: 99850 of 244813 / Ratio: 0.4078623275724737
+* N. times next item in top 16 predictions: 120764 of 244813 / Ratio: 0.49329079746582083
+* N. times next item in top 32 predictions: 141093 of 244813 / Ratio: 0.5763296883743919
+Predictions out of rank: 103720 / Ratio: 0.42367031162560814
+Mean probability: 0.05524130293679483
+43073/43073 [==============================] - 314s 7ms/step - loss: 5.1547 - accuracy: 0.1320 - val_loss: 4.9426 - val_accuracy: 0.1530
+Epoch 2/15
+43071/43073 [============================>.] - ETA: 0s - loss: 4.7900 - accuracy: 0.1595  
+Epoch 00002: saving model to models/candidates_model/checkpoints/cp-0002.ckpt
+Mean ranking: 17.813649601941073
+* N. times next item in top 1 predictions: 41925 of 244813 / Ratio: 0.17125316057562304
+* N. times next item in top 8 predictions: 102364 of 244813 / Ratio: 0.4181313900814091
+* N. times next item in top 16 predictions: 123128 of 244813 / Ratio: 0.5029471474145573
+* N. times next item in top 32 predictions: 142951 of 244813 / Ratio: 0.583919154620057
+Predictions out of rank: 101862 / Ratio: 0.41608084537994305
+Mean probability: 0.054509179783504856
+43073/43073 [==============================] - 313s 7ms/step - loss: 4.7900 - accuracy: 0.1595 - val_loss: 4.8804 - val_accuracy: 0.1612
+Epoch 3/15
+43066/43073 [============================>.] - ETA: 0s - loss: 4.7033 - accuracy: 0.1659  
+Epoch 00003: saving model to models/candidates_model/checkpoints/cp-0003.ckpt
+Mean ranking: 17.72654229963278
+* N. times next item in top 1 predictions: 42645 of 244813 / Ratio: 0.17419418086457827
+* N. times next item in top 8 predictions: 103276 of 244813 / Ratio: 0.42185668244741903
+* N. times next item in top 16 predictions: 123898 of 244813 / Ratio: 0.5060924052235788
+* N. times next item in top 32 predictions: 143330 of 244813 / Ratio: 0.5854672750221598
+Predictions out of rank: 101483 / Ratio: 0.4145327249778402
