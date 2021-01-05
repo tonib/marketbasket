@@ -1,3 +1,6 @@
+2020-12-31 12:04:22.438054 Process start: Candidates model train
+Settings:
+-----------------------------------------
 config_file_path: data/config.json
 n_max_items: 100
 n_max_customers: 100
@@ -15,15 +18,15 @@ rating_model_dir: models/rating_model
 n_candidates: 32
 train_log_level: 1
 tf_log_level: WARNING
-model_config: {'ensemble_layer_size': 512, 'conv_n_layers': 2, 'conv_layer_size': 128, 'rnn_layer_size': 128, 'dense_n_layers': 1, 'dense_layer_size': 64}
+model_config: {'ensemble_layer_size': 512, 'conv_n_layers': 2, 'conv_layer_size': 128, 'rnn_layer_size': 256, 'rnn_bidirectional': False, 'dense_n_layers': 1, 'dense_layer_size': 64}
 Features:
-	CliCod: label (transaction feature) / embedding_dim: 64 / max_labels: 1000 / # labels: 1001
+	CliCod: label (transaction feature) / embedding_dim: 16 / max_labels: 1000 / # labels: 1001
 	PncFlgPsp: label (transaction feature) / # labels: 2
 	CevCod: label (transaction feature) / # labels: 15
 	DocFecMonth: label (transaction feature) / # labels: 12
-	ArtCod: label (items sequence feature) / embedding_dim: 128 / max_labels: 3000 / # labels: 3000
+	ArtCod: label (items sequence feature) / embedding_dim: 32 / max_labels: 3000 / # labels: 3000
 -----------------------------------------
-Tensor("concatenate_1/concat:0", shape=(None, 16, 221), dtype=float32) 128 4
+Tensor("concatenate_1/concat:0", shape=(None, 16, 77), dtype=float32) 128 4
 Tensor("conv_0/Relu:0", shape=(None, 13, 128), dtype=float32) 128 4
 Model: "functional_1"
 __________________________________________________________________________________________________
@@ -39,7 +42,7 @@ DocFecMonth (InputLayer)        [(None,)]            0
 __________________________________________________________________________________________________
 ArtCod (InputLayer)             [(None, None)]       0                                            
 __________________________________________________________________________________________________
-embedding_CliCod (Embedding)    (None, 64)           64064       CliCod[0][0]                     
+embedding_CliCod (Embedding)    (None, 16)           16016       CliCod[0][0]                     
 __________________________________________________________________________________________________
 one_hot_PncFlgPsp (Lambda)      (None, 2)            0           PncFlgPsp[0][0]                  
 __________________________________________________________________________________________________
@@ -49,21 +52,21 @@ one_hot_DocFecMonth (Lambda)    (None, 12)           0           DocFecMonth[0][
 __________________________________________________________________________________________________
 add_one_pad_zeros_ArtCod (Lambd (None, 16)           0           ArtCod[0][0]                     
 __________________________________________________________________________________________________
-concatenate (Concatenate)       (None, 93)           0           embedding_CliCod[0][0]           
+concatenate (Concatenate)       (None, 45)           0           embedding_CliCod[0][0]           
                                                                  one_hot_PncFlgPsp[0][0]          
                                                                  one_hot_CevCod[0][0]             
                                                                  one_hot_DocFecMonth[0][0]        
 __________________________________________________________________________________________________
-masked_embedding_ArtCod (Embedd (None, 16, 128)      384128      add_one_pad_zeros_ArtCod[0][0]   
+masked_embedding_ArtCod (Embedd (None, 16, 32)       96032       add_one_pad_zeros_ArtCod[0][0]   
 __________________________________________________________________________________________________
-repeat_vector (RepeatVector)    (None, 16, 93)       0           concatenate[0][0]                
+repeat_vector (RepeatVector)    (None, 16, 45)       0           concatenate[0][0]                
 __________________________________________________________________________________________________
-concatenate_1 (Concatenate)     (None, 16, 221)      0           masked_embedding_ArtCod[0][0]    
+concatenate_1 (Concatenate)     (None, 16, 77)       0           masked_embedding_ArtCod[0][0]    
                                                                  repeat_vector[0][0]              
 __________________________________________________________________________________________________
-conv_0 (Conv1D)                 (None, 13, 128)      113280      concatenate_1[0][0]              
+conv_0 (Conv1D)                 (None, 13, 128)      39552       concatenate_1[0][0]              
 __________________________________________________________________________________________________
-rnn (Bidirectional)             (None, 256)          269568      concatenate_1[0][0]              
+rnn (GRU)                       (None, 256)          257280      concatenate_1[0][0]              
 __________________________________________________________________________________________________
 conv_1 (Conv1D)                 (None, 10, 128)      65664       conv_0[0][0]                     
 __________________________________________________________________________________________________
@@ -78,81 +81,81 @@ dense (Dense)                   (None, 512)          786944      concatenate_2[0
 __________________________________________________________________________________________________
 classification (Dense)          (None, 3000)         1539000     dense[0][0]                      
 ==================================================================================================
-Total params: 3,222,648
-Trainable params: 3,222,648
+Total params: 2,800,488
+Trainable params: 2,800,488
 Non-trainable params: 0
 __________________________________________________________________________________________________
-2020-12-30 18:36:10.432670: W tensorflow/stream_executor/platform/default/dso_loader.cc:59] Could not load dynamic library 'libcupti.so.10.1'; dlerror: libcupti.so.10.1: cannot open shared object file: No such file or directory
-2020-12-30 18:36:10.432715: W tensorflow/stream_executor/platform/default/dso_loader.cc:59] Could not load dynamic library 'libcupti.so'; dlerror: libcupti.so: cannot open shared object file: No such file or directory
-2020-12-30 18:36:10.432722: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1441] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI could not be loaded or symbol could not be found.
+2020-12-31 12:04:23.961943: W tensorflow/stream_executor/platform/default/dso_loader.cc:59] Could not load dynamic library 'libcupti.so.10.1'; dlerror: libcupti.so.10.1: cannot open shared object file: No such file or directory
+2020-12-31 12:04:23.961984: W tensorflow/stream_executor/platform/default/dso_loader.cc:59] Could not load dynamic library 'libcupti.so'; dlerror: libcupti.so: cannot open shared object file: No such file or directory
+2020-12-31 12:04:23.961992: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1441] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI could not be loaded or symbol could not be found.
 Epoch 1/15
-      1/Unknown - 0s 32us/step - loss: 8.0032 - accuracy: 0.0000e+002020-12-30 18:36:15.980227: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1441] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI could not be loaded or symbol could not be found.
+      1/Unknown - 0s 33us/step - loss: 7.9916 - accuracy: 0.0000e+002020-12-31 12:04:26.875318: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1441] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI could not be loaded or symbol could not be found.
 WARNING:tensorflow:From /home/toni/proyectos/tensorflow/venv-tf-2.3/lib/python3.8/site-packages/tensorflow/python/ops/summary_ops_v2.py:1277: stop (from tensorflow.python.eager.profiler) is deprecated and will be removed after 2020-07-01.
 Instructions for updating:
 use `tf.profiler.experimental.stop` instead.
-WARNING:tensorflow:Callbacks method `on_train_batch_end` is slow compared to the batch time (batch time: 0.0111s vs `on_train_batch_end` time: 0.0245s). Check your callbacks.
-  21536/Unknown - 134s 6ms/step - loss: 5.0750 - accuracy: 0.1331   
+WARNING:tensorflow:Callbacks method `on_train_batch_end` is slow compared to the batch time (batch time: 0.0067s vs `on_train_batch_end` time: 0.0158s). Check your callbacks.
+  21532/Unknown - 85s 4ms/step - loss: 5.1965 - accuracy: 0.1195    
 Epoch 00001: saving model to models/candidates_model/checkpoints/cp-0001.ckpt
-Mean ranking: 17.754330856613006
-* N. times next item in top 1 predictions: 41814 of 244813 / Ratio: 0.17079975328107577
-* N. times next item in top 8 predictions: 102656 of 244813 / Ratio: 0.41932413719859646
-* N. times next item in top 16 predictions: 123646 of 244813 / Ratio: 0.5050630481224445
-* N. times next item in top 32 predictions: 143786 of 244813 / Ratio: 0.5873299212051648
-Predictions out of rank: 101027 / Ratio: 0.41267007879483525
-Mean probability: 0.05526396864738687
-21537/21537 [==============================] - 155s 7ms/step - loss: 5.0750 - accuracy: 0.1331 - val_loss: 4.7930 - val_accuracy: 0.1590
+Mean ranking: 18.102751896345374
+* N. times next item in top 1 predictions: 39920 of 244813 / Ratio: 0.16306323602096293
+* N. times next item in top 8 predictions: 99879 of 244813 / Ratio: 0.40798078533411214
+* N. times next item in top 16 predictions: 120916 of 244813 / Ratio: 0.4939116795268225
+* N. times next item in top 32 predictions: 141156 of 244813 / Ratio: 0.5765870276496755
+Predictions out of rank: 103657 / Ratio: 0.42341297235032455
+Mean probability: 0.05209681809809138
+21537/21537 [==============================] - 102s 5ms/step - loss: 5.1964 - accuracy: 0.1195 - val_loss: 4.8686 - val_accuracy: 0.1491
 Epoch 2/15
-21530/21537 [============================>.] - ETA: 0s - loss: 4.6369 - accuracy: 0.1664  
+21527/21537 [============================>.] - ETA: 0s - loss: 4.7053 - accuracy: 0.1590  
 Epoch 00002: saving model to models/candidates_model/checkpoints/cp-0002.ckpt
-Mean ranking: 17.306858704398866
-* N. times next item in top 1 predictions: 43957 of 244813 / Ratio: 0.17955337339111893
-* N. times next item in top 8 predictions: 106378 of 244813 / Ratio: 0.43452757819233456
-* N. times next item in top 16 predictions: 127212 of 244813 / Ratio: 0.5196292680535756
-* N. times next item in top 32 predictions: 146900 of 244813 / Ratio: 0.6000498339548962
-Predictions out of rank: 97913 / Ratio: 0.3999501660451038
-Mean probability: 0.06040515961740972
-21537/21537 [==============================] - 152s 7ms/step - loss: 4.6368 - accuracy: 0.1664 - val_loss: 4.6974 - val_accuracy: 0.1699
+Mean ranking: 17.553189577350874
+* N. times next item in top 1 predictions: 42976 of 244813 / Ratio: 0.17554623324741742
+* N. times next item in top 8 predictions: 104456 of 244813 / Ratio: 0.42667668792098457
+* N. times next item in top 16 predictions: 125157 of 244813 / Ratio: 0.5112351059788491
+* N. times next item in top 32 predictions: 145218 of 244813 / Ratio: 0.5931792837798646
+Predictions out of rank: 99595 / Ratio: 0.4068207162201354
+Mean probability: 0.055834059737282074
+21537/21537 [==============================] - 101s 5ms/step - loss: 4.7051 - accuracy: 0.1590 - val_loss: 4.7523 - val_accuracy: 0.1638
 Epoch 3/15
-21536/21537 [============================>.] - ETA: 0s - loss: 4.5310 - accuracy: 0.1750  
+21536/21537 [============================>.] - ETA: 0s - loss: 4.5972 - accuracy: 0.1687  
 Epoch 00003: saving model to models/candidates_model/checkpoints/cp-0003.ckpt
-Mean ranking: 17.115443215842294
-* N. times next item in top 1 predictions: 45094 of 244813 / Ratio: 0.18419773459742741
-* N. times next item in top 8 predictions: 107881 of 244813 / Ratio: 0.44066695804552863
-* N. times next item in top 16 predictions: 128670 of 244813 / Ratio: 0.5255848341387099
-* N. times next item in top 32 predictions: 148246 of 244813 / Ratio: 0.605547907995082
-Predictions out of rank: 96567 / Ratio: 0.39445209200491804
-Mean probability: 0.06327214636639611
-21537/21537 [==============================] - 154s 7ms/step - loss: 4.5310 - accuracy: 0.1750 - val_loss: 4.6522 - val_accuracy: 0.1756
+Mean ranking: 17.32509303019039
+* N. times next item in top 1 predictions: 43860 of 244813 / Ratio: 0.17915715260219026
+* N. times next item in top 8 predictions: 106243 of 244813 / Ratio: 0.43397613688815545
+* N. times next item in top 16 predictions: 127131 of 244813 / Ratio: 0.5192984032710681
+* N. times next item in top 32 predictions: 146683 of 244813 / Ratio: 0.5991634431178083
+Predictions out of rank: 98130 / Ratio: 0.4008365568821917
+Mean probability: 0.06165368697593474
+21537/21537 [==============================] - 101s 5ms/step - loss: 4.5972 - accuracy: 0.1687 - val_loss: 4.6960 - val_accuracy: 0.1695
 Epoch 4/15
-21534/21537 [============================>.] - ETA: 0s - loss: 4.4668 - accuracy: 0.1802  
+21535/21537 [============================>.] - ETA: 0s - loss: 4.5370 - accuracy: 0.1741  
 Epoch 00004: saving model to models/candidates_model/checkpoints/cp-0004.ckpt
-Mean ranking: 17.02118351558128
-* N. times next item in top 1 predictions: 45354 of 244813 / Ratio: 0.18525976970177238
-* N. times next item in top 8 predictions: 108648 of 244813 / Ratio: 0.4437999616033462
-* N. times next item in top 16 predictions: 129561 of 244813 / Ratio: 0.529224346746292
-* N. times next item in top 32 predictions: 148998 of 244813 / Ratio: 0.6086196402968796
-Predictions out of rank: 95815 / Ratio: 0.39138035970312035
-Mean probability: 0.06662237513503304
-21537/21537 [==============================] - 152s 7ms/step - loss: 4.4667 - accuracy: 0.1802 - val_loss: 4.6342 - val_accuracy: 0.1776
+Mean ranking: 17.20388214678142
+* N. times next item in top 1 predictions: 44659 of 244813 / Ratio: 0.1824208681728503
+* N. times next item in top 8 predictions: 107138 of 244813 / Ratio: 0.43763198849734286
+* N. times next item in top 16 predictions: 127996 of 244813 / Ratio: 0.5228317123682158
+* N. times next item in top 32 predictions: 147680 of 244813 / Ratio: 0.6032359392679311
+Predictions out of rank: 97133 / Ratio: 0.396764060732069
+Mean probability: 0.06251995927830906
+21537/21537 [==============================] - 101s 5ms/step - loss: 4.5370 - accuracy: 0.1741 - val_loss: 4.6721 - val_accuracy: 0.1729
 Epoch 5/15
-21531/21537 [============================>.] - ETA: 0s - loss: 4.4236 - accuracy: 0.1837  
+21534/21537 [============================>.] - ETA: 0s - loss: 4.4949 - accuracy: 0.1772  
 Epoch 00005: saving model to models/candidates_model/checkpoints/cp-0005.ckpt
-Mean ranking: 16.981822860714097
-* N. times next item in top 1 predictions: 45923 of 244813 / Ratio: 0.1875839926801273
-* N. times next item in top 8 predictions: 108917 of 244813 / Ratio: 0.44489875946130314
-* N. times next item in top 16 predictions: 129882 of 244813 / Ratio: 0.5305355516251179
-* N. times next item in top 32 predictions: 149045 of 244813 / Ratio: 0.608811623565742
-Predictions out of rank: 95768 / Ratio: 0.39118837643425797
-Mean probability: 0.06749998852949377
-21537/21537 [==============================] - 151s 7ms/step - loss: 4.4235 - accuracy: 0.1838 - val_loss: 4.6264 - val_accuracy: 0.1809
+Mean ranking: 17.10630971394493
+* N. times next item in top 1 predictions: 45144 of 244813 / Ratio: 0.18440197211749376
+* N. times next item in top 8 predictions: 107830 of 244813 / Ratio: 0.44045863577506095
+* N. times next item in top 16 predictions: 128818 of 244813 / Ratio: 0.5261893771981063
+* N. times next item in top 32 predictions: 148406 of 244813 / Ratio: 0.6062014680592942
+Predictions out of rank: 96407 / Ratio: 0.39379853194070574
+Mean probability: 0.06513884318730793
+21537/21537 [==============================] - 100s 5ms/step - loss: 4.4949 - accuracy: 0.1772 - val_loss: 4.6498 - val_accuracy: 0.1759
 Epoch 6/15
-21532/21537 [============================>.] - ETA: 0s - loss: 4.3907 - accuracy: 0.1858  
+21527/21537 [============================>.] - ETA: 0s - loss: 4.4607 - accuracy: 0.1797  
 Epoch 00006: saving model to models/candidates_model/checkpoints/cp-0006.ckpt
-Mean ranking: 16.94883441647298
-* N. times next item in top 1 predictions: 46012 of 244813 / Ratio: 0.18794753546584536
-* N. times next item in top 8 predictions: 109165 of 244813 / Ratio: 0.44591177756083217
-* N. times next item in top 16 predictions: 129960 of 244813 / Ratio: 0.5308541621564214
-* N. times next item in top 32 predictions: 149506 of 244813 / Ratio: 0.6106946935007537
-Predictions out of rank: 95307 / Ratio: 0.3893053064992464
-Mean probability: 0.0693211235795119
-21537/21537 [==============================] - 151s 7ms/step - loss: 4.3907 - accuracy: 0.1859 - val_loss: 4.6254 - val_accuracy: 0.1813
+Mean ranking: 17.060327678677194
+* N. times next item in top 1 predictions: 45592 of 244813 / Ratio: 0.18623194029728812
+* N. times next item in top 8 predictions: 108225 of 244813 / Ratio: 0.442072112183585
+* N. times next item in top 16 predictions: 129162 of 244813 / Ratio: 0.5275945313361627
+* N. times next item in top 32 predictions: 148700 of 244813 / Ratio: 0.6074023846772842
+Predictions out of rank: 96113 / Ratio: 0.3925976153227157
+Mean probability: 0.06401314835708703
+21537/21537 [==============================] - 100s 5ms/step - loss: 4.4605 - accuracy: 0.1797 - val_loss: 4.6385 - val_accuracy: 0.1777

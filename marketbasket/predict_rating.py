@@ -51,7 +51,7 @@ class RatingPrediction(Prediction):
         input_batch[dataset.ITEM_TO_RATE] = items_to_rate
 
         # Get the rating for this transaction. Apply sigmoid, as model generates logits
-        new_ratings = self._rating_model(input_batch)
+        new_ratings = self._rating_model(input_batch, training=False)
         #new_ratings = tf.nn.sigmoid(new_ratings)
 
         # Reshape ratings
