@@ -67,7 +67,7 @@ with transactions_file.TransactionsFile(transactions_file.TransactionsFile.top_i
 # print(skipgrams.rows['21131'].most_common(10))
 # print( skipgrams.most_common('21131', 10) )
 
-PROBABILITY_DECAY = 0.3
+PROBABILITY_DECAY = 0.5
 def predict(skipgrams: Skipgrams, prior_items: List, n_top: int):
 
     probable_items: Dict[object, float] = defaultdict(lambda: 0.0)
@@ -95,6 +95,51 @@ def predict(skipgrams: Skipgrams, prior_items: List, n_top: int):
     probable_items = probable_items[0:n_top]
     # Return (items, probabilities)
     return tuple(zip(*probable_items))
+
+def predict_with_voting(skipgrams: Skipgrams, prior_items: List, n_top: int):
+
+    # Get candidades purposed by each item in prior
+    candidate_items_set = set()
+    prior_votes = []
+    for prior_item in prior_items:
+
+        # Get top items for each individual item in prior items
+        vote = skipgrams.most_common(prior_item, n_top * 3)
+
+        # Remove items already in prior
+        vote = filter(lambda x: x[0] not in prior_items, vote)
+
+        # prior_item votes. key = item, value = probability. Default value is 0.0
+        vote = defaultdict(lambda: 0.0, vote)
+
+        # Add all candidate items voted by this prior
+        for candidate_item in vote:
+            candidate_items_set.add(candidate_item)
+        
+        # Store the vote to avoid recalculate it later
+        prior_votes.append(vote)
+
+    # Now, for each candidate, get votes by each prior, and ponderate them with the decay
+    #n_priors = len(prior_items)
+    candidates_probabilities = {}
+    for candidate_item in candidate_items_set:
+        probabilities_sum = 0.0
+        decay = 1.0
+        weights_sum = 0
+        # Do a weighted probabilities sum. Most recent items will have a higher probability weight
+        for prior_vote in reversed(prior_votes):
+            probabilities_sum += prior_vote[candidate_item] * decay
+            weights_sum += decay
+            decay *= PROBABILITY_DECAY
+        candidates_probabilities[candidate_item] = probabilities_sum / weights_sum
+    
+    # Get most voted candidates
+    probable_items = sorted(candidates_probabilities.items(), key=lambda probable_item: probable_item[1], reverse=True)
+    probable_items = probable_items[0:n_top]
+    # Return (items, probabilities)
+    return tuple(zip(*probable_items))
+
+prediction_function = predict_with_voting
 
 # print()
 # print( predict(skipgrams, ['21131'], 10) )
@@ -130,7 +175,7 @@ def print_ranking(prediction_rankings: Counter, n_predictions: int, ranking_top:
     print(txt_result)
 
 def print_all_rankings():
-    print("WINDOW_SIZE =", WINDOW_SIZE, "PROBABILITY_DECAY =", PROBABILITY_DECAY)
+    print("WINDOW_SIZE =", WINDOW_SIZE, "PROBABILITY_DECAY =", PROBABILITY_DECAY, "Prediction function = " + prediction_function.__name__)
     # Print rankings
     if n_predictions > 0:
         mean_ranking = sum(ranking * count for ranking, count in prediction_rankings.items()) / n_predictions
@@ -157,7 +202,8 @@ for trn in eval_transactions:
         prior_items = items[0:i] if WINDOW_SIZE <= 0 else items[max(0, i-WINDOW_SIZE):i]
         item_to_predict = items[i]
 
-        predicted_items, probabilities = predict(skipgrams, prior_items, 64)
+        predicted_items, probabilities = prediction_function(skipgrams, prior_items, 64)
+        
         probs_sum += rank_prediction(predicted_items, probabilities, item_to_predict, prediction_rankings)
         n_predictions += 1
         if n_predictions % 2000 == 0:
