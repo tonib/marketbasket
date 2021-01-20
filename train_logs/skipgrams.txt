@@ -1,0 +1,53 @@
+WINDOW_SIZE = 1
+Mean ranking: 18.33407948107331
+* N. times next item in top 1 predictions: 38917 of 244813 / Ratio: 0.15896623136843224
+* N. times next item in top 8 predictions: 105628 of 244813 / Ratio: 0.4314640153913395
+* N. times next item in top 16 predictions: 126771 of 244813 / Ratio: 0.5178278931265905
+* N. times next item in top 32 predictions: 145400 of 244813 / Ratio: 0.5939227083529061
+Predictions out of rank: 84271 / Ratio: 0.3442260010702046
+Mean probability: 0.09793469383520467
+
+WINDOW_SIZE = 2
+Mean ranking: 18.40853222663829
+* N. times next item in top 1 predictions: 36932 of 244813 / Ratio: 0.15085800182179868
+* N. times next item in top 8 predictions: 103580 of 244813 / Ratio: 0.42309844656942236
+* N. times next item in top 16 predictions: 127692 of 244813 / Ratio: 0.5215899482462124
+* N. times next item in top 32 predictions: 148724 of 244813 / Ratio: 0.6075004186869162
+Predictions out of rank: 78453 / Ratio: 0.3204609232352857
+Mean probability: 0.13612636079716423
+
+WINDOW_SIZE = 3
+Mean ranking: 18.656268253728356
+* N. times next item in top 1 predictions: 35826 of 244813 / Ratio: 0.1463402678779313
+* N. times next item in top 8 predictions: 101441 of 244813 / Ratio: 0.4143611654609845
+* N. times next item in top 16 predictions: 126153 of 244813 / Ratio: 0.5153035173785706
+* N. times next item in top 32 predictions: 148569 of 244813 / Ratio: 0.6068672823747105
+Predictions out of rank: 77479 / Ratio: 0.31648237634439347
+Mean probability: 0.15661891107043696
+
+WINDOW_SIZE = 5
+Mean ranking: 18.999375033188596
+* N. times next item in top 1 predictions: 34752 of 244813 / Ratio: 0.14195324594690642
+* N. times next item in top 8 predictions: 98852 of 244813 / Ratio: 0.4037857466719496
+* N. times next item in top 16 predictions: 123679 of 244813 / Ratio: 0.5051978448856883
+* N. times next item in top 32 predictions: 147015 of 244813 / Ratio: 0.6005195802510488
+Predictions out of rank: 78108 / Ratio: 0.319051684346828
+Mean probability: 0.17760621522190248
+
+WINDOW_SIZE = 8
+Mean ranking: 19.27885365564737
+* N. times next item in top 1 predictions: 34237 of 244813 / Ratio: 0.13984959949022316
+* N. times next item in top 8 predictions: 96851 of 244813 / Ratio: 0.39561216111889486
+* N. times next item in top 16 predictions: 121639 of 244813 / Ratio: 0.4968649540669817
+* N. times next item in top 32 predictions: 145215 of 244813 / Ratio: 0.5931670295286606
+Predictions out of rank: 79233 / Ratio: 0.32364702854832056
+Mean probability: 0.19141971073751482
+
+WINDOW_SIZE = 0
+Mean ranking: 19.664605229297464
+* N. times next item in top 1 predictions: 33599 of 244813 / Ratio: 0.1372435287341767
+* N. times next item in top 8 predictions: 94196 of 244813 / Ratio: 0.38476714880337237
+* N. times next item in top 16 predictions: 118426 of 244813 / Ratio: 0.48374065102751895
+* N. times next item in top 32 predictions: 141741 of 244813 / Ratio: 0.5789766066344516
+Predictions out of rank: 82499 / Ratio: 0.33698782335905364
+Mean probability: 0.20788868436550015

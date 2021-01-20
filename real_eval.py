@@ -92,8 +92,8 @@ def run_real_eval(predictor):
     return n_predictions
 
 if __name__ == "__main__":
-    #predictor = Prediction()
-    predictor = RatingPrediction()
+    predictor = Prediction()
+    #predictor = RatingPrediction()
     start = time.time()
     n_predictions = run_real_eval(predictor)
     #cProfile.run('run_real_eval(predictor)', sort=SortKey.CUMULATIVE)
