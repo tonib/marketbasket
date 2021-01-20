@@ -53,7 +53,7 @@ class Skipgrams:
         return [ (item, related_instances / n_instances) for (item, related_instances) in related_top_items ]
 
 # Get transactions
-WINDOW_SIZE = 1
+WINDOW_SIZE = 5
 eval_transactions = []
 with transactions_file.TransactionsFile(transactions_file.TransactionsFile.top_items_path(), 'r') as trn_file:
     skipgrams = Skipgrams(WINDOW_SIZE)
@@ -67,11 +67,15 @@ with transactions_file.TransactionsFile(transactions_file.TransactionsFile.top_i
 # print(skipgrams.rows['21131'].most_common(10))
 # print( skipgrams.most_common('21131', 10) )
 
+PROBABILITY_DECAY = 0.3
 def predict(skipgrams: Skipgrams, prior_items: List, n_top: int):
 
     probable_items: Dict[object, float] = defaultdict(lambda: 0.0)
 
-    for prior_item in prior_items:
+    # Traverse prior items, the most recently requested first
+    # Reduce the predicted probability by older items exponentially with decay variable
+    decay = 1.0
+    for prior_item in reversed(prior_items):
         # Get top items for each individual item in prior items
         probables_for_prior = skipgrams.most_common(prior_item, n_top * 3)
 
@@ -80,14 +84,16 @@ def predict(skipgrams: Skipgrams, prior_items: List, n_top: int):
 
         # Traverse predicted items
         for probable_item, probability in probables_for_prior:
+            probability *= decay
             current_probability = probable_items[probable_item]
             if probability > current_probability:
                 probable_items[probable_item] = probability
+        decay *= PROBABILITY_DECAY
 
     # Sort by most probable
     probable_items = sorted(probable_items.items(), key=lambda probable_item: probable_item[1], reverse=True)
     probable_items = probable_items[0:n_top]
-    # Return (items, probabilties)
+    # Return (items, probabilities)
     return tuple(zip(*probable_items))
 
 # print()
@@ -124,7 +130,7 @@ def print_ranking(prediction_rankings: Counter, n_predictions: int, ranking_top:
     print(txt_result)
 
 def print_all_rankings():
-    print("WINDOW_SIZE =", WINDOW_SIZE)
+    print("WINDOW_SIZE =", WINDOW_SIZE, "PROBABILITY_DECAY =", PROBABILITY_DECAY)
     # Print rankings
     if n_predictions > 0:
         mean_ranking = sum(ranking * count for ranking, count in prediction_rankings.items()) / n_predictions
