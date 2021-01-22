@@ -53,7 +53,7 @@ class Skipgrams:
         return [ (item, related_instances / n_instances) for (item, related_instances) in related_top_items ]
 
 # Get transactions
-WINDOW_SIZE = 5
+WINDOW_SIZE = 4
 eval_transactions = []
 with transactions_file.TransactionsFile(transactions_file.TransactionsFile.top_items_path(), 'r') as trn_file:
     skipgrams = Skipgrams(WINDOW_SIZE)
@@ -67,15 +67,18 @@ with transactions_file.TransactionsFile(transactions_file.TransactionsFile.top_i
 # print(skipgrams.rows['21131'].most_common(10))
 # print( skipgrams.most_common('21131', 10) )
 
-PROBABILITY_DECAY = 0.5
-def predict(skipgrams: Skipgrams, prior_items: List, n_top: int):
+PROBABILITY_DECAY = 0.3
+def predict_max_prob(skipgrams: Skipgrams, prior_items: List, n_top: int):
 
     probable_items: Dict[object, float] = defaultdict(lambda: 0.0)
+
+    # If there is window size, get predictions only from items in window. Otherwise, get prediction from all priors
+    relevant_prior_items = prior_items[-WINDOW_SIZE:] if WINDOW_SIZE > 0 and len(prior_items) > WINDOW_SIZE else prior_items
 
     # Traverse prior items, the most recently requested first
     # Reduce the predicted probability by older items exponentially with decay variable
     decay = 1.0
-    for prior_item in reversed(prior_items):
+    for prior_item in reversed(relevant_prior_items):
         # Get top items for each individual item in prior items
         probables_for_prior = skipgrams.most_common(prior_item, n_top * 3)
 
@@ -85,6 +88,7 @@ def predict(skipgrams: Skipgrams, prior_items: List, n_top: int):
         # Traverse predicted items
         for probable_item, probability in probables_for_prior:
             probability *= decay
+            # Keep maximum probability for any predicted item
             current_probability = probable_items[probable_item]
             if probability > current_probability:
                 probable_items[probable_item] = probability
@@ -98,10 +102,13 @@ def predict(skipgrams: Skipgrams, prior_items: List, n_top: int):
 
 def predict_with_voting(skipgrams: Skipgrams, prior_items: List, n_top: int):
 
+    # If there is window size, get predictions only from items in window. Otherwise, get prediction from all priors
+    relevant_prior_items = prior_items[-WINDOW_SIZE:] if WINDOW_SIZE > 0 and len(prior_items) > WINDOW_SIZE else prior_items
+
     # Get candidades purposed by each item in prior
     candidate_items_set = set()
     prior_votes = []
-    for prior_item in prior_items:
+    for prior_item in relevant_prior_items:
 
         # Get top items for each individual item in prior items
         vote = skipgrams.most_common(prior_item, n_top * 3)
@@ -120,7 +127,6 @@ def predict_with_voting(skipgrams: Skipgrams, prior_items: List, n_top: int):
         prior_votes.append(vote)
 
     # Now, for each candidate, get votes by each prior, and ponderate them with the decay
-    #n_priors = len(prior_items)
     candidates_probabilities = {}
     for candidate_item in candidate_items_set:
         probabilities_sum = 0.0
@@ -139,7 +145,7 @@ def predict_with_voting(skipgrams: Skipgrams, prior_items: List, n_top: int):
     # Return (items, probabilities)
     return tuple(zip(*probable_items))
 
-prediction_function = predict_with_voting
+prediction_function = predict_max_prob
 
 # print()
 # print( predict(skipgrams, ['21131'], 10) )
@@ -199,7 +205,7 @@ trn: transaction.Transaction
 for trn in eval_transactions:
     items = trn.item_labels
     for i in range(1, len(items)):
-        prior_items = items[0:i] if WINDOW_SIZE <= 0 else items[max(0, i-WINDOW_SIZE):i]
+        prior_items = items[0:i]
         item_to_predict = items[i]
 
         predicted_items, probabilities = prediction_function(skipgrams, prior_items, 64)
