@@ -67,7 +67,7 @@ with transactions_file.TransactionsFile(transactions_file.TransactionsFile.top_i
 # print(skipgrams.rows['21131'].most_common(10))
 # print( skipgrams.most_common('21131', 10) )
 
-PROBABILITY_DECAY = 0.3
+PROBABILITY_DECAY = 0.0
 def predict_max_prob(skipgrams: Skipgrams, prior_items: List, n_top: int):
 
     probable_items: Dict[object, float] = defaultdict(lambda: 0.0)
@@ -98,6 +98,8 @@ def predict_max_prob(skipgrams: Skipgrams, prior_items: List, n_top: int):
     probable_items = sorted(probable_items.items(), key=lambda probable_item: probable_item[1], reverse=True)
     probable_items = probable_items[0:n_top]
     # Return (items, probabilities)
+    if len(probable_items) == 0:
+        return [],[]
     return tuple(zip(*probable_items))
 
 def predict_with_voting(skipgrams: Skipgrams, prior_items: List, n_top: int):
@@ -143,6 +145,8 @@ def predict_with_voting(skipgrams: Skipgrams, prior_items: List, n_top: int):
     probable_items = sorted(candidates_probabilities.items(), key=lambda probable_item: probable_item[1], reverse=True)
     probable_items = probable_items[0:n_top]
     # Return (items, probabilities)
+    if len(probable_items) == 0:
+        return [],[]
     return tuple(zip(*probable_items))
 
 prediction_function = predict_max_prob

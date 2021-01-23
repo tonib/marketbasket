@@ -1,3 +1,11 @@
+WINDOW_SIZE = 3 PROBABILITY_DECAY = 0.3 Prediction function = predict_max_prob
+Mean ranking: 18.716532197162618
+* N. times next item in top 1 predictions: 48690 of 284699 / Ratio: 0.17102272926845546
+* N. times next item in top 8 predictions: 120125 of 284699 / Ratio: 0.4219368526057345
+* N. times next item in top 16 predictions: 143600 of 284699 / Ratio: 0.5043923582450237
+* N. times next item in top 32 predictions: 165405 of 284699 / Ratio: 0.5809820196066723
+Predictions out of rank: 100471 / Ratio: 0.35290253917295106
+Mean probability: 0.13376643802696686
 
 WINDOW_SIZE = 3 PROBABILITY_DECAY = 0.75 Prediction function = predict_with_voting
 Mean ranking: 18.134437305208465
