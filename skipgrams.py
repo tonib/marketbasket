@@ -50,14 +50,17 @@ class Skipgrams:
             return []
         
         related_top_items = self.rows[item].most_common(n_top)
-        return [ (item, related_instances / n_instances) for (item, related_instances) in related_top_items ]
+        return [ (related_item, related_instances_count / n_instances) for (related_item, related_instances_count) in related_top_items ]
 
 # Get transactions
-WINDOW_SIZE = 4
+WINDOW_SIZE = 3
 eval_transactions = []
 with transactions_file.TransactionsFile(transactions_file.TransactionsFile.top_items_path(), 'r') as trn_file:
     skipgrams = Skipgrams(WINDOW_SIZE)
     for trn in trn_file:
+        # Ignore single item transactions
+        if trn.sequence_length() <= 1:
+            continue
         if random.random() <= settings.settings.evaluation_ratio:
             eval_transactions.append( trn )
         else:
@@ -67,7 +70,7 @@ with transactions_file.TransactionsFile(transactions_file.TransactionsFile.top_i
 # print(skipgrams.rows['21131'].most_common(10))
 # print( skipgrams.most_common('21131', 10) )
 
-PROBABILITY_DECAY = 0.0
+PROBABILITY_DECAY = 0.5
 def predict_max_prob(skipgrams: Skipgrams, prior_items: List, n_top: int):
 
     probable_items: Dict[object, float] = defaultdict(lambda: 0.0)
@@ -149,7 +152,7 @@ def predict_with_voting(skipgrams: Skipgrams, prior_items: List, n_top: int):
         return [],[]
     return tuple(zip(*probable_items))
 
-prediction_function = predict_max_prob
+prediction_function = predict_with_voting
 
 # print()
 # print( predict(skipgrams, ['21131'], 10) )
@@ -159,7 +162,7 @@ prediction_function = predict_max_prob
 # print( predict(skipgrams, ['21177', '21131'], 10) )
 
 # Number of top predicted items to count
-N_TOP_PREDICTIONS = 32
+N_TOP_PREDICTIONS = 64
 OUT_OF_RANKINGS = N_TOP_PREDICTIONS + 1
 
 def rank_prediction(predicted_items, predicted_probabilities, expected_item, prediction_rankings: Counter) -> float:
@@ -190,7 +193,7 @@ def print_all_rankings():
     if n_predictions > 0:
         mean_ranking = sum(ranking * count for ranking, count in prediction_rankings.items()) / n_predictions
         print("Mean ranking:", mean_ranking)
-    for rank in [1, 8, 16, 32]:
+    for rank in [1, 8, 16, 32, 64]:
         print_ranking(prediction_rankings, n_predictions, rank)
     if OUT_OF_RANKINGS in prediction_rankings:
         n_out_of_rank = prediction_rankings[OUT_OF_RANKINGS]
@@ -212,7 +215,7 @@ for trn in eval_transactions:
         prior_items = items[0:i]
         item_to_predict = items[i]
 
-        predicted_items, probabilities = prediction_function(skipgrams, prior_items, 64)
+        predicted_items, probabilities = prediction_function(skipgrams, prior_items, N_TOP_PREDICTIONS)
         
         probs_sum += rank_prediction(predicted_items, probabilities, item_to_predict, prediction_rankings)
         n_predictions += 1

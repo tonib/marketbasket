@@ -1,90 +1,27 @@
-WINDOW_SIZE = 3 PROBABILITY_DECAY = 0.3 Prediction function = predict_max_prob
-Mean ranking: 18.716532197162618
-* N. times next item in top 1 predictions: 48690 of 284699 / Ratio: 0.17102272926845546
-* N. times next item in top 8 predictions: 120125 of 284699 / Ratio: 0.4219368526057345
-* N. times next item in top 16 predictions: 143600 of 284699 / Ratio: 0.5043923582450237
-* N. times next item in top 32 predictions: 165405 of 284699 / Ratio: 0.5809820196066723
-Predictions out of rank: 100471 / Ratio: 0.35290253917295106
-Mean probability: 0.13376643802696686
-
-WINDOW_SIZE = 3 PROBABILITY_DECAY = 0.75 Prediction function = predict_with_voting
-Mean ranking: 18.134437305208465
-* N. times next item in top 1 predictions: 41428 of 244813 / Ratio: 0.16922303962616364
-* N. times next item in top 8 predictions: 106438 of 244813 / Ratio: 0.43477266321641417
-* N. times next item in top 16 predictions: 129241 of 244813 / Ratio: 0.5279172266178676
-* N. times next item in top 32 predictions: 150025 of 244813 / Ratio: 0.6128146789590422
-Predictions out of rank: 77170 / Ratio: 0.3152201884703835
-Mean probability: 0.10894390091934714
-
 **BEST**
-WINDOW_SIZE = 4 PROBABILITY_DECAY = 0.3 Prediction function = predict_with_voting
-Mean ranking: 18.09217647755634
-* N. times next item in top 1 predictions: 43132 of 244813 / Ratio: 0.17618345431002438
-* N. times next item in top 8 predictions: 107592 of 244813 / Ratio: 0.4394864651795452
-* N. times next item in top 16 predictions: 129506 of 244813 / Ratio: 0.528999685474219
-* N. times next item in top 32 predictions: 149330 of 244813 / Ratio: 0.6099757774301201
-Predictions out of rank: 77885 / Ratio: 0.3181407850073321
-Mean probability: 0.13078414053150605
+WINDOW_SIZE = 3 PROBABILITY_DECAY = 0.5 Prediction function = predict_with_voting
+Mean ranking: 18.516436657663004
+* N. times next item in top 1 predictions: 48629 of 284699 / Ratio: 0.17080846789064943
+* N. times next item in top 8 predictions: 121138 of 284699 / Ratio: 0.425494996469956
+* N. times next item in top 16 predictions: 145712 of 284699 / Ratio: 0.5118107193913571
+* N. times next item in top 32 predictions: 168150 of 284699 / Ratio: 0.5906237816079438
+Predictions out of rank: 97544 / Ratio: 0.34262150551986487
+Mean probability: 0.11227968010124392
 
-WINDOW_SIZE = 4 PROBABILITY_DECAY = 0.3 Prediction function = predict_max_prob
-Mean ranking: 18.269752831753216
-* N. times next item in top 1 predictions: 42587 of 244813 / Ratio: 0.17395726534130132
-* N. times next item in top 8 predictions: 106489 of 244813 / Ratio: 0.4349809854868818
-* N. times next item in top 16 predictions: 127939 of 244813 / Ratio: 0.5225988815953401
-* N. times next item in top 32 predictions: 147552 of 244813 / Ratio: 0.6027130912165612
-Predictions out of rank: 79887 / Ratio: 0.32631845531078824
-Mean probability: 0.14615232071554066
+WINDOW_SIZE = 4 PROBABILITY_DECAY = 0.3 Prediction function = predict_with_voting
+Mean ranking: 18.619837091103236
+* N. times next item in top 1 predictions: 48374 of 284699 / Ratio: 0.16991278508178814
+* N. times next item in top 8 predictions: 120674 of 284699 / Ratio: 0.4238652050059888
+* N. times next item in top 16 predictions: 144856 of 284699 / Ratio: 0.508804035138866
+* N. times next item in top 32 predictions: 167083 of 284699 / Ratio: 0.5868759637371399
+Predictions out of rank: 98376 / Ratio: 0.345543890213875
+Mean probability: 0.12673126724950384
 
 WINDOW_SIZE = 4 PROBABILITY_DECAY = 0.5 Prediction function = predict_with_voting
-Mean ranking: 18.063963106534374
-* N. times next item in top 1 predictions: 42259 of 244813 / Ratio: 0.17261746720966614
-* N. times next item in top 8 predictions: 107265 of 244813 / Ratio: 0.43815075179831137
-* N. times next item in top 16 predictions: 129785 of 244813 / Ratio: 0.5301393308361892
-* N. times next item in top 32 predictions: 150237 of 244813 / Ratio: 0.6136806460441234
-Predictions out of rank: 76860 / Ratio: 0.3139539158459722
-Mean probability: 0.1221971800454407
-
-WINDOW_SIZE = 5 PROBABILITY_DECAY = 0.3 Prediction function = predict_with_voting
-Mean ranking: 18.18053371348744
-* N. times next item in top 1 predictions: 42344 of 244813 / Ratio: 0.17296467099377894
-* N. times next item in top 8 predictions: 106972 of 244813 / Ratio: 0.43695391993072263
-* N. times next item in top 16 predictions: 128883 of 244813 / Ratio: 0.5264548859741925
-* N. times next item in top 32 predictions: 148881 of 244813 / Ratio: 0.6081417244999244
-Predictions out of rank: 78176 / Ratio: 0.3193294473741182
-Mean probability: 0.13614981224449293
-
-WINDOW_SIZE = 5 PROBABILITY_DECAY = 0.5 Prediction function = predict_with_voting
-Mean ranking: 18.15391339512199
-* N. times next item in top 1 predictions: 41618 of 244813 / Ratio: 0.16999914220241572
-* N. times next item in top 8 predictions: 106623 of 244813 / Ratio: 0.4355283420406596
-* N. times next item in top 16 predictions: 129186 of 244813 / Ratio: 0.5276925653457946
-* N. times next item in top 32 predictions: 149899 of 244813 / Ratio: 0.612300000408475
-Predictions out of rank: 76883 / Ratio: 0.3140478651052028
-Mean probability: 0.1269055821317313
-
-WINDOW_SIZE = 5 PROBABILITY_DECAY = 0.5 Prediction function = predict_max_prob
-Mean ranking: 18.282950660299903
-* N. times next item in top 1 predictions: 41836 of 244813 / Ratio: 0.17088961778990494
-* N. times next item in top 8 predictions: 106020 of 244813 / Ratio: 0.4330652375486596
-* N. times next item in top 16 predictions: 128207 of 244813 / Ratio: 0.5236935947028957
-* N. times next item in top 32 predictions: 148524 of 244813 / Ratio: 0.6066834686066508
-Predictions out of rank: 78350 / Ratio: 0.32004019394394906
-Mean probability: 0.15460162082137408
-
-WINDOW_SIZE = 5 PROBABILITY_DECAY = 0.75 Prediction function = predict_max_prob
-Mean ranking: 18.383713283199832
-* N. times next item in top 1 predictions: 40712 of 244813 / Ratio: 0.1662983583388137
-* N. times next item in top 8 predictions: 104657 of 244813 / Ratio: 0.42749772275165127
-* N. times next item in top 16 predictions: 127682 of 244813 / Ratio: 0.5215491007421992
-* N. times next item in top 32 predictions: 148809 of 244813 / Ratio: 0.6078476224710289
-Predictions out of rank: 77581 / Ratio: 0.3168990208853288
-Mean probability: 0.16124275043637218
-
-WINDOW_SIZE = 8 PROBABILITY_DECAY = 0.75 Prediction function = predict_with_voting
-Mean ranking: 18.650108450123156
-* N. times next item in top 1 predictions: 38050 of 244813 / Ratio: 0.15542475277048196
-* N. times next item in top 8 predictions: 102549 of 244813 / Ratio: 0.4188870689056545
-* N. times next item in top 16 predictions: 126009 of 244813 / Ratio: 0.5147153133207796
-* N. times next item in top 32 predictions: 148139 of 244813 / Ratio: 0.60511083970214
-Predictions out of rank: 77377 / Ratio: 0.31606573180345815
-Mean probability: 0.12356356927018272
+Mean ranking: 18.60450159642289
+* N. times next item in top 1 predictions: 47706 of 284699 / Ratio: 0.1675664473707319
+* N. times next item in top 8 predictions: 120398 of 284699 / Ratio: 0.4228957600834566
+* N. times next item in top 16 predictions: 145174 of 284699 / Ratio: 0.50992100428874
+* N. times next item in top 32 predictions: 168095 of 284699 / Ratio: 0.590430595119758
+Predictions out of rank: 97081 / Ratio: 0.34099522653750103
+Mean probability: 0.11820907980128123
